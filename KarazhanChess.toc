@@ -1,4 +1,9 @@
+#@retail@
 ## Interface: 80300
+#@end-retail@
+#@non-retail@
+## Interface: 11305
+#@end-non-retail@
 
 ## Title: |cff1784d|Karazhan Chess|r
 ## Notes: Lightweight Chess Engine (WIP)
@@ -6,11 +11,10 @@
 ## Version: @project-version@
 
 ## X-Category: Raid
-## X-License: All Rights Reserved.
-## X-Website: https://github.com/BigWigsMods
-## X-Curse-Project-ID: 2382
-## X-WoWI-ID: 5086
+## X-License: Apache License 2.0.
+## X-Website: https://github.com/MikeD89/KarazhanChess
+## X-Curse-Project-ID: 0
+## X-WoWI-ID: 0
 
 embeds.xml
-
 KarazhanChess/Manifest.xml

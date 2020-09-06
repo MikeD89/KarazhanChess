@@ -9,6 +9,7 @@
 ## Notes: Lightweight Chess Engine (WIP)
 ## Author: MeloN <Convicted>
 ## Version: @project-version@
+## SavedVariables: KarazhanChessDB
 
 ## X-Category: Minigame
 ## X-License: Apache License 2.0

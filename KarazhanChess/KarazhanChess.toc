@@ -6,4 +6,4 @@
 
 embeds.xml
 
-WoWChess.lua
+KarazhanChess.lua

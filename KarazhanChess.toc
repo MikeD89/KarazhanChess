@@ -1,0 +1,16 @@
+## Interface: 80300
+
+## Title: |cff1784d|Karazhan Chess|r
+## Notes: Lightweight Chess Engine (WIP)
+## Author: MeloN <Convicted>
+## Version: @project-version@
+
+## X-Category: Raid
+## X-License: All Rights Reserved.
+## X-Website: https://github.com/BigWigsMods
+## X-Curse-Project-ID: 2382
+## X-WoWI-ID: 5086
+
+embeds.xml
+
+KarazhanChess/Manifest.xml

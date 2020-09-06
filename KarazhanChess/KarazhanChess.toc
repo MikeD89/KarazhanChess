@@ -1,9 +1,0 @@
-## Interface: 80300
-## Title: |cff1784d1WoW Chess|r
-## Notes: pawn to e4
-## Version: 0.1a
-## Author: MeloN <Convicted>
-
-embeds.xml
-
-KarazhanChess.lua

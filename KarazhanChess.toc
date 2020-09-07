@@ -18,4 +18,4 @@
 ## X-WoWI-ID: 0
 
 embeds.xml
-KarazhanChess/Main.lua
+modules.xml

@@ -29,16 +29,17 @@ end
 -- Libraries
 KC.CONFIG = LibStub("AceConfig-3.0")                              
 KC.ICON = LibStub("LibDBIcon-1.0")
+KC.LDB = LibStub("LibDataBroker-1.1");
 KC.LSM = LibStub("LibSharedMedia-3.0")
 KC.SER = LibStub("AceSerializer-3.0");
 KC.ACD = LibStub("AceConfigDialog-3.0")
 KC.ACR = LibStub("AceConfigRegistry-3.0");
-KC.LDB = LibStub("LibDataBroker-1.1");
 
 -- Globals
 KC.name = "Karazhan Chess"
 KC.formattedName = KC.name.." ("..format("|cff33ffff%s|r","v"..KC.version)..")"
 KC.dbName = "KarazhanChessDB"
+KC.dir = "Interface\\AddOns\\KarazhanChess\\"
 KC.dateChangedReal = showRealDate(KC.dateChanged)
 KC.player = UnitName("player")
 KC.realm = GetRealmName();
@@ -70,12 +71,10 @@ end
 
 function KC:createBroker()
 	-- Data for the Minimap Broker
-	-- TODO - Why does this not display my icon?
-	-- "Interface\\AddOns\\KarazhanChess\\Textures\\minimap.png"
 	local data = {
 		type = "launcher", 
 		label = KC.name, 
-		icon = "Interface\\AddOns\\ElvUI\\Media\\Textures\\Button-Backpack-Up.tga"
+		icon = KC.dir.."Textures\\minimap.blp"
 	}
 	
 	-- Create minimap button

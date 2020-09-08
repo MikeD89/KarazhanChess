@@ -5,9 +5,9 @@
 -- Main Loader and Entry Point
 -------------------------------------------------------------------------------
 
---------------------
----- Addon Init ----
---------------------
+------------------------
+---- Initialisation ----
+------------------------
 
 KC = LibStub("AceAddon-3.0"):NewAddon("KarazhanChess", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0");
 
@@ -27,17 +27,19 @@ end
 -------------------
 
 -- Libraries
-KC.CONFIG = LibStub("AceConfig-3.0")                              
-KC.ICON = LibStub("LibDBIcon-1.0")
+KC.CONFIG = LibStub("AceConfig-3.0");
+KC.ICON = LibStub("LibDBIcon-1.0");
 KC.LDB = LibStub("LibDataBroker-1.1");
-KC.LSM = LibStub("LibSharedMedia-3.0")
+KC.LSM = LibStub("LibSharedMedia-3.0");
 KC.SER = LibStub("AceSerializer-3.0");
-KC.ACD = LibStub("AceConfigDialog-3.0")
+KC.ACD = LibStub("AceConfigDialog-3.0");
 KC.ACR = LibStub("AceConfigRegistry-3.0");
+KC.GUI = LibStub("AceGUI-3.0");
 
 -- Globals
+KC.loaded = false
 KC.name = "Karazhan Chess"
-KC.formattedName = KC.name.." ("..format("|cff33ffff%s|r","v"..KC.version)..")"
+KC.formattedName = KC.name.." - "..format("|cff33ffff%s|r","v"..KC.version)
 KC.dbName = "KarazhanChessDB"
 KC.dir = "Interface\\AddOns\\KarazhanChess\\"
 KC.dateChangedReal = showRealDate(KC.dateChanged)
@@ -45,6 +47,15 @@ KC.player = UnitName("player")
 KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
 
+-- Frame Globals
+KC.frame = nil
+KC.minWidth = 800
+KC.minHeight = 600
+KC.defaultWidth = 800
+KC.defaultHeight = 600
+
+
+-- Init Function
 function KC:OnInitialize()
 	-- Open the databace and register options
 	self.db = LibStub("AceDB-3.0"):New(KC.dbName, KC.optionDefaults, "Default");
@@ -53,15 +64,18 @@ function KC:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
 	self.KCOptions = KC.ACD:AddToBlizOptions(KC.name, KC.name);
 
-	-- TODO - Multiplayer Comms
+	-- TODO - Register Multiplayer Comms
 	--self:RegisterComm(self.commPrefix);
 
 	-- Setup Methods
 	KC:createBroker()
+	KC.frame = KC:createChessFrame();
 end
 
+-- Enable Message
 function KC:OnEnable()
-    KC:Print(KC.formattedName.." Loaded!")
+	KC:Print(KC.formattedName.." Loaded!")
+	KC.loaded = true
 end
 
 
@@ -83,7 +97,7 @@ function KC:createBroker()
 	-- Register Click Function
 	function dataBroker.OnClick(self, button)
 		if (button == "LeftButton") then
-			KC:OpenWindow()
+			KC:ToggleWindow()
 		elseif (button == "RightButton") then
 			if (InterfaceOptionsFrame and InterfaceOptionsFrame:IsShown()) then
 				InterfaceOptionsFrame:Hide();
@@ -110,25 +124,54 @@ end
 ---- Window Management ----
 ---------------------------
 
+-- Small function that checks if we have a window that can be loaded
+function KC:HasWindow()
+	if isNull(self.frame) or not self.loaded then
+		return false
+	else 
+		return true
+	end
+end
+
 function KC:OpenConfig()
 	--Opening the frame needs to be run twice to avoid a bug.
 	InterfaceOptionsFrame_OpenToCategory(KC.name);
 	InterfaceOptionsFrame_OpenToCategory(KC.name);
 end
 
-function KC:OpenWindow() 
-    shown = not shown
-    print("Toggle Window! ")
-    print(shown)
+-- Toggles the state of the window
+function KC:ToggleWindow() 
+	if KC:HasWindow() then
+		if (self.frame:IsShown()) then
+			self.frame:Hide()
+		else
+			self.frame:Show()
+		end
+	end
+end 
+
+-- Safely shows the window
+function KC:ShowWindow() 
+	if KC:HasWindow() then
+		self.frame:Show()
+	end
+end 
+
+-- Safely hides the window
+function KC:HideWindow() 
+	if KC:HasWindow() then
+		self.frame:Hide()
+	end
 end 
 	
-------------------------------
----- Setup Slash Commands ----
-------------------------------
+	
+------------------------
+---- Slash Commands ----
+------------------------
 
 -- Main Window
 SlashCmdList['CHESSCMD'] = function(msg)
-    KC:OpenWindow() 
+    KC:ShowWindow() 
 end
 
 SLASH_CHESSCMD1, SLASH_CHESSCMD2, SLASH_CHESSCMD3, SLASH_CHESSCMD4, SLASH_CHESSCMD5 
@@ -141,5 +184,4 @@ end
 
 SLASH_CHESSOPTIONCMD1, SLASH_CHESSOPTIONCMD2, SLASH_CHESSOPTIONCMD3, SLASH_CHESSOPTIONCMD4, SLASH_CHESSOPTIONCMD5 
 	= '/kco', '/karazhanchessoptions', '/chessoptions', '/karachessoptions', '/kchessoptions';
-
 

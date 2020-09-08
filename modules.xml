@@ -1,8 +1,13 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
+<!-- Utilites -->
 <Script file="KarazhanChess/Utils.lua"/>
+<Script file="KarazhanChess/FrameUtils.lua"/>
+
+<!-- Main -->
 <Script file="KarazhanChess/Main.lua"/>
+<Script file="KarazhanChess/Frame.lua"/>
 <Script file="KarazhanChess/Options.lua"/>
 
 </Ui>

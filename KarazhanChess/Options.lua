@@ -57,8 +57,12 @@ KC.optionDefaults = {
 	},
 };
 
+-----------------------
+-- Getters & Setters --
+-----------------------
 
---Minimap button
+-- Minimap Button
+
 function KC:setMinimapButton(info, value)
 	self.db.global.minimapButton = value;
 	if (value) then

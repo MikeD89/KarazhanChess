@@ -14,3 +14,8 @@ function showRealDate(curseDate)
 		return year.."/"..month.."/"..day.." "..hour..":"..minute..":"..second
 	end
 end
+
+-- Function to to check for nil on strings
+function isNull(e)
+	return e == nil or e == ''
+end

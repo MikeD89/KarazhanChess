@@ -162,7 +162,7 @@ end
 
 function KC:setBoardTheme(info, value)
 	self.db.global.boardTheme = value;
-	-- TODO - refresh board and apply theme
+	self:applyBoardTextures();
 end
 
 function KC:getBoardTheme(info)
@@ -173,7 +173,7 @@ end
 
 function KC:setPieceTheme(info, value)
 	self.db.global.pieceTheme = value;
-	-- TODO - refresh pieces and apply theme
+	self:applyPieceTextures();
 end
 
 function KC:getPieceTheme(info)

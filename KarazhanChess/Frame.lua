@@ -94,3 +94,11 @@ function KC:createChessBoard(frame)
 	moveable:SetPoint("CENTER", frame, "CENTER", 80, 0)
 	FrameUtils:CreateIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
 end
+
+function KC:applyBoardTextures()
+	-- Apply Chess Board Textures
+end
+
+function KC:applyPieceTextures()
+	-- Apply Chess Piece Textures
+end

@@ -4,6 +4,7 @@
 <!-- Utilites -->
 <Script file="KarazhanChess/Utils.lua"/>
 <Script file="KarazhanChess/FrameUtils.lua"/>
+<Script file="KarazhanChess/Icons.lua"/>
 
 <!-- Main -->
 <Script file="KarazhanChess/Main.lua"/>

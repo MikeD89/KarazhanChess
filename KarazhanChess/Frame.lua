@@ -62,7 +62,6 @@ function KC:createChessFrame()
 	versionText:SetText("Version: "..KC.formattedVersion)
 	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", 0, 2)	
 
-
 	-- Add the title drag bar
 	local title = CreateFrame("FRAME", nil, frame)
 	title:SetWidth(frame:GetWidth())
@@ -82,9 +81,15 @@ function KC:createChessFrame()
 	closebutton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset+2, -inset+2)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
 
-	-- Test Icon     --- "Interface\\KarazhanChess\\Textures\\pieces\\default\\wk"
-	local testIcon = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
+	-- Add the board
+	KC:createChessBoard(frame)
 
 	-- Annnd... Done!
 	return frame
+end
+
+function KC:createChessBoard(frame)
+	-- Test Icon 
+	local testIcon = FrameUtils:CreateIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
+	FrameUtils:MakeIconMoveable(testIcon) -- , function() KC:moveDD(testIcon) end
 end

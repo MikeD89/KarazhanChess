@@ -59,6 +59,29 @@ KC.options = {
 			get = "getWindowFadeout",
 			set = "setWindowFadeout",
 		},
+		colorHeader = {
+			type = "header",
+			name = "Themes",
+			order = 40,
+		},
+		boardTheme = {
+			type = "select",
+            name = "Board Theme",
+			order = 41,
+			values = Icons.Board.Themes,
+			style = "dropdown",
+			get = "getBoardTheme",
+			set = "setBoardTheme",
+		},
+		pieceTheme = {
+			type = "select",
+            name = "Piece Theme",
+			order = 41,
+			values = Icons.Piece.Themes,
+			style = "dropdown",
+			get = "getPieceTheme",
+			set = "setPieceTheme",
+		},
 		hiddenHeader = {
 			type = "header",
 			hidden = true,
@@ -66,6 +89,7 @@ KC.options = {
 		}
 	},
 };
+
 
 ---------------------
 -- Default Options --
@@ -75,8 +99,11 @@ KC.optionDefaults = {
 		minimapIcon = {["minimapPos"] = 180, ["hide"] = false},
 		minimapButton = true,
 		fadeoutWindow = false,
+		boardTheme = 1,
+		pieceTheme = 1,
 	},
 };
+
 
 -----------------------
 -- Getters & Setters --
@@ -130,3 +157,26 @@ end
 function KC:getWindowFadeout(info)
 	return self.db.global.fadeoutWindow;
 end
+
+-- Board Theme
+
+function KC:setBoardTheme(info, value)
+	self.db.global.boardTheme = value;
+	-- TODO - refresh board and apply theme
+end
+
+function KC:getBoardTheme(info)
+	return self.db.global.boardTheme;
+end
+
+-- Piece Theme
+
+function KC:setPieceTheme(info, value)
+	self.db.global.pieceTheme = value;
+	-- TODO - refresh pieces and apply theme
+end
+
+function KC:getPieceTheme(info)
+	return self.db.global.pieceTheme;
+end
+

@@ -31,20 +31,6 @@ KC.options = {
 			fontSize = "medium",
 			order = 3,
 		},
-		resetPositionButton = {
-			type = "execute",
-            name = "Reset Window Position",
-            desc = "Resets the Window to the Default Position",
-			order = 4,
-			func = "resetWindowPosition"
-		},
-		resetPositionButton = {
-			type = "execute",
-            name = "Reset Window Position",
-            desc = "Resets the Window to the Default Position",
-			order = 4,
-			func = "resetWindowPosition"
-		},
 		resetOptionsButton = {
 			type = "execute",
             name = "Reset Options",
@@ -65,6 +51,14 @@ KC.options = {
 			get = "getMinimapButton",
 			set = "setMinimapButton",
 		},
+		fadeOutWindowToggle = {
+			type = "toggle",
+            name = "Fade Out Window When Mouse Leaves",
+            desc = "Fades the window out when the mouse leaves.",
+			order = 22,
+			get = "getWindowFadeout",
+			set = "setWindowFadeout",
+		},
 		hiddenHeader = {
 			type = "header",
 			hidden = true,
@@ -80,6 +74,7 @@ KC.optionDefaults = {
 	global = {
 		minimapIcon = {["minimapPos"] = 180, ["hide"] = false},
 		minimapButton = true,
+		fadeoutWindow = false,
 	},
 };
 
@@ -119,4 +114,19 @@ function KC:resetProfile(info)
 
 	-- Make sure the set functions that change things get exectuted
 	KC.updateMinimapButton()
+end
+
+-- Fadeout Toggle
+
+function KC:setWindowFadeout(info, value)
+	self.db.global.fadeoutWindow = value;
+
+	-- Make sure we can see the window if we're turning it off
+	if (not value) then
+		KC.frame:SetAlpha(1.0)
+	end
+end
+
+function KC:getWindowFadeout(info)
+	return self.db.global.fadeoutWindow;
 end

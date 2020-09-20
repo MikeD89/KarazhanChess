@@ -8,13 +8,15 @@
 function KC:createChessFrame()
 	-- Variables
 	local inset = 8
+	local mouseOverAlpha = 1.0
+	local mouseAwayAlpha = 0.4
 	
 	-- Create and Format the Frame
 	local frame = CreateFrame("FRAME", KC.name, UIParent)
 
 	frame:SetBackdrop({
 	  bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
 	  tile = true,
 	  tileSize = 32,
 	  edgeSize = 32,
@@ -33,6 +35,20 @@ function KC:createChessFrame()
 	
 	-- Hide it by default
 	frame:Hide()
+
+	-- Make it fade out when the mouse is away
+	local function setFadeState() 
+		if (self.db.global.fadeoutWindow) then
+			if MouseIsOver(frame) then
+				UIFrameFadeIn(frame, 1.0, frame:GetAlpha(), mouseOverAlpha)
+			else
+				UIFrameFadeOut(frame, 0.25, frame:GetAlpha(), mouseAwayAlpha)
+			end
+		end
+	end
+
+	frame:SetScript('OnEnter', setFadeState)
+	frame:SetScript('OnLeave', setFadeState)
 
 	-- Add the title	
 	local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalOutline") 

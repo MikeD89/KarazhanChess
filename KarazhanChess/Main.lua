@@ -142,9 +142,9 @@ end
 function KC:ToggleWindow() 
 	if KC:HasWindow() then
 		if (self.frame:IsShown()) then
-			self.frame:Hide()
+			KC:HideWindow() 
 		else
-			self.frame:Show()
+			KC:ShowWindow()
 		end
 	end
 end 

@@ -9,14 +9,14 @@ function KC:createChessFrame()
 	-- Variables
 	local inset = 8
 	local mouseOverAlpha = 1.0
-	local mouseAwayAlpha = 0.4
+	local mouseAwayAlpha = 0.3
 	
 	-- Create and Format the Frame
 	local frame = CreateFrame("FRAME", KC.name, UIParent)
 
 	frame:SetBackdrop({
 	  bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
+	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 	  tile = true,
 	  tileSize = 32,
 	  edgeSize = 32,
@@ -42,7 +42,7 @@ function KC:createChessFrame()
 			if MouseIsOver(frame) then
 				UIFrameFadeIn(frame, 1.0, frame:GetAlpha(), mouseOverAlpha)
 			else
-				UIFrameFadeOut(frame, 0.25, frame:GetAlpha(), mouseAwayAlpha)
+				UIFrameFadeOut(frame, 0.20, frame:GetAlpha(), mouseAwayAlpha)
 			end
 		end
 	end
@@ -50,10 +50,19 @@ function KC:createChessFrame()
 	frame:SetScript('OnEnter', setFadeState)
 	frame:SetScript('OnLeave', setFadeState)
 
-	-- Add the title	
-	local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalOutline") 
-	titleText:SetText(KC.formattedName)
+	-- Add the titles
+	local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge") 
+	titleText:SetText(KC.name)
 	titleText:SetPoint("TOP", frame, "TOP", 0, -14)
+
+	local authorText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
+	authorText:SetText("By MeloN <"..format("|cffff5c33%s|r","Convicted")..">")
+	authorText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 14, 14)	
+
+	local versionText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
+	versionText:SetText("Version: "..KC.formattedVersion)
+	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", -1, 2)	
+
 
 	-- Add the title drag bar
 	local title = CreateFrame("FRAME", nil, frame)

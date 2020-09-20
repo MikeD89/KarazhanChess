@@ -53,7 +53,7 @@ KC.options = {
 		},
 		fadeOutWindowToggle = {
 			type = "toggle",
-            name = "Fade Out Window When Mouse Leaves",
+            name = "Fade Out Window",
             desc = "Fades the window out when the mouse leaves.",
 			order = 22,
 			get = "getWindowFadeout",

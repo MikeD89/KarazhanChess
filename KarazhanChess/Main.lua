@@ -40,7 +40,8 @@ KC.GUI = LibStub("AceGUI-3.0");
 KC.loaded = false
 KC.name = "Karazhan Chess"
 KC.dbName = "KarazhanChessDB"
-KC.formattedName = KC.name.." - "..format("|cff33ffff%s|r","v"..KC.version)
+KC.formattedVersion = format("|cff33ffff%s|r","v"..KC.version)
+KC.formattedName = KC.name.." - "..KC.formattedVersion
 KC.dir = "Interface\\AddOns\\KarazhanChess\\"
 KC.dateChangedReal = showRealDate(KC.dateChanged)
 KC.player = UnitName("player")
@@ -50,8 +51,8 @@ KC.profileName = "Default"
 
 -- Frame Globals
 KC.frame = nil
-KC.fixedWidth = 800
-KC.fixedHeight = 600
+KC.fixedWidth = 450
+KC.fixedHeight = 500
 
 
 -- Init Function

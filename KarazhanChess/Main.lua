@@ -39,26 +39,25 @@ KC.GUI = LibStub("AceGUI-3.0");
 -- Globals
 KC.loaded = false
 KC.name = "Karazhan Chess"
-KC.formattedName = KC.name.." - "..format("|cff33ffff%s|r","v"..KC.version)
 KC.dbName = "KarazhanChessDB"
+KC.formattedName = KC.name.." - "..format("|cff33ffff%s|r","v"..KC.version)
 KC.dir = "Interface\\AddOns\\KarazhanChess\\"
 KC.dateChangedReal = showRealDate(KC.dateChanged)
 KC.player = UnitName("player")
 KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
+KC.profileName = "Default"
 
 -- Frame Globals
 KC.frame = nil
-KC.minWidth = 800
-KC.minHeight = 600
-KC.defaultWidth = 800
-KC.defaultHeight = 600
+KC.fixedWidth = 800
+KC.fixedHeight = 600
 
 
 -- Init Function
 function KC:OnInitialize()
 	-- Open the databace and register options
-	self.db = LibStub("AceDB-3.0"):New(KC.dbName, KC.optionDefaults, "Default");
+	self.db = LibStub("AceDB-3.0"):New(KC.dbName, KC.optionDefaults, KC.profileName);
 	
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
@@ -171,7 +170,7 @@ end
 
 -- Main Window
 SlashCmdList['CHESSCMD'] = function(msg)
-    KC:ShowWindow() 
+    KC:ToggleWindow() 
 end
 
 SLASH_CHESSCMD1, SLASH_CHESSCMD2, SLASH_CHESSCMD3, SLASH_CHESSCMD4, SLASH_CHESSCMD5 

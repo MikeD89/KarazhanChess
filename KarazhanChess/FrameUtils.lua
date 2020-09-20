@@ -111,3 +111,23 @@ function FrameUtils:CreateFrameSizer(frame, callback, position)
   
 	return handle
 end
+
+function FrameUtils:KeepFrameInBounds(frame, bounds)
+	local xOffset = frame:GetRight() - GetScreenWidth()
+	local yOffset = frame:GetTop() - GetScreenHeight()
+
+	if bounds:GetRight() > GetScreenWidth() then
+		xOffset = xOffset + (GetScreenWidth() - bounds:GetRight())
+	elseif bounds:GetLeft() < 0 then
+		xOffset = xOffset + (0 - bounds:GetLeft())
+	end
+
+	if bounds:GetTop() > GetScreenHeight() then
+		yOffset = yOffset + (GetScreenHeight() - bounds:GetTop())
+	elseif bounds:GetBottom() < 0 then
+		yOffset = yOffset + (0 - bounds:GetBottom())
+	end
+
+	frame:ClearAllPoints()
+	frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", xOffset, yOffset)
+end

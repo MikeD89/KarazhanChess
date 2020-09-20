@@ -6,64 +6,58 @@
 -------------------------------------------------------------------------------
 
 function KC:createChessFrame()
-	-- Create the frame
-	local frame = CreateFrame("FRAME", KC.name, UIParent)
-	tinsert(UISpecialFrames, frame:GetName())
+	-- Variables
+	local inset = 8
 	
-	-- Format the Frame
+	-- Create and Format the Frame
+	local frame = CreateFrame("FRAME", KC.name, UIParent)
+
 	frame:SetBackdrop({
 	  bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 	  tile = true,
 	  tileSize = 32,
 	  edgeSize = 32,
-	  insets = { left = 8, right = 8, top = 8, bottom = 8 }
+	  insets = { left = inset, right = inset, top = inset, bottom = inset }
 	})
 	frame:SetBackdropColor(0, 0, 0, 1)
 	frame:EnableMouse(true)
 	frame:SetMovable(true)
-	frame:SetResizable(true)
-	frame:SetMinResize(KC.minWidth, KC.minHeight)
-	frame:SetFrameStrata("DIALOG")
+	frame:SetFrameStrata("HIGH")
 	frame.window = "default"
-  
-	local xOffset = (KC.defaultWidth - GetScreenWidth()) / 2
-	local yOffset = (KC.defaultHeight - GetScreenHeight()) / 2
-  
-	frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", xOffset, yOffset)
+	
+	-- Set the default position and fixed size
+	frame:SetWidth(KC.fixedWidth)
+	frame:SetHeight(KC.fixedHeight)
+	frame:SetPoint("CENTER", UIParent, "CENTER")
+	
+	-- Hide it by default
 	frame:Hide()
 
-	local width = KC.defaultWidth
-	local height = KC.defaultHeight
-  	width = max(width, KC.minWidth)
-  	height = max(height, KC.minHeight)
-	  
-	frame:SetWidth(width)
-  	frame:SetHeight(height)
+	-- Add the title	
+	local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalOutline") 
+	titleText:SetText(KC.formattedName)
+	titleText:SetPoint("TOP", frame, "TOP", 0, -14)
 
-  	local close = FrameUtils:CreateDecoration(frame)
-  	close:SetPoint("TOPRIGHT", -30, 12)
+	-- Add the title drag bar
+	local title = CreateFrame("FRAME", nil, frame)
+	title:SetWidth(titleText:GetWidth())
+	title:SetHeight(titleText:GetHeight())
+	title:SetPoint("CENTER", titleText, "CENTER")
 
-	local closebutton = CreateFrame("BUTTON", nil, close, "UIPanelCloseButton")
-	closebutton:SetPoint("CENTER", close, "CENTER", 1, -1)
+	-- Make it move the window
+	title:SetScript("OnMouseDown", function() frame:StartMoving()  end) 
+	title:SetScript("OnMouseUp", function()
+	  frame:StopMovingOrSizing()
+	  FrameUtils:KeepFrameInBounds(frame, titleText)
+	end)
+
+	-- Close Button
+	local closebutton = CreateFrame("BUTTON", nil, frame, "UIPanelCloseButton")
+	closebutton:SetSize(30, 30)
+	closebutton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset+2, -inset+2)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
 
-	local title = CreateFrame("Frame", nil, frame)
-
-	local titleText = title:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-
-	titleText:SetText(KC.formattedName)
-
-	local titleBG = FrameUtils:CreateDecorationWide(frame, max(120, titleText:GetWidth()))
-	titleBG:SetPoint("TOP", 0, 24)
-	titleText:SetPoint("TOP", titleBG, "TOP", 0, -14)
-    
-    local function commitWindowChanges() 
-        -- do nothing
-    end
-    
-    FrameUtils:CreateFrameSizer(frame, commitWindowChanges, "BOTTOMLEFT")
-    FrameUtils:CreateFrameSizer(frame, commitWindowChanges, "BOTTOMRIGHT")
-
+	-- Annnd... Done!
 	return frame
 end

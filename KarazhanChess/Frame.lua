@@ -88,8 +88,9 @@ function KC:createChessFrame()
 	return frame
 end
 
+-- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
-	-- Test Icon 
-	local testIcon = FrameUtils:CreateIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
-	FrameUtils:MakeIconMoveable(testIcon) -- , function() KC:moveDD(testIcon) end
+	local moveable = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY", function(icon) print(icon:GetPoint()) end)
+	moveable:SetPoint("CENTER", frame, "CENTER", 80, 0)
+	FrameUtils:CreateIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
 end

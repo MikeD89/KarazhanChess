@@ -35,49 +35,64 @@ end
 
 -- Function used to create an icon with a sub-coordinate
 function FrameUtils:CreateIcon(parent, w, h, texture, layer, coords)	
+	-- Create the icon from the parent
+	local icon = parent:CreateTexture(nil, textureType)
+	icon:SetTexture(texture)
+	icon:SetWidth(w)
+	icon:SetHeight(h)
+	icon:SetPoint("CENTER", parent, "CENTER")
+
+	-- If this is a part texture use that
+	if (coords ~= nil) then
+		icon:GetTexture():SetTexCoord(unpack(coords));
+	end
+
+	return icon
+end
+
+-- Function used to create a movable icon with no call back and no sub coords
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer)
+	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, nil)
+end
+
+-- Function used to create a movable icon with a callback 
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback)
+	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback, nil)
+end
+
+-- Function used to create a movable icon with a callback and sub coords
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback, coords)
 	-- create the frame
 	local iconFrame = CreateFrame("FRAME", nil, parent)
 	iconFrame:SetWidth(w)
 	iconFrame:SetHeight(h)
-
-	-- Use a default position for debug purposes
+	iconFrame:EnableMouse(true)
 	iconFrame:SetPoint("CENTER", parent, "CENTER")
 	
-	-- create an icon to look good
+	-- Create the texture to go in the icon
 	local icon = iconFrame:CreateTexture(nil, textureType)
 	icon:SetTexture(texture)
 	icon:SetAllPoints()
 
 	-- If this is a part texture use that
 	if (coords ~= nil) then
-		frame:GetTexture():SetTexCoord(unpack(coords)); -- cut out the region with our class icon according to coords
+		icon:GetTexture():SetTexCoord(unpack(coords));
 	end
 
-	return iconFrame
-end
-
--- Function used to modify an icon to make it moveable with no callback
-function FrameUtils:MakeIconMoveable(icon, callback)
-	FrameUtils:MakeIconMoveable(icon, nil)
-end
-
--- Function used to modify an icon to make it moveable
-function FrameUtils:MakeIconMoveable(icon, callback)
-	-- create the frame
-	icon:EnableMouse(true)
-
 	-- Make it move!
-	icon:SetScript("OnMouseDown", function() 
-		icon:SetMovable(true)
-		icon:StartMoving()  
+	iconFrame:SetScript("OnMouseDown", function() 
+		iconFrame:SetMovable(true)
+		iconFrame:StartMoving()  
 	end) 
 
 	-- and make it stop
-	icon:SetScript("OnMouseUp", function()
-		icon:StopMovingOrSizing()
-		icon:SetMovable(false)
+	iconFrame:SetScript("OnMouseUp", function()
+		iconFrame:StopMovingOrSizing()
+		iconFrame:SetMovable(false)
 		if (callback ~= nil) then
-			callback()
+			callback(iconFrame)
 		end
 	end)
+
+	return iconFrame
 end

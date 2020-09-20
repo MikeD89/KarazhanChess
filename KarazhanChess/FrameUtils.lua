@@ -131,3 +131,36 @@ function FrameUtils:KeepFrameInBounds(frame, bounds)
 	frame:ClearAllPoints()
 	frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", xOffset, yOffset)
 end
+
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer)
+	return FrameUtils:CreateIcon(parent, w, h, texture, layer, nil)
+end
+
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, coords)
+	-- create the frame
+	local iconFrame = CreateFrame("FRAME", nil, parent)
+	iconFrame:SetSize(w, h)
+	iconFrame:EnableMouse(true)
+	iconFrame:SetMovable(true)
+
+	-- Use a default position for debug purposes
+	iconFrame:SetPoint("CENTER", parent, "CENTER")
+	
+	-- create an icon to look good
+	local icon = iconFrame:CreateTexture(nil, textureType)
+	icon:SetTexture(texture)
+	icon:SetAllPoints()
+
+	-- If this is a part texture use that
+	if (not coords == nil) then
+		frame:GetTexture():SetTexCoord(unpack(coords)); -- cut out the region with our class icon according to coords
+	end
+
+	-- Make it move!
+	iconFrame:SetScript("OnMouseDown", function() iconFrame:StartMoving()  end) 
+	iconFrame:SetScript("OnMouseUp", function()
+		iconFrame:StopMovingOrSizing()
+	end)
+
+	return iconFrame
+end

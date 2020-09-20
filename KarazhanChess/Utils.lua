@@ -19,3 +19,8 @@ end
 function isNull(e)
 	return e == nil or e == ''
 end
+
+-- Util funtion to return the path
+function dir(path)
+	return "Interface\\AddOns\\KarazhanChess\\"..path
+end

@@ -42,7 +42,6 @@ KC.name = "Karazhan Chess"
 KC.dbName = "KarazhanChessDB"
 KC.formattedVersion = format("|cff33ffff%s|r","v"..KC.version)
 KC.formattedName = KC.name.." - "..KC.formattedVersion
-KC.dir = "Interface\\AddOns\\KarazhanChess\\"
 KC.dateChangedReal = showRealDate(KC.dateChanged)
 KC.player = UnitName("player")
 KC.realm = GetRealmName();
@@ -53,7 +52,6 @@ KC.profileName = "Default"
 KC.frame = nil
 KC.fixedWidth = 450
 KC.fixedHeight = 500
-
 
 -- Init Function
 function KC:OnInitialize()
@@ -88,7 +86,7 @@ function KC:createBroker()
 	local data = {
 		type = "launcher", 
 		label = KC.name, 
-		icon = KC.dir.."Textures\\minimap.blp"
+		icon = dir("Textures\\minimap.blp")
 	}
 	
 	-- Create minimap button

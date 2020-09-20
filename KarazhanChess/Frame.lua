@@ -26,7 +26,6 @@ function KC:createChessFrame()
 	frame:EnableMouse(true)
 	frame:SetMovable(true)
 	frame:SetFrameStrata("HIGH")
-	frame.window = "default"
 	
 	-- Set the default position and fixed size
 	frame:SetWidth(KC.fixedWidth)
@@ -61,12 +60,12 @@ function KC:createChessFrame()
 
 	local versionText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
 	versionText:SetText("Version: "..KC.formattedVersion)
-	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", -1, 2)	
+	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", 0, 2)	
 
 
 	-- Add the title drag bar
 	local title = CreateFrame("FRAME", nil, frame)
-	title:SetWidth(titleText:GetWidth())
+	title:SetWidth(frame:GetWidth())
 	title:SetHeight(titleText:GetHeight())
 	title:SetPoint("CENTER", titleText, "CENTER")
 
@@ -78,10 +77,13 @@ function KC:createChessFrame()
 	end)
 
 	-- Close Button
-	local closebutton = CreateFrame("BUTTON", nil, frame, "UIPanelCloseButton")
+	local closebutton = CreateFrame("BUTTON", nil, title, "UIPanelCloseButton")
 	closebutton:SetSize(30, 30)
 	closebutton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset+2, -inset+2)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
+
+	-- Test Icon     --- "Interface\\KarazhanChess\\Textures\\pieces\\default\\wk"
+	local testIcon = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
 
 	-- Annnd... Done!
 	return frame

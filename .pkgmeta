@@ -23,7 +23,7 @@ enable-nolib-creation: no
 ignore:
   - .gitattributes
   - .gitignore
-  - LICENSE
   - README.md
   - .vscode
-  - TextureSource
+  - .github
+  - Converter

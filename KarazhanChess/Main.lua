@@ -65,14 +65,18 @@ function KC:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
 	self.KCOptions = KC.ACD:AddToBlizOptions(KC.name, KC.name);
 
-	-- Setup Methods (TODO - Multiplayer Comms)
+	-- Setup Brokers
 	KC:createBroker()
-	--self:RegisterComm(self.commPrefix);
+
+	-- Create the frame. We do this early so the position is loaded
+	KC.frame = CreateFrame("FRAME", KC.name, UIParent)
+	KC.frame:SetMovable(true)
+	KC.frame:Hide()
 end
 
 -- Enable Function
 function KC:OnEnable()
-	KC.frame = KC:createChessFrame();
+	KC:createChessFrame(KC.frame);
 	KC.loaded = true
 	KC:Print(KC.formattedName.." Loaded!")
 end

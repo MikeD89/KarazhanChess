@@ -5,15 +5,13 @@
 -- Primary Frame
 -------------------------------------------------------------------------------
 
-function KC:createChessFrame()
+function KC:createChessFrame(frame)
 	-- Variables
 	local inset = 8
 	local mouseOverAlpha = 1.0
 	local mouseAwayAlpha = 0.3
 	
-	-- Create and Format the Frame
-	local frame = CreateFrame("FRAME", KC.name, UIParent)
-
+	-- Format the frame
 	frame:SetBackdrop({
 	  bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
@@ -84,9 +82,6 @@ function KC:createChessFrame()
 
 	-- Add the board
 	KC:createChessBoard(frame)
-
-	-- Annnd... Done!
-	return frame
 end
 
 -- Add the visual and logical board into the frame

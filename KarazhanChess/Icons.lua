@@ -12,8 +12,8 @@ Icons = {}
 Icons.Board = {}
 Icons.Board.Folder = dir("Textures\\Board\\")
 Icons.Board.Themes = { "Default", "Bubblegum" }
-Icons.Board.LightSquare = "\\ls.tga"
-Icons.Board.DarkSquare = "\\ds.tga"
+Icons.Board.LightSquare = "\\ls.blp"
+Icons.Board.DarkSquare = "\\ds.blp"
 
 function Icons.Board:GetBoardIcon(light) 
     icon = ternary(light == true, Icons.Board.LightSquare, Icons.Board.DarkSquare)
@@ -26,16 +26,16 @@ end
 Icons.Piece = {}
 Icons.Piece.Folder = dir("Textures\\Piece\\")
 Icons.Piece.Themes = { "Default", "P Test1", "P Test2" }
-Icons.Piece.WhiteKing = "\\wk.tga"
-Icons.Piece.WhiteQueen = "\\wq.tga"
-Icons.Piece.WhiteBishop = "\\wb.tga"
-Icons.Piece.WhiteKnight = "\\wn.tga"
-Icons.Piece.WhitePawn = "\\wp.tga"
-Icons.Piece.BlackKing = "\\bk.tga"
-Icons.Piece.BlackQueen = "\\bq.tga"
-Icons.Piece.BlackBishop = "\\bb.tga"
-Icons.Piece.BlackKnight = "\\bn.tga"
-Icons.Piece.BlackPawn = "\\bp.tga"
+Icons.Piece.WhiteKing = "\\wk.blp"
+Icons.Piece.WhiteQueen = "\\wq.blp"
+Icons.Piece.WhiteBishop = "\\wb.blp"
+Icons.Piece.WhiteKnight = "\\wn.blp"
+Icons.Piece.WhitePawn = "\\wp.blp"
+Icons.Piece.BlackKing = "\\bk.blp"
+Icons.Piece.BlackQueen = "\\bq.blp"
+Icons.Piece.BlackBishop = "\\bb.blp"
+Icons.Piece.BlackKnight = "\\bn.blp"
+Icons.Piece.BlackPawn = "\\bp.blp"
 
 function Icons.Piece:GetPieceIcon(piece) 
     selectedTheme = Icons.Piece.Themes[KC:getPieceTheme()]

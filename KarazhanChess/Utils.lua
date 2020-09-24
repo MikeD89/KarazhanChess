@@ -24,3 +24,8 @@ end
 function dir(path)
 	return "Interface\\AddOns\\KarazhanChess\\"..path
 end
+
+-- Ternary if statement helper
+function ternary(cond, T, F)
+    if cond then return T else return F end
+end

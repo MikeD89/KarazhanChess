@@ -47,11 +47,14 @@ KC.player = UnitName("player")
 KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
 KC.profileName = "Default"
+KC.board = {}
 
 -- Frame Globals
 KC.frame = nil
 KC.fixedWidth = 450
 KC.fixedHeight = 500
+KC.boardSectionSize = 50
+KC.boardDim = 8
 
 -- Init Function
 function KC:OnInitialize()
@@ -62,18 +65,16 @@ function KC:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
 	self.KCOptions = KC.ACD:AddToBlizOptions(KC.name, KC.name);
 
-	-- TODO - Register Multiplayer Comms
-	--self:RegisterComm(self.commPrefix);
-
-	-- Setup Methods
+	-- Setup Methods (TODO - Multiplayer Comms)
 	KC:createBroker()
-	KC.frame = KC:createChessFrame();
+	--self:RegisterComm(self.commPrefix);
 end
 
--- Enable Message
+-- Enable Function
 function KC:OnEnable()
-	KC:Print(KC.formattedName.." Loaded!")
+	KC.frame = KC:createChessFrame();
 	KC.loaded = true
+	KC:Print(KC.formattedName.." Loaded!")
 end
 
 

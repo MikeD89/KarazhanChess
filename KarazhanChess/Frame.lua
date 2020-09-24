@@ -50,9 +50,10 @@ function KC:createChessFrame()
 	frame:SetScript('OnLeave', setFadeState)
 
 	-- Add the titles
-	local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge") 
-	titleText:SetText(KC.name)
-	titleText:SetPoint("TOP", frame, "TOP", 0, -14)
+	local titleText = frame:CreateFontString(nil, "OVERLAY", "Fancy32Font") 
+	titleText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
+	titleText:SetText(format("|cff8a2be2%s|r",KC.name))
+	titleText:SetPoint("TOP", frame, "TOP", 0, -18)
 
 	local authorText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
 	authorText:SetText("By MeloN <"..format("|cffff5c33%s|r","Convicted")..">")
@@ -90,15 +91,58 @@ end
 
 -- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
-	local moveable = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY", function(icon) print(icon:GetPoint()) end)
-	moveable:SetPoint("CENTER", frame, "CENTER", 80, 0)
-	FrameUtils:CreateIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY")
+	local offet = 22
+	local horiLabels = "abcdefgh"
+	local fullWidth = KC.boardSectionSize * KC.boardDim
+	local margin = (KC.fixedWidth - fullWidth) / 2
+	local lightSquare = false
+	local size = KC.boardSectionSize
+	
+	for i=1,KC.boardDim,1 do
+		-- New row
+		local h = horiLabels[i]
+		KC.board[i] = {}  
+		lightSquare = not lightSquare
+
+		for j=1,KC.boardDim,1 do
+			-- Pick the color
+			icon = Icons.Board:GetBoardIcon(lightSquare)
+
+			-- Create the board
+			board = FrameUtils:CreateIcon(frame, size, size, icon, "OVERLAY")
+			board:SetAlpha(0.8)
+			board.horiLabel = h
+			board.horiIndex = i
+			board.vertLabel = ""..j
+			board.vertIndex = j
+			board.lightSquare = lightSquare
+
+			-- Position and Save
+			local xpos = margin + ((board.horiIndex - 1) * KC.boardSectionSize)
+			local ypos = margin + ((board.vertIndex - 1) * KC.boardSectionSize) + offet
+			board:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
+
+			-- Save it and flip the colour
+			KC.board[i][j] = board
+			lightSquare = not lightSquare
+		end				
+	end
 end
+
 
 function KC:applyBoardTextures()
 	-- Apply Chess Board Textures
+	for i=1,KC.boardDim,1 do
+		for j=1,KC.boardDim,1 do
+			square = KC.board[i][j]
+			icon = Icons.Board:GetBoardIcon(square.lightSquare)
+			square:SetTexture(icon)
+		end
+	end
 end
 
 function KC:applyPieceTextures()
 	-- Apply Chess Piece Textures
+	-- local moveable = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY", function(icon) print(icon:GetPoint()) end)
+	-- moveable:SetPoint("CENTER", frame, "CENTER", 80, 0)
 end

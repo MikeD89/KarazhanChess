@@ -55,7 +55,7 @@ function KC:createChessFrame(frame)
 
 	local authorText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
 	authorText:SetText("By MeloN <"..format("|cffff5c33%s|r","Convicted")..">")
-	authorText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 14, 14)	
+	authorText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", KC.frameMargin, 14)	
 
 	local versionText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
 	versionText:SetText("Version: "..KC.formattedVersion)
@@ -80,16 +80,41 @@ function KC:createChessFrame(frame)
 	closebutton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset+2, -inset+2)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
 
+	-- Button consts
+	buttonWidth = 70
+	buttonHeight = 20
+	buttonMargin = 10
+
+	-- New Game Button
+	local newGameButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
+	newGameButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17);
+	newGameButton:SetWidth(buttonWidth);
+	newGameButton:SetHeight(buttonHeight);
+	newGameButton:SetText("New Game");
+	newGameButton:SetNormalFontObject("GameFontNormalSmall");
+	newGameButton:SetScript("OnClick", function(self, arg)
+		KC:Print("TODO - New Game Button")
+	end)
+
+	-- Options Button
+	local optionsButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
+	optionsButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0);
+	optionsButton:SetWidth(70);
+	optionsButton:SetHeight(20);
+	optionsButton:SetText("Options");
+	optionsButton:SetNormalFontObject("GameFontNormalSmall");
+	optionsButton:SetScript("OnClick", function(self, arg)
+		KC:OpenConfig()
+	end)
+
 	-- Add the board
 	KC:createChessBoard(frame)
 end
 
 -- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
-	local offet = 22
+	local yOffet = 50
 	local horiLabels = "abcdefgh"
-	local fullWidth = KC.boardSectionSize * KC.boardDim
-	local margin = (KC.fixedWidth - fullWidth) / 2
 	local lightSquare = false
 	local size = KC.boardSectionSize
 	
@@ -113,8 +138,8 @@ function KC:createChessBoard(frame)
 			board.lightSquare = lightSquare
 
 			-- Position and Save
-			local xpos = margin + ((board.horiIndex - 1) * KC.boardSectionSize)
-			local ypos = margin + ((board.vertIndex - 1) * KC.boardSectionSize) + offet
+			local xpos = KC.frameMargin + ((board.horiIndex - 1) * KC.boardSectionSize)
+			local ypos = yOffet + ((board.vertIndex - 1) * KC.boardSectionSize)
 			board:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
 			-- Save it and flip the colour

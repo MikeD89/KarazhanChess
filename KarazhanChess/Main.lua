@@ -53,8 +53,10 @@ KC.board = {}
 KC.frame = nil
 KC.fixedWidth = 450
 KC.fixedHeight = 500
-KC.boardSectionSize = 50
-KC.boardDim = 8
+KC.boardDim = 8 
+KC.boardSectionSize = floor(KC.fixedWidth / (KC.boardDim + 0.75))
+KC.boardWidth = KC.boardSectionSize * KC.boardDim
+KC.frameMargin = (KC.fixedWidth - KC.boardWidth) / 2
 
 -- Init Function
 function KC:OnInitialize()
@@ -72,6 +74,9 @@ function KC:OnInitialize()
 	KC.frame = CreateFrame("FRAME", KC.name, UIParent)
 	KC.frame:SetMovable(true)
 	KC.frame:Hide()
+
+	-- Insert ourselves into the special frame list so we close on ESC
+	table.insert(UISpecialFrames, KC.name)
 end
 
 -- Enable Function
@@ -156,6 +161,7 @@ end
 -- Safely shows the window
 function KC:ShowWindow() 
 	if KC:HasWindow() then
+		PlaySoundFile("sound/interface/iquestlogopena.ogg")
 		self.frame:Show()
 	end
 end 

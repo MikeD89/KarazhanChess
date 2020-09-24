@@ -23,7 +23,7 @@ function KC:createChessFrame(frame)
 	frame:SetBackdropColor(0, 0, 0, 1)
 	frame:EnableMouse(true)
 	frame:SetMovable(true)
-	frame:SetFrameStrata("FULLSCREEN_DIALOG")
+	frame:SetFrameStrata("HIGH")
 	
 	-- Set the default position and fixed size
 	frame:SetSize(KC.fixedWidth, KC.fixedHeight)

@@ -25,7 +25,7 @@ end
 
 Icons.Piece = {}
 Icons.Piece.Folder = dir("Textures\\Piece\\")
-Icons.Piece.Themes = { "Default", "P Test1", "P Test2" }
+Icons.Piece.Themes = { "Default" }
 Icons.Piece.WhiteKing = "\\wk.blp"
 Icons.Piece.WhiteQueen = "\\wq.blp"
 Icons.Piece.WhiteBishop = "\\wb.blp"

@@ -13,21 +13,20 @@ function KC:createChessFrame(frame)
 	
 	-- Format the frame
 	frame:SetBackdrop({
-	  bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-	  edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile = true,
-	  tileSize = 32,
-	  edgeSize = 32,
-	  insets = { left = inset, right = inset, top = inset, bottom = inset }
-	})
+		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+		tile = true,
+		tileSize = 32,
+		edgeSize = 32,
+		insets = { left = inset, right = inset, top = inset, bottom = inset }
+	  })
 	frame:SetBackdropColor(0, 0, 0, 1)
 	frame:EnableMouse(true)
 	frame:SetMovable(true)
-	frame:SetFrameStrata("HIGH")
+	frame:SetFrameStrata("FULLSCREEN_DIALOG")
 	
 	-- Set the default position and fixed size
-	frame:SetWidth(KC.fixedWidth)
-	frame:SetHeight(KC.fixedHeight)
+	frame:SetSize(KC.fixedWidth, KC.fixedHeight)
 	frame:SetPoint("CENTER", UIParent, "CENTER")
 	
 	-- Hide it by default
@@ -48,9 +47,10 @@ function KC:createChessFrame(frame)
 	frame:SetScript('OnLeave', setFadeState)
 
 	-- Add the titles
-	local titleText = frame:CreateFontString(nil, "OVERLAY", "Fancy32Font") 
+	local titleText = frame:CreateFontString(nil, "OVERLAY") 	
 	titleText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
-	titleText:SetText(format("|cff8a2be2%s|r",KC.name))
+    titleText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+	titleText:SetText(KC.name)
 	titleText:SetPoint("TOP", frame, "TOP", 0, -18)
 
 	local authorText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
@@ -88,8 +88,7 @@ function KC:createChessFrame(frame)
 	-- New Game Button
 	local newGameButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
 	newGameButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17);
-	newGameButton:SetWidth(buttonWidth);
-	newGameButton:SetHeight(buttonHeight);
+	newGameButton:SetSize(buttonWidth, buttonHeight);
 	newGameButton:SetText("New Game");
 	newGameButton:SetNormalFontObject("GameFontNormalSmall");
 	newGameButton:SetScript("OnClick", function(self, arg)
@@ -99,8 +98,7 @@ function KC:createChessFrame(frame)
 	-- Options Button
 	local optionsButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
 	optionsButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0);
-	optionsButton:SetWidth(70);
-	optionsButton:SetHeight(20);
+	optionsButton:SetSize(buttonWidth, buttonHeight);
 	optionsButton:SetText("Options");
 	optionsButton:SetNormalFontObject("GameFontNormalSmall");
 	optionsButton:SetScript("OnClick", function(self, arg)

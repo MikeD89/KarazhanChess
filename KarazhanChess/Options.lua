@@ -65,6 +65,14 @@ KC.options = {
 			get = "getWindowFadeout",
 			set = "setWindowFadeout",
 		},
+		boardLabelToggle = {
+			type = "toggle",
+            name = "Show Board Labels",
+            desc = "Show the board coordinates for each file and rank.",
+			order = 23,
+			get = "getBoardLabelsVisible",
+			set = "setBoardLabelsVisible",
+		},
 		colorHeader = {
 			type = "header",
 			name = "Themes",
@@ -105,6 +113,7 @@ KC.optionDefaults = {
 		minimapIcon = {["minimapPos"] = 180, ["hide"] = false},
 		minimapButton = true,
 		fadeoutWindow = false,
+		boardLabels = true,
 		boardTheme = 1,
 		pieceTheme = 1,
 	},
@@ -139,7 +148,7 @@ end
 -- Reset the Postion of the Window
 
 function KC:resetWindowPosition(info)
-	print("TODO - Reset Window Pos")
+	KC:P("TODO - Reset Window Pos")
 end
 
 function KC:resetProfile(info)
@@ -163,6 +172,18 @@ end
 function KC:getWindowFadeout(info)
 	return self.db.global.fadeoutWindow;
 end
+
+-- Board Labels
+
+function KC:setBoardLabelsVisible(info, value)
+	self.db.global.boardLabels = value;
+	self:applyBoardLabelVisibility();
+end
+
+function KC:getBoardLabelsVisible(info)
+	return self.db.global.boardLabels;
+end
+
 
 -- Board Theme
 

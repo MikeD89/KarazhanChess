@@ -23,6 +23,11 @@ if KC.dateChanged:find("@", nil, true) then
     KC.dateChanged = "20080808133730"
 end
 
+-- Utility function that lets me check for debug print statements
+function KC:P(text)
+	KC:Print(text)
+end
+
 -------------------
 ---- Libraries ----
 -------------------
@@ -48,7 +53,6 @@ KC.player = UnitName("player")
 KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
 KC.profileName = "Default"
-KC.board = {}
 KC.pieces = {}
 
 -- Frame Globals

@@ -100,7 +100,8 @@ end
 -- Function used to create a movable icon with a callback and sub coords
 function FrameUtils:CreateBoardLabel(board, frame, row)
 	offset = 2
-	label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
+	
+	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
 	label:SetAlpha(KC.boardAlpha)
 	
 	if (row) then

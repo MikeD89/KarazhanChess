@@ -92,7 +92,7 @@ function KC:createChessFrame(frame)
 	newGameButton:SetText("New Game");
 	newGameButton:SetNormalFontObject("GameFontNormalSmall");
 	newGameButton:SetScript("OnClick", function(self, arg)
-		KC:Print("TODO - New Game Button")
+		KC:P("TODO - New Game Button")
 	end)
 
 	-- Options Button
@@ -125,6 +125,10 @@ function KC:createChessBoard(frame)
 	local size = KC.boardSectionSize
 	local firstRow = true
 	local newColumn = true
+
+	-- Globals
+	KC.board = {}
+	KC.boardLabels = {}
 	
 	-- Columns
 	for i=1,KC.boardDim,1 do
@@ -139,31 +143,33 @@ function KC:createChessBoard(frame)
 			-- Pick the color
 			icon = Icons.Board:GetBoardIcon(lightSquare)
 
-			-- Create the board
-			board = FrameUtils:CreateIcon(frame, size, size, icon, "ARTWORK")
-			board:SetAlpha(KC.boardAlpha)
-			board.colLabel = h
-			board.colIndex = i
-			board.rowLabel = ""..j
-			board.rowIndex = j
-			board.fullLabel = board.colLabel..board.rowLabel
-			board.lightSquare = lightSquare
+			-- Create the board square
+			square = FrameUtils:CreateIcon(frame, size, size, icon, "ARTWORK")
+			square:SetAlpha(KC.boardAlpha)
+			square.colLabel = h
+			square.colIndex = i
+			square.rowLabel = ""..j
+			square.rowIndex = j
+			square.fullLabel = square.colLabel..square.rowLabel
+			square.lightSquare = lightSquare
 
 			-- Position and Save
-			local xpos = KC.frameMargin + ((board.colIndex - 1) * KC.boardSectionSize)
-			local ypos = yOffet + KC.boardHeight - (board.rowIndex * KC.boardSectionSize)
-			board:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
+			local xpos = KC.frameMargin + ((square.colIndex - 1) * KC.boardSectionSize)
+			local ypos = yOffet + KC.boardHeight - (square.rowIndex * KC.boardSectionSize)
+			square:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
 			-- Create the neccersary labels
 			if (firstRow) then
-				FrameUtils:CreateBoardLabel(board, frame, true)
+				local label = FrameUtils:CreateBoardLabel(square, frame, true)
+				table.insert(KC.boardLabels, label)
 			end
 			if (newColumn) then
-				FrameUtils:CreateBoardLabel(board, frame, false)
+				local label = FrameUtils:CreateBoardLabel(square, frame, false)
+				table.insert(KC.boardLabels, label)
 			end
 
 			-- Save it and flip the colour
-			KC.board[i][j] = board
+			KC.board[i][j] = square
 			lightSquare = not lightSquare
 
 			-- This is no longer a new column 
@@ -173,6 +179,9 @@ function KC:createChessBoard(frame)
 		-- After the first row we don't need labels any more
 		firstRow = false			
 	end
+
+	-- We've added labels (probably) - We might need to hide them
+	KC:applyBoardLabelVisibility()
 end
 
 -- Applies a user selected texture to all the board squares
@@ -192,5 +201,18 @@ function KC:applyPieceTextures()
 	-- Apply Chess Piece Textures
 	for i=1,table.getn(KC.pieces),1 do
 		KC.pieces[i]:UpdateTexture()
+	end
+end
+
+-- Toggles the board labels on and off
+function KC:applyBoardLabelVisibility()
+	local state = KC:getBoardLabelsVisible()
+
+	for i=1,table.getn(KC.boardLabels),1 do
+		if(state) then
+			KC.boardLabels[i]:Show()
+		else
+			KC.boardLabels[i]:Hide()
+		end
 	end
 end

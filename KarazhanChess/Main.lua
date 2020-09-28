@@ -12,10 +12,11 @@
 KC = LibStub("AceAddon-3.0"):NewAddon("KarazhanChess", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0");
 
 -- Get the version & date. This is set by the packager.
+KC.debugVersion = "0.0_dev"
 KC.version = "@project-version@"
 KC.dateChanged = "@project_date_integer@"
 if KC.version:find("@", nil, true) then
-    KC.version = "0.0_dev"
+    KC.version = KC.debugVersion
 end
 
 if KC.dateChanged:find("@", nil, true) then
@@ -54,9 +55,11 @@ KC.pieces = {}
 KC.frame = nil
 KC.fixedWidth = 450
 KC.fixedHeight = 500
+KC.boardAlpha = 0.8
 KC.boardDim = 8 
 KC.boardSectionSize = floor(KC.fixedWidth / (KC.boardDim + 0.75))
 KC.boardWidth = KC.boardSectionSize * KC.boardDim
+KC.boardHeight = KC.boardWidth
 KC.frameMargin = (KC.fixedWidth - KC.boardWidth) / 2
 
 -- Init Function
@@ -87,8 +90,7 @@ function KC:OnEnable()
 	KC:Print(KC.formattedName.." Loaded!")
 
 	------------- TEMP ----------------
-		king = Piece:new(Piece:data["king"], true)
-		KC:Print(king:key)
+	king = Piece:new("king", true)
 	-----------------------------------
 end
 

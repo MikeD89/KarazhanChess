@@ -109,7 +109,7 @@ function KC:createChessFrame(frame)
 	KC:createChessBoard(frame)
 
 	-- Add the placeholder text for victory.
-	KC.statusText = frame:CreateFontString(nil, "HIGHLIGHT") 	
+	KC.statusText = frame:CreateFontString(nil, "OVERLAY") 	
 	KC.statusText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
 	KC.statusText:SetTextColor(0, 1, 0)
 	KC.statusText:SetText("Victory, or Death!")
@@ -120,38 +120,58 @@ end
 -- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
 	local yOffet = 50
-	local horiLabels = "abcdefgh"
+	local colLabels = 'abcdefgh'
 	local lightSquare = false
 	local size = KC.boardSectionSize
+	local firstRow = true
+	local newColumn = true
 	
+	-- Columns
 	for i=1,KC.boardDim,1 do
 		-- New row
-		local h = horiLabels[i]
+		local h = strsub(colLabels, i, i)
 		KC.board[i] = {}  
 		lightSquare = not lightSquare
+		newColumn = true
 
+		-- Rows
 		for j=1,KC.boardDim,1 do
 			-- Pick the color
 			icon = Icons.Board:GetBoardIcon(lightSquare)
 
 			-- Create the board
 			board = FrameUtils:CreateIcon(frame, size, size, icon, "ARTWORK")
-			board:SetAlpha(0.8)
-			board.horiLabel = h
-			board.horiIndex = i
-			board.vertLabel = ""..j
-			board.vertIndex = j
+			board:SetAlpha(KC.boardAlpha)
+			board.colLabel = h
+			board.colIndex = i
+			board.rowLabel = ""..j
+			board.rowIndex = j
+			board.fullLabel = board.colLabel..board.rowLabel
 			board.lightSquare = lightSquare
 
 			-- Position and Save
-			local xpos = KC.frameMargin + ((board.horiIndex - 1) * KC.boardSectionSize)
-			local ypos = yOffet + ((board.vertIndex - 1) * KC.boardSectionSize)
+			local xpos = KC.frameMargin + ((board.colIndex - 1) * KC.boardSectionSize)
+			local ypos = yOffet + KC.boardHeight - (board.rowIndex * KC.boardSectionSize)
 			board:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
+
+			-- Create the neccersary labels
+			if (firstRow) then
+				FrameUtils:CreateBoardLabel(board, frame, true)
+			end
+			if (newColumn) then
+				FrameUtils:CreateBoardLabel(board, frame, false)
+			end
 
 			-- Save it and flip the colour
 			KC.board[i][j] = board
 			lightSquare = not lightSquare
-		end				
+
+			-- This is no longer a new column 
+			newColumn = false
+		end	
+		
+		-- After the first row we don't need labels any more
+		firstRow = false			
 	end
 end
 

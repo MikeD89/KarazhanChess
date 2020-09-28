@@ -8,7 +8,7 @@
 Piece = {}
 Piece.__index = Piece;
 
-Piece.data = {
+Piece.Data = {
     ["king"] = {"k", 0},
     ["queen"] = {"q", 9},
     ["rook"] = {"r", 5},
@@ -18,17 +18,17 @@ Piece.data = {
 };
 
 -- Constructor
-function Piece:new(data, isWhite)
+function Piece:new(name, isWhite)
     -- Metatable
     local self = {};
+    local data = Piece.Data[name];
     setmetatable(self, Piece);
 
     -- Variables
-    self.data = data;
     self.name = data[1];
     self.points = data[2];
     self.isWhite = isWhite;
-    self.prefix = (self.isWhite) ? "w" : "b";
+    self.prefix = self.isWhite and "w" or "b";
     self.key = self.prefix..self.name;
     return self;
 end

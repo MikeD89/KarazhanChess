@@ -96,3 +96,20 @@ function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback, c
 
 	return iconFrame
 end
+
+-- Function used to create a movable icon with a callback and sub coords
+function FrameUtils:CreateBoardLabel(board, frame, row)
+	offset = 2
+	label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
+	label:SetAlpha(KC.boardAlpha)
+	
+	if (row) then
+		label:SetText(board.rowLabel)
+		label:SetPoint("TOPLEFT", board, "TOPLEFT", offset, -offset)	
+	else
+		label:SetText(board.colLabel)
+		label:SetPoint("BOTTOMRIGHT", board, "BOTTOMRIGHT", -offset, offset)
+	end
+
+	return label
+end

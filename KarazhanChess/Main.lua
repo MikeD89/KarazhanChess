@@ -48,6 +48,7 @@ KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
 KC.profileName = "Default"
 KC.board = {}
+KC.pieces = {}
 
 -- Frame Globals
 KC.frame = nil
@@ -84,6 +85,11 @@ function KC:OnEnable()
 	KC:createChessFrame(KC.frame);
 	KC.loaded = true
 	KC:Print(KC.formattedName.." Loaded!")
+
+	------------- TEMP ----------------
+		king = Piece:new(Piece:data["king"], true)
+		KC:Print(king:key)
+	-----------------------------------
 end
 
 

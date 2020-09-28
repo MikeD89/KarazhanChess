@@ -21,21 +21,27 @@ KC.options = {
         },
 		authorText = {
 			type = "description",
-			name = "|cFF9CD6DE" .. "by MeloN <Convicted>",
-			fontSize = "medium",
+			name = "|cFF9CD6DE" .. "By MeloN <".."|cffff5c33Convicted".."|cFF9CD6DE>",
+			fontSize = "small",
+			order = 3,
+		},
+		github = {
+			type = "description",
+			name = "|cFF9CD6DE" .. "https://github.com/MikeD89/KarazhanChess",
+			fontSize = "small",
 			order = 2,
 		},
 		mainText = {
 			type = "description",
 			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kco - Options Panel",
 			fontSize = "medium",
-			order = 3,
+			order = 4,
 		},
 		resetOptionsButton = {
 			type = "execute",
             name = "Reset Options",
             desc = "Resets all Options to the Defaults",
-			order = 4,
+			order = 5,
 			func = "resetProfile"
 		},
         generalHeader = {

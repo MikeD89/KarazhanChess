@@ -47,17 +47,17 @@ function KC:createChessFrame(frame)
 	frame:SetScript('OnLeave', setFadeState)
 
 	-- Add the titles
-	local titleText = frame:CreateFontString(nil, "OVERLAY") 	
+	local titleText = frame:CreateFontString(nil, "ARTWORK") 	
 	titleText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
     titleText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 	titleText:SetText(KC.name)
 	titleText:SetPoint("TOP", frame, "TOP", 0, -18)
 
-	local authorText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
+	local authorText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall") 
 	authorText:SetText("By MeloN <"..format("|cffff5c33%s|r","Convicted")..">")
 	authorText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", KC.frameMargin, 14)	
 
-	local versionText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 
+	local versionText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall") 
 	versionText:SetText("Version: "..KC.formattedVersion)
 	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", 0, 2)	
 
@@ -107,6 +107,14 @@ function KC:createChessFrame(frame)
 
 	-- Add the board
 	KC:createChessBoard(frame)
+
+	-- Add the placeholder text for victory.
+	KC.statusText = frame:CreateFontString(nil, "HIGHLIGHT") 	
+	KC.statusText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
+	KC.statusText:SetTextColor(0, 1, 0)
+	KC.statusText:SetText("Victory, or Death!")
+	KC.statusText:SetPoint("CENTER", frame, "CENTER", 0, 20)	
+	KC.statusText:Hide()
 end
 
 -- Add the visual and logical board into the frame
@@ -127,7 +135,7 @@ function KC:createChessBoard(frame)
 			icon = Icons.Board:GetBoardIcon(lightSquare)
 
 			-- Create the board
-			board = FrameUtils:CreateIcon(frame, size, size, icon, "OVERLAY")
+			board = FrameUtils:CreateIcon(frame, size, size, icon, "ARTWORK")
 			board:SetAlpha(0.8)
 			board.horiLabel = h
 			board.horiIndex = i
@@ -147,7 +155,7 @@ function KC:createChessBoard(frame)
 	end
 end
 
-
+-- Applies a user selected texture to all the board squares
 function KC:applyBoardTextures()
 	-- Apply Chess Board Textures
 	for i=1,KC.boardDim,1 do
@@ -159,8 +167,10 @@ function KC:applyBoardTextures()
 	end
 end
 
+-- Applies a user selected texture to all the pieces on the board
 function KC:applyPieceTextures()
 	-- Apply Chess Piece Textures
-	-- local moveable = FrameUtils:CreateMoveableIcon(frame, 40, 40, dir("Textures\\pieces\\default\\wk"), "OVERLAY", function(icon) print(icon:GetPoint()) end)
-	-- moveable:SetPoint("CENTER", frame, "CENTER", 80, 0)
+	for i=1,table.getn(KC.pieces),1 do
+		KC.pieces[i]:UpdateTexture()
+	end
 end

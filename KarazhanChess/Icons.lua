@@ -25,34 +25,11 @@ end
 
 Icons.Piece = {}
 Icons.Piece.Folder = dir("Textures\\Piece\\")
-Icons.Piece.Themes = { "Default" }
-Icons.Piece.WhiteKing = "\\wk.blp"
-Icons.Piece.WhiteQueen = "\\wq.blp"
-Icons.Piece.WhiteBishop = "\\wb.blp"
-Icons.Piece.WhiteKnight = "\\wn.blp"
-Icons.Piece.WhitePawn = "\\wp.blp"
-Icons.Piece.BlackKing = "\\bk.blp"
-Icons.Piece.BlackQueen = "\\bq.blp"
-Icons.Piece.BlackBishop = "\\bb.blp"
-Icons.Piece.BlackKnight = "\\bn.blp"
-Icons.Piece.BlackPawn = "\\bp.blp"
+Icons.Piece.Themes = { "Default", "Tournament" }
 
 function Icons.Piece:GetPieceIcon(piece) 
     selectedTheme = Icons.Piece.Themes[KC:getPieceTheme()]
-    return Icons.Piece.Folder..selectedTheme..piece
+    return Icons.Piece.Folder..selectedTheme.."\\"..piece..".blp"
 end
 
 -- 
-
-Icons.Piece.Lookup = {
-    ['wk'] = {"K", Icons.Piece.WhiteKing},
-    ['wq'] = {"Q", Icons.Piece.WhiteQueen},
-    ['wb'] = {"B", Icons.Piece.WhiteBishop},
-    ['wn'] = {"N", Icons.Piece.WhiteKnight},
-    ['wp'] = {"P", Icons.Piece.WhitePawn},
-    ['bk'] = {"k", Icons.Piece.BlackKing},
-    ['bq'] = {"q", Icons.Piece.BlackQueen},
-    ['bb'] = {"b", Icons.Piece.BlackBishop},
-    ['bn'] = {"n", Icons.Piece.BlackKnight},
-    ['bp'] = {"p", Icons.Piece.BlackPawn},
-}

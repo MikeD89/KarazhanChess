@@ -35,6 +35,8 @@ function Piece:new(name, isWhite, position)
     self.icon = Icons.Piece:GetPieceIcon(self.key)
 
     -- Pieces have to exist inside a frame
+    -- TODO - We CANNOT remove frames. Therefore we should move these frames to be "piece holders" for the board
+    --        And get this class to "load" pieces into the board, NOT create the frames on the fly
 	self.frame = CreateFrame("FRAME", nil, KC.frame)
 	self.frame:SetWidth(KC.boardSectionSize)
 	self.frame:SetHeight(KC.boardSectionSize)

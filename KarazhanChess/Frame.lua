@@ -158,6 +158,19 @@ function KC:createChessBoard(frame)
 			local ypos = yOffet + KC.boardHeight - (square.rowIndex * KC.boardSectionSize)
 			square:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
+			-- Give it a Legal Move indicator
+			square.legalMove = FrameUtils:CreateIcon(frame, size/3, size/3, Icons.LegalMove, "ARTWORK")
+			square.legalMove:SetPoint("CENTER", square, "CENTER")
+			square.legalMove:Hide()
+
+			-- Make the move indicator be toggleable
+			square.ShowAsLegalMove = function(self) 
+				square.legalMove:Show()
+			end
+			square.ClearLegalMove = function(self) 
+				square.legalMove:Hide()
+			end
+
 			-- Create the neccersary labels
 			if (firstRow) then
 				local label = FrameUtils:CreateBoardLabel(square, frame, true)
@@ -213,6 +226,15 @@ function KC:applyBoardLabelVisibility()
 			KC.boardLabels[i]:Show()
 		else
 			KC.boardLabels[i]:Hide()
+		end
+	end
+end
+
+-- Clears all legal moves
+function KC:clearLegalMoves()
+	for i=1,KC.boardDim,1 do
+		for j=1,KC.boardDim,1 do
+			KC.board[i][j].legalMove:Hide()
 		end
 	end
 end

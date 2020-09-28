@@ -108,7 +108,7 @@ function KC:createBroker()
 	local data = {
 		type = "launcher", 
 		label = KC.name, 
-		icon = dir("Textures\\minimap.blp")
+		icon = Icons.MiniMap
 	}
 	
 	-- Create minimap button

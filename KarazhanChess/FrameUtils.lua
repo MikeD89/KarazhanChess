@@ -51,17 +51,17 @@ function FrameUtils:CreateIcon(parent, w, h, texture, layer, coords)
 end
 
 -- Function used to create a movable icon with no call back and no sub coords
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer)
-	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, nil)
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture)
+	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, nil)
 end
 
 -- Function used to create a movable icon with a callback 
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback)
-	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback, nil)
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback)
+	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback, nil)
 end
 
 -- Function used to create a movable icon with a callback and sub coords
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture, layer, callback, coords)
+function FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback, coords)
 	-- create the frame
 	local iconFrame = CreateFrame("FRAME", nil, parent)
 	iconFrame:SetWidth(w)
@@ -100,7 +100,7 @@ end
 -- Function used to create a movable icon with a callback and sub coords
 function FrameUtils:CreateBoardLabel(board, frame, row)
 	offset = 2
-	
+
 	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
 	label:SetAlpha(KC.boardAlpha)
 	

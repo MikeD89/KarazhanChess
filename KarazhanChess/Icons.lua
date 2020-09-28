@@ -6,6 +6,8 @@
 -------------------------------------------------------------------------------
 
 Icons = {}
+Icons.MiniMap = dir("Textures\\minimap")
+Icons.LegalMove = dir("Textures\\legalmove")
 
 --
 

@@ -50,53 +50,6 @@ function FrameUtils:CreateIcon(parent, w, h, texture, layer, coords)
 	return icon
 end
 
--- Function used to create a movable icon with no call back and no sub coords
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture)
-	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, nil)
-end
-
--- Function used to create a movable icon with a callback 
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback)
-	return FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback, nil)
-end
-
--- Function used to create a movable icon with a callback and sub coords
-function FrameUtils:CreateMoveableIcon(parent, w, h, texture, callback, coords)
-	-- create the frame
-	local iconFrame = CreateFrame("FRAME", nil, parent)
-	iconFrame:SetWidth(w)
-	iconFrame:SetHeight(h)
-	iconFrame:EnableMouse(true)
-	iconFrame:SetPoint("CENTER", parent, "CENTER")
-	
-	-- Create the texture to go in the icon
-	local icon = iconFrame:CreateTexture(nil, textureType)
-	icon:SetTexture(texture)
-	icon:SetAllPoints()
-
-	-- If this is a part texture use that
-	if (coords ~= nil) then
-		icon:GetTexture():SetTexCoord(unpack(coords));
-	end
-
-	-- Make it move!
-	iconFrame:SetScript("OnMouseDown", function() 
-		iconFrame:SetMovable(true)
-		iconFrame:StartMoving()  
-	end) 
-
-	-- and make it stop
-	iconFrame:SetScript("OnMouseUp", function()
-		iconFrame:StopMovingOrSizing()
-		iconFrame:SetMovable(false)
-		if (callback ~= nil) then
-			callback(iconFrame)
-		end
-	end)
-
-	return iconFrame
-end
-
 -- Function used to create a movable icon with a callback and sub coords
 function FrameUtils:CreateBoardLabel(board, frame, row)
 	offset = 2

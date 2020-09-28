@@ -29,3 +29,8 @@ end
 function ternary(cond, T, F)
     if cond then return T else return F end
 end
+
+-- Get the ordinal number for a character
+function ord(char)
+	return string.byte(char)-string.byte("a")+1
+end

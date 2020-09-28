@@ -12,11 +12,10 @@
 KC = LibStub("AceAddon-3.0"):NewAddon("KarazhanChess", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0");
 
 -- Get the version & date. This is set by the packager.
-KC.debugVersion = "0.0_dev"
 KC.version = "@project-version@"
 KC.dateChanged = "@project_date_integer@"
 if KC.version:find("@", nil, true) then
-    KC.version = KC.debugVersion
+    KC.version = "0.0_dev"
 end
 
 if KC.dateChanged:find("@", nil, true) then
@@ -94,7 +93,41 @@ function KC:OnEnable()
 	KC:Print(KC.formattedName.." Loaded!")
 
 	------------- TEMP ----------------
-	king = Piece:new("king", true)
+	table.insert(KC.pieces, Piece:new("rook", true, "a1"))
+	table.insert(KC.pieces, Piece:new("knight", true, "b1"))
+	table.insert(KC.pieces, Piece:new("bishop", true, "c1"))
+	table.insert(KC.pieces, Piece:new("queen", true, "d1"))
+	table.insert(KC.pieces, Piece:new("king", true, "e1"))
+	table.insert(KC.pieces, Piece:new("bishop", true, "f1"))
+	table.insert(KC.pieces, Piece:new("knight", true, "g1"))
+	table.insert(KC.pieces, Piece:new("rook", true, "h1"))
+
+	table.insert(KC.pieces, Piece:new("rook", false, "a8"))
+	table.insert(KC.pieces, Piece:new("knight", false, "b8"))
+	table.insert(KC.pieces, Piece:new("bishop", false, "c8"))
+	table.insert(KC.pieces, Piece:new("queen", false, "d8"))
+	table.insert(KC.pieces, Piece:new("king", false, "e8"))
+	table.insert(KC.pieces, Piece:new("bishop", false, "f8"))
+	table.insert(KC.pieces, Piece:new("knight", false, "g8"))
+	table.insert(KC.pieces, Piece:new("rook", false, "h8"))
+
+	table.insert(KC.pieces, Piece:new("pawn", true, "a2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "b2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "c2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "d2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "e2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "f2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "g2"))
+	table.insert(KC.pieces, Piece:new("pawn", true, "h2"))
+
+	table.insert(KC.pieces, Piece:new("pawn", false, "a7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "b7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "c7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "d7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "e7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "f7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "g7"))
+	table.insert(KC.pieces, Piece:new("pawn", false, "h7"))
 	-----------------------------------
 end
 

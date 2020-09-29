@@ -119,6 +119,20 @@ KC.optionDefaults = {
 	},
 };
 
+-------------------
+-- Reset Options --
+-------------------
+function KC:resetProfile(info)
+	self.db:ResetDB(KC.profileName)
+
+	-- Call all the update methods
+	KC:updateMinimapButton()
+	KC:updateWindowFadeout()
+	KC:updateBoardLabelsVisible()
+	KC:updateBoardTheme()
+	KC:updatePieceTheme()
+end
+
 
 -----------------------
 -- Getters & Setters --
@@ -145,43 +159,39 @@ function KC:updateMinimapButton()
 	end
 end
 
--- Reset the Postion of the Window
-
-function KC:resetWindowPosition(info)
-	KC:P("TODO - Reset Window Pos")
-end
-
-function KC:resetProfile(info)
-	self.db:ResetDB(KC.profileName)
-
-	-- Make sure the set functions that change things get exectuted
-	KC.updateMinimapButton()
-end
 
 -- Fadeout Toggle
 
 function KC:setWindowFadeout(info, value)
 	self.db.global.fadeoutWindow = value;
-
-	-- Make sure we can see the window if we're turning it off
-	if (not value) then
-		KC.frame:SetAlpha(1.0)
-	end
+	self:updateWindowFadeout()
 end
 
 function KC:getWindowFadeout(info)
 	return self.db.global.fadeoutWindow;
 end
 
+function KC:updateWindowFadeout()
+	-- Make sure we can see the window if we're turning it off
+	if (not KC:getWindowFadeout()) then
+		KC.frame:SetAlpha(1.0)
+	end
+end
+
+
 -- Board Labels
 
 function KC:setBoardLabelsVisible(info, value)
 	self.db.global.boardLabels = value;
-	self:applyBoardLabelVisibility();
+	self:updateBoardLabelsVisible()
 end
 
 function KC:getBoardLabelsVisible(info)
 	return self.db.global.boardLabels;
+end
+
+function KC:updateBoardLabelsVisible()
+	self:applyBoardLabelVisibility();
 end
 
 
@@ -189,21 +199,31 @@ end
 
 function KC:setBoardTheme(info, value)
 	self.db.global.boardTheme = value;
-	self:applyBoardTextures();
+	self:updateBoardTheme()
 end
 
 function KC:getBoardTheme(info)
 	return self.db.global.boardTheme;
 end
 
+function KC:updateBoardTheme()
+	self:applyBoardTextures();
+end
+
+
 -- Piece Theme
 
 function KC:setPieceTheme(info, value)
 	self.db.global.pieceTheme = value;
-	self:applyPieceTextures();
+	KC:updatePieceTheme()
 end
 
 function KC:getPieceTheme(info)
 	return self.db.global.pieceTheme;
 end
+
+function KC:updatePieceTheme()
+	self:applyPieceTextures();
+end
+
 

@@ -27,3 +27,4 @@ ignore:
   - .vscode
   - .github
   - Converter
+  - TextureSource

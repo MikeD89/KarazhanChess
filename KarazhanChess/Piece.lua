@@ -33,6 +33,7 @@ function Piece:new(name, isWhite, position)
     self.prefix = self.isWhite and "w" or "b";
     self.key = self.prefix..self.name;
     self.icon = Icons.Piece:GetPieceIcon(self.key)
+    self.selected = false
 
     -- Pieces have to exist inside a frame
     -- TODO - We CANNOT remove frames. Therefore we should move these frames to be "piece holders" for the board
@@ -48,24 +49,12 @@ function Piece:new(name, isWhite, position)
     self.texture:SetAllPoints()
     self.texture:SetBlendMode("BLEND")
 
-	-- Make it move!
-	self.frame:SetScript("OnMouseDown", function() 
-		self.frame:SetMovable(true)
-		self.frame:StartMoving()  
-	end) 
-
-	-- and make it stop
-	self.frame:SetScript("OnMouseUp", function()
-		self.frame:StopMovingOrSizing()
-		self.frame:SetMovable(false)
-	end)    
-
+    -- TODO: Dragging and Dropping. 
+    -- self.frame:SetScript("OnMouseDown", self.HandleMouseDown)
+    self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
+    
     -- Position initialisation
-    if (position ~= nil) then
-        self:ApplyPosition(position)
-    else
-        self.texture:Hide()
-    end
+    self:ApplyPosition(position)
 
     -- Done!
     return self;
@@ -83,14 +72,36 @@ end
 
 -- Position 
 function Piece:ApplyPosition(position) 
-    -- TODO validation
     if (position ~= nil) then
         local col = strsub(position, 1, 1)
         local row = strsub(position, 2, 2)
         self.frame:SetPoint("CENTER", KC.board[ord(col)][tonumber(row)], "CENTER")
     else
         self.texture:Hide()
+        KC:Print("Invalid Position for Piece: "..position)
     end
+end
+
+-- Selection
+function Piece:HandleMouseUp()
+    if MouseIsOver(self.frame) then
+        if(self.selected) then
+            KC:DeselectPiece()
+        else
+            KC:SelectPiece(self)
+        end 
+    end
+end
+
+function Piece:SetSelected()
+    self.frame:SetBackdrop({ bgFile = [[Interface/Buttons/WHITE8X8]] })
+    self.frame:SetBackdropColor(0.16, 0.47, 0.04, 0.5)
+    self.selected = true
+end
+
+function Piece:SetDeselected()
+    self.frame:SetBackdrop(nil)        
+    self.selected = false
 end
 
 ---------------------------------------------------------

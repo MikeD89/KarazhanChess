@@ -166,10 +166,10 @@ function KC:createChessBoard(frame)
 			square.legalMove:Hide()
 
 			-- Callbacks
-			square.ShowAsLegalMove = function() self.legalMove:Show() end
-			square.ClearLegalMove = function() self.legalMove:Hide() end
-			square.IsLegalMove = function() return self.legalMove:IsShown()	end
-			square:SetScript("OnMouseUp", HandleBoardSquareClicked)
+			square.ShowAsLegalMove = function(self) self.legalMove:Show() end
+			square.ClearLegalMove = function(self) self.legalMove:Hide() end
+			square.IsLegalMove = function(self) return self.legalMove:IsShown()	end
+			-- square:SetScript("OnMouseUp", KC:HandleBoardSquareClicked)
 
 			-- Create the neccersary labels
 			if (firstRow) then
@@ -244,9 +244,4 @@ function KC:GetBoardPosition(position)
 	local col = strsub(position, 1, 1)
 	local row = strsub(position, 2, 2)
 	return KC.board[ord(col)][tonumber(row)]
-end
-
--- Click Event
-local function HandleBoardSquareClicked(self, event)
-	KC:Print(event)
 end

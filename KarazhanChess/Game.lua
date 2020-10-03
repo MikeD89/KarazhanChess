@@ -44,7 +44,7 @@ end
 
 -- Board selection
 function KC:BoardSquareSelected(square)
-    KC:P(square.IsLegalMove())
+    -- KC:P(square.IsLegalMove())
     -- Check this is legit.
     -- if (board:IsLegalMove() == false) then
     --     return 

@@ -44,14 +44,19 @@ end
 
 -- Board selection
 function KC:HandleBoardSquareClicked(square)
-    KC:P(square:IsLegalMove())
-    -- Check this is legit.
-    -- if (board:IsLegalMove() == false) then
-    --     return 
-    -- end
+    -- Nothign to do if no piece selected
+    if(KC.selectedPiece == nil) then
+        return
+    end
+
+    -- Is this a legit move?
+    if (square:IsLegalMove() == false) then
+        return 
+    end
 
     -- TODO - Captures and stuff
 
-    -- Update the piece 
-    -- KC.selectedPiece:
+    -- Update the piece visually
+    KC.selectedPiece:MovePiece(square)
+    KC:DeselectPiece()
 end

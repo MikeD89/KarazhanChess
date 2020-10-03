@@ -31,13 +31,13 @@ end
 -- Function used to create an icon
 function FrameUtils:CreateIcon(w, h, textureName, layer, name)	
 	-- create this as a frame
-	frame = CreateFrame("FRAME", nil, KC.frame)
+	frame = CreateFrame("FRAME", name, KC.frame)
 	frame:SetWidth(w)
 	frame:SetHeight(h)
     frame:EnableMouse(true)
 	
 	-- And with a texture
-	frame.texture = frame:CreateTexture(nil, layer)
+	frame.texture = frame:CreateTexture(name, layer)
     frame.texture:SetTexture(textureName)
     frame.texture:SetAllPoints()
 

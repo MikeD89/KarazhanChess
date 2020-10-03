@@ -169,7 +169,7 @@ function KC:createChessBoard(frame)
 			square.ShowAsLegalMove = function(self) self.legalMove:Show() end
 			square.ClearLegalMove = function(self) self.legalMove:Hide() end
 			square.IsLegalMove = function(self) return self.legalMove:IsShown()	end
-			-- square:SetScript("OnMouseUp", KC:HandleBoardSquareClicked)
+			square:SetScript("OnMouseUp", function(self) KC:HandleBoardSquareClicked(self) end)
 
 			-- Create the neccersary labels
 			if (firstRow) then

@@ -43,8 +43,8 @@ function KC:ShowValidMoves()
 end
 
 -- Board selection
-function KC:BoardSquareSelected(square)
-    -- KC:P(square.IsLegalMove())
+function KC:HandleBoardSquareClicked(square)
+    KC:P(square:IsLegalMove())
     -- Check this is legit.
     -- if (board:IsLegalMove() == false) then
     --     return 

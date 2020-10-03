@@ -28,26 +28,20 @@ function FrameUtils:KeepFrameInBounds(frame, bounds)
 	frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", xOffset, yOffset)
 end
 
--- Function used to create an icon 
-function FrameUtils:CreateIcon(parent, w, h, texture, layer)
-	return FrameUtils:CreateIcon(parent, w, h, texture, layer, nil)
-end
+-- Function used to create an icon
+function FrameUtils:CreateIcon(w, h, textureName, layer, name)	
+	-- create this as a frame
+	local frame = CreateFrame("FRAME", name, KC.frame)
+	frame:SetWidth(w)
+	frame:SetHeight(h)
+    frame:EnableMouse(true)
+	
+	-- And with a texture
+	frame.texture = frame:CreateTexture(name.."_tex", layer)
+    frame.texture:SetTexture(textureName)
+    frame.texture:SetAllPoints()
 
--- Function used to create an icon with a sub-coordinate
-function FrameUtils:CreateIcon(parent, w, h, texture, layer, coords)	
-	-- Create the icon from the parent
-	local icon = parent:CreateTexture(nil, textureType)
-	icon:SetTexture(texture)
-	icon:SetWidth(w)
-	icon:SetHeight(h)
-	icon:SetPoint("CENTER", parent, "CENTER")
-
-	-- If this is a part texture use that
-	if (coords ~= nil) then
-		icon:GetTexture():SetTexCoord(unpack(coords));
-	end
-
-	return icon
+	return frame
 end
 
 -- Function used to create a movable icon with a callback and sub coords

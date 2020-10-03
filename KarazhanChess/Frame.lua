@@ -142,16 +142,18 @@ function KC:createChessBoard(frame)
 		for j=1,KC.boardDim,1 do
 			-- Pick the color
 			icon = Icons.Board:GetBoardIcon(lightSquare)
+			name = h..j
 
 			-- Create the board square
-			square = FrameUtils:CreateIcon(frame, size, size, icon, "ARTWORK")
+			square = FrameUtils:CreateIcon(size, size, icon, "ARTWORK", name)
 			square:SetAlpha(KC.boardAlpha)
 			square.colLabel = h
 			square.colIndex = i
 			square.rowLabel = ""..j
 			square.rowIndex = j
-			square.fullLabel = square.colLabel..square.rowLabel
+			square.fullLabel = name
 			square.lightSquare = lightSquare
+			square.piece = nil
 
 			-- Position and Save
 			local xpos = KC.frameMargin + ((square.colIndex - 1) * KC.boardSectionSize)
@@ -159,17 +161,15 @@ function KC:createChessBoard(frame)
 			square:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
 			-- Give it a Legal Move indicator
-			square.legalMove = FrameUtils:CreateIcon(frame, size/3, size/3, Icons.LegalMove, "ARTWORK")
+			square.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK", name.."_lmi")
 			square.legalMove:SetPoint("CENTER", square, "CENTER")
 			square.legalMove:Hide()
 
-			-- Make the move indicator be toggleable
-			square.ShowAsLegalMove = function(self) 
-				square.legalMove:Show()
-			end
-			square.ClearLegalMove = function(self) 
-				square.legalMove:Hide()
-			end
+			-- Callbacks
+			square.ShowAsLegalMove = function() self.legalMove:Show() end
+			square.ClearLegalMove = function() self.legalMove:Hide() end
+			square.IsLegalMove = function() return self.legalMove:IsShown()	end
+			square:SetScript("OnMouseUp", HandleBoardSquareClicked)
 
 			-- Create the neccersary labels
 			if (firstRow) then
@@ -204,7 +204,7 @@ function KC:applyBoardTextures()
 		for j=1,KC.boardDim,1 do
 			square = KC.board[i][j]
 			icon = Icons.Board:GetBoardIcon(square.lightSquare)
-			square:SetTexture(icon)
+			square.texture:SetTexture(icon)
 		end
 	end
 end
@@ -237,4 +237,16 @@ function KC:clearLegalMoves()
 			KC.board[i][j].legalMove:Hide()
 		end
 	end
+end
+
+-- Gets a specific board position
+function KC:GetBoardPosition(position)
+	local col = strsub(position, 1, 1)
+	local row = strsub(position, 2, 2)
+	return KC.board[ord(col)][tonumber(row)]
+end
+
+-- Click Event
+local function HandleBoardSquareClicked(self, event)
+	KC:Print(event)
 end

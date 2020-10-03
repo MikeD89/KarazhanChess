@@ -9,6 +9,7 @@ Piece = {}
 Piece.__index = Piece;
 Piece.SubLayer = 4
 
+-- (1: Abbreviation) (2: Point Value)
 Piece.Data = {
     ["king"] = {"k", 0},
     ["queen"] = {"q", 9},
@@ -38,16 +39,8 @@ function Piece:new(name, isWhite, position)
     -- Pieces have to exist inside a frame
     -- TODO - We CANNOT remove frames. Therefore we should move these frames to be "piece holders" for the board
     --        And get this class to "load" pieces into the board, NOT create the frames on the fly
-	self.frame = CreateFrame("FRAME", nil, KC.frame)
-	self.frame:SetWidth(KC.boardSectionSize)
-	self.frame:SetHeight(KC.boardSectionSize)
-    self.frame:EnableMouse(true)
-	
-    -- And with a texture
-	self.texture = self.frame:CreateTexture(nil, "OVERLAY", nil, Piece.SubLayer)
-    self.texture:SetTexture(self.icon)
-    self.texture:SetAllPoints()
-    self.texture:SetBlendMode("BLEND")
+    self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY", self.key)
+    self.frame:SetFrameLevel(Piece.SubLayer)
 
     -- TODO: Dragging and Dropping. 
     -- self.frame:SetScript("OnMouseDown", self.HandleMouseDown)
@@ -67,19 +60,30 @@ end
 -- Interface
 function Piece:UpdateTexture(position) 
     self.icon = Icons.Piece:GetPieceIcon(self.key)
-	self.texture:SetTexture(self.icon)
+	self.frame.texture:SetTexture(self.icon)
 end
 
 -- Position 
 function Piece:ApplyPosition(position) 
     if (position ~= nil) then
-        local col = strsub(position, 1, 1)
-        local row = strsub(position, 2, 2)
-        self.frame:SetPoint("CENTER", KC.board[ord(col)][tonumber(row)], "CENTER")
+        -- Get the board and put ourselves there
+        local board = KC:GetBoardPosition(position)
+        self:MovePiece(board)
     else
-        self.texture:Hide()
+        self.frame:Hide()
         KC:Print("Invalid Position for Piece: "..position)
     end
+end
+
+function Piece:MovePiece(board) 
+    -- Put our piece in the center of the board
+    self.frame:SetPoint("CENTER", board, "CENTER")
+
+    -- Store our piece inside the board for reverse lookup
+    if(board.piece ~= nil) then
+        KC:Print("Overwriting Piece Stored Inside Board Position: "..position)
+    end
+    board.piece = self
 end
 
 -- Selection

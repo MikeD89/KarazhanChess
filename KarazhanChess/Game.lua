@@ -11,6 +11,8 @@ KC.selectedPiece = nil
 -- Piece Selection
 function KC:SelectPiece(piece)
     if(KC.selectedPiece ~= nil) then
+        -- TODO - Check for captures
+        -- TODO - check for matching colours
         KC:DeselectPiece()
     end
 
@@ -28,17 +30,21 @@ function KC:DeselectPiece()
     -- Handle cleaning up the board
     KC.selectedPiece:SetDeselected()
     KC.selectedPiece = nil
-    KC:clearLegalMoves()
+    KC:clearLegalMovesAndCaptures()
 end
 
 -- Move calculation
 function KC:ShowValidMoves()
     -- Calculate valid moves
     validMoves = {"a1", "b2", "c3", "d4", "e5", "f6", "g7", "h8" }
+    validCaptures = {"a2", "b3", "c4", "d5", "e6", "f7", "g8", "h1" }
 
     -- Display them all
     for i,move in ipairs(validMoves) do
         KC:GetBoardPosition(move):ShowAsLegalMove()
+    end
+    for i,capture in ipairs(validCaptures) do
+        KC:GetBoardPosition(capture):ShowAsLegalCapture()
     end
 end
 

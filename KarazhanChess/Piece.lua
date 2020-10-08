@@ -35,6 +35,7 @@ function Piece:new(name, isWhite, position)
     self.key = self.prefix..self.name;
     self.icon = Icons.Piece:GetPieceIcon(self.key)
     self.selected = false
+    self.currentSquare = nil
 
     -- Pieces have to exist inside a frame
     -- TODO - We CANNOT remove frames. Therefore we should move these frames to be "piece holders" for the board
@@ -75,15 +76,21 @@ function Piece:ApplyPosition(position)
     end
 end
 
-function Piece:MovePiece(board) 
-    -- Put our piece in the center of the board
-    self.frame:SetPoint("CENTER", board, "CENTER")
+function Piece:MovePiece(square) 
+    -- Put our piece in the center of the square
+    self.frame:SetPoint("CENTER", square, "CENTER")
 
-    -- Store our piece inside the board for reverse lookup
-    if(board.piece ~= nil) then
-        KC:Print("Overwriting Piece Stored Inside Board Position: "..position)
+    -- The square we are moving away from - clear its piece assignment
+    if(self.currentSquare ~= nil) then
+        self.currentSquare.piece = nil
     end
-    board.piece = self
+
+    -- Store our piece inside the square for reverse lookup
+    if(square.piece ~= nil) then
+        KC:Print("Overwriting Piece Stored Inside Square Position: "..square.fullLabel)
+    end
+    square.piece = self
+    self.currentSquare = square
 end
 
 -- Selection

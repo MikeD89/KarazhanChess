@@ -144,6 +144,8 @@ function KC:createChessBoard(frame)
 			icon = Icons.Board:GetBoardIcon(lightSquare)
 			name = h..j
 
+			-- TODO - Move Square to its own class. 
+			
 			-- Create the board square
 			square = FrameUtils:CreateIcon(size, size, icon, "ARTWORK", name)
 			square:SetAlpha(KC.boardAlpha)
@@ -165,10 +167,17 @@ function KC:createChessBoard(frame)
 			square.legalMove:SetPoint("CENTER", square, "CENTER")
 			square.legalMove:Hide()
 
+			-- Give it a Legal Capture indicator
+			square.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK", name.."_lci")
+			square.legalCapture:SetPoint("CENTER", square, "CENTER")
+			square.legalCapture:Hide()
+
 			-- Callbacks
 			square.ShowAsLegalMove = function(self) self.legalMove:Show() end
 			square.ClearLegalMove = function(self) self.legalMove:Hide() end
-			square.IsLegalMove = function(self) return self.legalMove:IsShown()	end
+			square.ShowAsLegalCapture = function(self) self.legalCapture:Show() end
+			square.ClearLegalCapture = function(self) self.legalCapture:Hide() end
+			square.IsLegalMove = function(self) return self.legalMove:IsShown() or self.legalCapture:IsShown()	end
 			square:SetScript("OnMouseUp", function(self) KC:HandleBoardSquareClicked(self) end)
 
 			-- Create the neccersary labels
@@ -231,10 +240,11 @@ function KC:applyBoardLabelVisibility()
 end
 
 -- Clears all legal moves
-function KC:clearLegalMoves()
+function KC:clearLegalMovesAndCaptures()
 	for i=1,KC.boardDim,1 do
 		for j=1,KC.boardDim,1 do
 			KC.board[i][j].legalMove:Hide()
+			KC.board[i][j].legalCapture:Hide()
 		end
 	end
 end

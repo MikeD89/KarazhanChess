@@ -36,8 +36,8 @@ end
 -- Move calculation
 function KC:ShowValidMoves()
     -- Calculate valid moves
-    validMoves = {"a1", "b2", "c3", "d4", "e5", "f6", "g7", "h8" }
-    validCaptures = {"a2", "b3", "c4", "d5", "e6", "f7", "g8", "h1" }
+    validMoves = {"a1", "a2", "c3", "c4", "e5", "e6", "g7", "g8" }
+    validCaptures = {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1" }
 
     -- Display them all
     for i,move in ipairs(validMoves) do

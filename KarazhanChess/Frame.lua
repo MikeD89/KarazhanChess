@@ -177,7 +177,8 @@ function KC:createChessBoard(frame)
 			square.ClearLegalMove = function(self) self.legalMove:Hide() end
 			square.ShowAsLegalCapture = function(self) self.legalCapture:Show() end
 			square.ClearLegalCapture = function(self) self.legalCapture:Hide() end
-			square.IsLegalMove = function(self) return self.legalMove:IsShown() or self.legalCapture:IsShown()	end
+			square.IsLegalMove = function(self) return self.legalMove:IsShown()	end
+			square.IsLegalCapture = function(self) return self.legalCapture:IsShown() end
 			square:SetScript("OnMouseUp", function(self) KC:HandleBoardSquareClicked(self) end)
 
 			-- Create the neccersary labels

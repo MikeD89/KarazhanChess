@@ -11,17 +11,17 @@ Piece.SubLayer = 4
 
 -- (1: Abbreviation) (2: Point Value)
 Piece.Data = {
-    ["king"] = {"k", 0},
-    ["queen"] = {"q", 9},
-    ["rook"] = {"r", 5},
-    ["knight"] = {"n", 3},
-    ["bishop"] = {"b", 3},
-    ["pawn"] = {"p", 1},
+    ["k"] = {"k", 0},
+    ["q"] = {"q", 9},
+    ["r"] = {"r", 5},
+    ["n"] = {"n", 3},
+    ["b"] = {"b", 3},
+    ["p"] = {"p", 1},
 };
 
 
 -- Constructor
-function Piece:new(name, isWhite, position)
+function Piece:new(name, isWhite, startingPosition)
     -- Metatable
     local self = {};
     local data = Piece.Data[name];
@@ -36,24 +36,39 @@ function Piece:new(name, isWhite, position)
     self.icon = Icons.Piece:GetPieceIcon(self.key)
     self.selected = false
     self.currentSquare = nil
+    self.startingPosition = startingPosition
 
     -- Pieces have to exist inside a frame
-    -- TODO - We CANNOT remove frames. Therefore we should move these frames to be "piece holders" for the board
-    --        And get this class to "load" pieces into the board, NOT create the frames on the fly
     self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY", self.key)
     self.frame:SetFrameLevel(Piece.SubLayer)
 
-    -- TODO: Dragging and Dropping. 
-    -- self.frame:SetScript("OnMouseDown", self.HandleMouseDown)
-    self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
-    
-    -- Position initialisation
-    self:ApplyPosition(position)
+    -- Give it a starting position
+    self:ApplyPosition(self.startingPosition)
 
+    -- Handle click 
+    self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
+
+    -- Hide by defauly
+    -- self.frame:Hide()
+    
     -- Done!
     return self;
 end
 
+-- Show/Hide
+function Piece:ShowPiece()
+    self.frame:Show() 
+end 
+function Piece:HidePiece()
+    self.frame:Hide()
+end 
+
+-- Reset position
+function Piece:ResetPosition()
+    self.ApplyPosition(self.startingPosition)
+end 
+
+-- String method
 function Piece:__tostring()
     return "Piece - "..self:getLookupKey()
 end

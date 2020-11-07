@@ -45,8 +45,9 @@ function KC:HandleCapture(piece)
     -- What space are we capturing onto 
     square = piece.currentSquare
 
-    -- Remove the peice from the render list
+    -- Remove the peice from the board
     piece:HidePiece()
+    piece:ClearSquareAssignment()
 
     -- Move the current piece into the space
     KC:HandleBoardSquareClicked(square)
@@ -79,7 +80,7 @@ function KC:HandleBoardSquareClicked(square)
 
     -- Is this a legit move?
     if (square:IsLegalMove() or square:IsLegalCapture()) then
-        KC.selectedPiece:MovePiece(square)
+        KC.selectedPiece:MovePiece(square, true)
         KC:DeselectPiece()
     end
 end

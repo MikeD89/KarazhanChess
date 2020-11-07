@@ -48,7 +48,7 @@ function Piece:new(name, isWhite, startingPosition)
     -- Handle click 
     self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
 
-    -- Hide by defauly
+    -- Hide by default
     -- self.frame:Hide()
     
     -- Done!
@@ -84,16 +84,48 @@ function Piece:ApplyPosition(position)
     if (position ~= nil) then
         -- Get the board and put ourselves there
         local board = KC:GetBoardPosition(position)
-        self:MovePiece(board)
+        self:MovePiece(board, false)
     else
         self.frame:Hide()
         KC:Print("Invalid Position for Piece: "..position)
     end
 end
 
-function Piece:MovePiece(square) 
+function Piece:ClearSquareAssignment() 
+    -- The square we are moving away from - clear its piece assignment
+    if(self.currentSquare ~= nil) then
+        self.currentSquare.piece = nil
+    end
+end
+
+function Piece:MovePiece(square, animated) 
     -- Put our piece in the center of the square
-    self.frame:SetPoint("CENTER", square, "CENTER")
+    if(animated and self.currentSquare ~= nil) then
+        local _, _, _, currentX, currentY = self.currentSquare:GetPoint()
+        local _, _, _, destX, destY = square:GetPoint()
+        local f = self.frame
+
+        -- Move it to the top
+        f:SetFrameLevel(Piece.SubLayer + 2)
+    
+        -- Animate the piece
+        local ag = self.frame:CreateAnimationGroup()    
+        local a1 = ag:CreateAnimation("Translation")
+        a1:SetOffset(destX - currentX, destY - currentY)    
+        a1:SetDuration(0.1)
+
+        -- When finished
+        ag:SetScript("OnFinished", function(self)
+            -- Fix it to the destination and reset the strata
+            f:SetPoint("CENTER", square, "CENTER")
+            f:SetFrameLevel(Piece.SubLayer)
+        end)
+
+        -- GO!
+        ag:Play()
+    else
+        self.frame:SetPoint("CENTER", square, "CENTER")
+    end
 
     -- The square we are moving away from - clear its piece assignment
     if(self.currentSquare ~= nil) then

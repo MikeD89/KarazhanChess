@@ -5,59 +5,90 @@
 -- Gameplay Logic
 -------------------------------------------------------------------------------
 
--- Game variables
-KC.selectedPiece = nil
+Game = {}
+Game.__index = Game;
 
--- Piece Selection
-function KC:SelectPiece(piece)
-    if(KC.selectedPiece ~= nil) then
+-- Constructor
+function Game:new()
+    -- Metatable
+    local self = {};
+    setmetatable(self, Game);
+
+    -- Locals
+    local size = KC.boardSectionSize
+
+    -- Variables
+    self.selectedPiece = nil
+
+    -- Done!
+    return self;
+end
+
+-- Select a piece
+function Game:SelectPiece(piece) 
+    if(self.selectedPiece ~= nil) then
         if(piece.currentSquare:IsLegalCapture()) then
             -- Caputure & Deselect
-            KC:HandleCapture(piece)
-            KC:DeselectPiece()
+            self:HandleCapture(piece)
+            self:DeselectPiece()
             return 
         else
             -- Just picking a different piece
-            KC:DeselectPiece()
+            self:DeselectPiece()
         end
     end
 
     -- This is definately a selection, so render it and update the board
-    KC.selectedPiece = piece
-    KC.selectedPiece:SetSelected()
-    KC:ShowValidMoves()	
+    self.selectedPiece = piece
+    self.selectedPiece:SetSelected()
+    self:ShowValidMoves()
 end
 
-function KC:DeselectPiece()
-    if(KC.selectedPiece == nil) then
+-- Deselect a piece
+function Game:DeselectPiece()
+    if(self.selectedPiece == nil) then
         return
     end
 
     -- Handle cleaning up the board
-    KC.selectedPiece:SetDeselected()
-    KC.selectedPiece = nil
+    self.selectedPiece:SetDeselected()
+    self.selectedPiece = nil
     KC:clearLegalMovesAndCaptures()
 end
 
-function KC:HandleCapture(piece)
+-- Board selection
+function Game:HandleBoardSquareClicked(square)
+    -- Nothign to do if no piece selected
+    if(self.selectedPiece == nil) then
+        return
+    end
+
+    -- Is this a legit move?
+    if (square:IsLegalMove() or square:IsLegalCapture()) then
+        self.selectedPiece:MovePiece(square, true)
+        self:DeselectPiece()
+    end
+end
+
+function Game:HandleCapture(piece)
     -- TODO - King Check -> Victory
 
     -- What space are we capturing onto 
-    square = piece.currentSquare
+    local square = piece.currentSquare
 
     -- Remove the peice from the board
     piece:HidePiece()
     piece:ClearSquareAssignment()
 
     -- Move the current piece into the space
-    KC:HandleBoardSquareClicked(square)
+    self:HandleBoardSquareClicked(square)
 
     -- Visually deselect it
-    KC:DeselectPiece()
+    self:DeselectPiece()
 end
 
 -- Move calculation
-function KC:ShowValidMoves()
+function Game:ShowValidMoves()
     -- Calculate valid moves
     validMoves = {"a1", "a2", "c3", "c4", "e5", "e6", "g7", "g8" }
     validCaptures = {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
@@ -68,19 +99,5 @@ function KC:ShowValidMoves()
     end
     for i,capture in ipairs(validCaptures) do
         KC:GetBoardPosition(capture):ShowAsLegalCapture()
-    end
-end
-
--- Board selection
-function KC:HandleBoardSquareClicked(square)
-    -- Nothign to do if no piece selected
-    if(KC.selectedPiece == nil) then
-        return
-    end
-
-    -- Is this a legit move?
-    if (square:IsLegalMove() or square:IsLegalCapture()) then
-        KC.selectedPiece:MovePiece(square, true)
-        KC:DeselectPiece()
     end
 end

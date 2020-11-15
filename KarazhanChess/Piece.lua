@@ -138,6 +138,8 @@ function Piece:MovePiece(square, animated)
     end
     square.piece = self
     self.currentSquare = square
+
+    -- TODO - Handle Pawn Promotion
 end
 
 -- Selection

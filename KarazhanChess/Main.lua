@@ -56,6 +56,7 @@ KC.pieces = {}
 
 -- Frame Globals
 KC.frame = nil
+KC.game = nil
 KC.fixedWidth = 450
 KC.fixedHeight = 500
 KC.boardAlpha = 0.8
@@ -81,6 +82,9 @@ function KC:OnInitialize()
 	KC.frame = CreateFrame("FRAME", KC.name, UIParent)
 	KC.frame:SetMovable(true)
 	KC.frame:Hide()
+
+	-- Create the game
+	KC.game = Game:new()
 
 	-- Insert ourselves into the special frame list so we close on ESC
 	table.insert(UISpecialFrames, KC.name)
@@ -197,6 +201,25 @@ function KC:HideWindow()
 		self.frame:Hide()
 	end
 end 
+
+------------------------
+---- Gameplay Hooks ----
+------------------------
+
+-- Piece Selection
+function KC:SelectPiece(piece)
+    KC.game:SelectPiece(piece)
+end
+
+-- Piece De-selection
+function KC:DeselectPiece()
+	KC.game:DeselectPiece()
+end
+
+-- Board selection
+function KC:HandleBoardSquareClicked(square)
+    KC.game:HandleBoardSquareClicked(square)
+end
 	
 	
 ------------------------

@@ -6,10 +6,10 @@
     <Script file="KarazhanChess/Icons.lua"/>
     <Script file="KarazhanChess/Piece.lua"/>
     <Script file="KarazhanChess/Square.lua"/>
+    <Script file="KarazhanChess/Game.lua"/>
 
     <!-- Main -->
     <Script file="KarazhanChess/Main.lua"/>
     <Script file="KarazhanChess/Frame.lua"/>
     <Script file="KarazhanChess/Options.lua"/>
-    <Script file="KarazhanChess/Game.lua"/>
 </Ui>

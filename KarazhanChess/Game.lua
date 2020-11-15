@@ -87,11 +87,11 @@ function Game:HandleCapture(piece)
     self:DeselectPiece()
 end
 
--- Move calculation
+-- Move display
 function Game:ShowValidMoves()
     -- Calculate valid moves
-    validMoves = {"a1", "a2", "c3", "c4", "e5", "e6", "g7", "g8" }
-    validCaptures = {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
+    validMoves = self:CalculateValidMoves()
+    validCaptures = self:CalculateValidCaptures()
 
     -- Display them all
     for i,move in ipairs(validMoves) do
@@ -100,4 +100,13 @@ function Game:ShowValidMoves()
     for i,capture in ipairs(validCaptures) do
         KC:GetBoardPosition(capture):ShowAsLegalCapture()
     end
+end
+
+-- Move calcultion
+function Game:CalculateValidMoves()
+    return {"a1", "a2", "c3", "c4", "e5", "e6", "g7", "g8" }
+end
+
+function Game:CalculateValidCaptures()
+    return {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
 end

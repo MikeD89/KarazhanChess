@@ -50,7 +50,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.legalCapture:Hide()
 
     -- Callbacks
-    self.icon:SetScript("OnMouseUp", function() KC:HandleBoardSquareClicked(self) end)   
+    self.icon:SetScript("OnMouseUp", function() KC.game:HandleBoardSquareClicked(self) end)   
     
     -- Done!
     return self;

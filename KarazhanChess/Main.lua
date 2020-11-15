@@ -201,26 +201,6 @@ function KC:HideWindow()
 		self.frame:Hide()
 	end
 end 
-
-------------------------
----- Gameplay Hooks ----
-------------------------
-
--- Piece Selection
-function KC:SelectPiece(piece)
-    KC.game:SelectPiece(piece)
-end
-
--- Piece De-selection
-function KC:DeselectPiece()
-	KC.game:DeselectPiece()
-end
-
--- Board selection
-function KC:HandleBoardSquareClicked(square)
-    KC.game:HandleBoardSquareClicked(square)
-end
-	
 	
 ------------------------
 ---- Slash Commands ----

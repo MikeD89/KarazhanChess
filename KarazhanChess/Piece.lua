@@ -146,9 +146,9 @@ end
 function Piece:HandleMouseUp()
     if MouseIsOver(self.frame) then
         if(self.selected) then
-            KC:DeselectPiece()
+            KC.game:DeselectPiece()
         else
-            KC:SelectPiece(self)
+            KC.game:SelectPiece(self)
         end 
     end
 end

@@ -45,18 +45,18 @@ function FrameUtils:CreateIcon(w, h, textureName, layer, name)
 end
 
 -- Function used to create a movable icon with a callback and sub coords
-function FrameUtils:CreateBoardLabel(board, frame, row)
+function FrameUtils:CreateBoardLabel(square, frame, row)
 	offset = 2
 
 	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
 	label:SetAlpha(KC.boardAlpha)
 	
 	if (row) then
-		label:SetText(board.rowLabel)
-		label:SetPoint("TOPLEFT", board, "TOPLEFT", offset, -offset)	
+		label:SetText(square.rowLabel)
+		label:SetPoint("TOPLEFT", square.icon, "TOPLEFT", offset, -offset)	
 	else
-		label:SetText(board.colLabel)
-		label:SetPoint("BOTTOMRIGHT", board, "BOTTOMRIGHT", -offset, offset)
+		label:SetText(square.colLabel)
+		label:SetPoint("BOTTOMRIGHT", square.icon, "BOTTOMRIGHT", -offset, offset)
 	end
 
 	return label

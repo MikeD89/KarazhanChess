@@ -101,8 +101,8 @@ end
 function Piece:MovePiece(square, animated) 
     -- Put our piece in the center of the square
     if(animated and self.currentSquare ~= nil) then
-        local _, _, _, currentX, currentY = self.currentSquare:GetPoint()
-        local _, _, _, destX, destY = square:GetPoint()
+        local _, _, _, currentX, currentY = self.currentSquare.icon:GetPoint()
+        local _, _, _, destX, destY = square.icon:GetPoint()
         local f = self.frame
 
         -- Move it to the top
@@ -117,14 +117,14 @@ function Piece:MovePiece(square, animated)
         -- When finished
         ag:SetScript("OnFinished", function(self)
             -- Fix it to the destination and reset the strata
-            f:SetPoint("CENTER", square, "CENTER")
+            f:SetPoint("CENTER", square.icon, "CENTER")
             f:SetFrameLevel(Piece.SubLayer)
         end)
 
         -- GO!
         ag:Play()
     else
-        self.frame:SetPoint("CENTER", square, "CENTER")
+        self.frame:SetPoint("CENTER", square.icon, "CENTER")
     end
 
     -- The square we are moving away from - clear its piece assignment

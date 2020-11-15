@@ -119,10 +119,7 @@ end
 
 -- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
-	local yOffet = 50
-	local colLabels = 'abcdefgh'
 	local lightSquare = false
-	local size = KC.boardSectionSize
 	local firstRow = true
 	local newColumn = true
 
@@ -133,67 +130,25 @@ function KC:createChessBoard(frame)
 	-- Columns
 	for i=1,KC.boardDim,1 do
 		-- New row
-		local h = strsub(colLabels, i, i)
 		KC.board[i] = {}  
 		lightSquare = not lightSquare
 		newColumn = true
 
 		-- Rows
-		for j=1,KC.boardDim,1 do
-			-- Pick the color
-			icon = Icons.Board:GetBoardIcon(lightSquare)
-			name = h..j
-
-			-- TODO - Move Square to its own class. 
-			
-			-- Create the board square
-			square = FrameUtils:CreateIcon(size, size, icon, "ARTWORK", name)
-			square:SetAlpha(KC.boardAlpha)
-			square.colLabel = h
-			square.colIndex = i
-			square.rowLabel = ""..j
-			square.rowIndex = j
-			square.fullLabel = name
-			square.lightSquare = lightSquare
-			square.piece = nil
-
-			-- Position and Save
-			local xpos = KC.frameMargin + ((square.colIndex - 1) * KC.boardSectionSize)
-			local ypos = yOffet + KC.boardHeight - (square.rowIndex * KC.boardSectionSize)
-			square:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
-
-			-- Give it a Legal Move indicator
-			square.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK", name.."_lmi")
-			square.legalMove:SetPoint("CENTER", square, "CENTER")
-			square.legalMove:Hide()
-
-			-- Give it a Legal Capture indicator
-			square.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK", name.."_lci")
-			square.legalCapture:SetPoint("CENTER", square, "CENTER")
-			square.legalCapture:Hide()
-
-			-- Callbacks
-			square.ShowAsLegalMove = function(self) self.legalMove:Show() end
-			square.ClearLegalMove = function(self) self.legalMove:Hide() end
-			square.ShowAsLegalCapture = function(self) self.legalCapture:Show() end
-			square.ClearLegalCapture = function(self) self.legalCapture:Hide() end
-			square.IsLegalMove = function(self) return self.legalMove:IsShown()	end
-			square.IsLegalCapture = function(self) return self.legalCapture:IsShown() end
-			square:SetScript("OnMouseUp", function(self) KC:HandleBoardSquareClicked(self) end)
+		for j=1,KC.boardDim,1 do	
+			-- Create a piece and flip the colour
+			KC.board[i][j] = Square:new(frame, size, i, j, lightSquare)
+			lightSquare = not lightSquare
 
 			-- Create the neccersary labels
 			if (firstRow) then
-				local label = FrameUtils:CreateBoardLabel(square, frame, true)
+				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], frame, true)
 				table.insert(KC.boardLabels, label)
 			end
 			if (newColumn) then
-				local label = FrameUtils:CreateBoardLabel(square, frame, false)
+				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], frame, false)
 				table.insert(KC.boardLabels, label)
 			end
-
-			-- Save it and flip the colour
-			KC.board[i][j] = square
-			lightSquare = not lightSquare
 
 			-- This is no longer a new column 
 			newColumn = false

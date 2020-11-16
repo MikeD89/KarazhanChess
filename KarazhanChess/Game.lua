@@ -94,7 +94,7 @@ end
 
 -- Clear board with a confirmation popup
 function Game:ClearBoardWithConfirm() 
-    if(table.getn(self.pieces) ~= 0) then
+    if(table.getn(self.pieces) == 0) then
         -- Nothing to do
         return
     end

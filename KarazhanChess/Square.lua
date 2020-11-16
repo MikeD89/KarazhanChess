@@ -56,6 +56,12 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     return self;
 end
 
+-- Texture update
+function Square:UpdateTexture() 
+    local texture = Icons.Board:GetBoardIcon(self.lightSquare)
+    self.icon.texture:SetTexture(texture)
+end
+
 -- Legal Move
 function Square:IsLegalMove() 
     return self.legalMove:IsShown()

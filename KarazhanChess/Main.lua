@@ -93,9 +93,13 @@ end
 -- Enable Function
 function KC:OnEnable()
 	KC:createChessFrame(KC.frame);
-	KC:PreloadPieces()
 	KC.loaded = true
 	KC:Print(KC.formattedName.." Loaded!")
+end
+
+-- Register a piece so it can recieve a texture update
+function KC:RegisterPiece(piece)
+	table.insert(KC.pieces, piece)
 end
 
 -- Preload the Pieces

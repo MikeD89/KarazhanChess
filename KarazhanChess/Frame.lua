@@ -91,9 +91,7 @@ function KC:createChessFrame(frame)
 	newGameButton:SetSize(buttonWidth, buttonHeight);
 	newGameButton:SetText("New Game");
 	newGameButton:SetNormalFontObject("GameFontNormalSmall");
-	newGameButton:SetScript("OnClick", function(self, arg)
-		KC:P("TODO - New Game Button")
-	end)
+	newGameButton:SetScript("OnClick", function(self, arg) KC.game:StartNewGame() end)
 
 	-- Options Button
 	local optionsButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
@@ -167,9 +165,7 @@ function KC:applyBoardTextures()
 	-- Apply Chess Board Textures
 	for i=1,KC.boardDim,1 do
 		for j=1,KC.boardDim,1 do
-			square = KC.board[i][j]
-			icon = Icons.Board:GetBoardIcon(square.lightSquare)
-			square.texture:SetTexture(icon)
+			KC.board[i][j]:UpdateTexture()
 		end
 	end
 end

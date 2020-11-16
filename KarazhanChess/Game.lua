@@ -18,10 +18,23 @@ function Game:new()
     local size = KC.boardSectionSize
 
     -- Variables
+    self.gameState = 0
     self.selectedPiece = nil
 
     -- Done!
     return self;
+end
+
+-- Game Logic
+function Game:StartNewGame() 
+end
+
+-- Game Logic
+function Game:EndGameVictory() 
+end
+
+-- Game Logic
+function Game:EndGameDefeat() 
 end
 
 -- Select a piece

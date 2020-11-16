@@ -7,6 +7,8 @@
 
 Game = {}
 Game.__index = Game;
+Game.NewGameConfirmDiag = "GAME_NEW_GAME_CONFIRM_DIAGLOG"
+Game.ClearBoardConfirmDiag = "GAME_CLEAR_BOARD_CONFIRM_DIAGLOG"
 
 -- Constructor
 function Game:new()
@@ -27,6 +29,36 @@ function Game:new()
 
     -- Done!
     return self;
+end
+
+function Game:CreateStaticModals()
+    -- New Game
+    StaticPopupDialogs[Game.NewGameConfirmDiag] = {
+        text = "Starting a new game of Karazhan Chess will reset the board.\n\nAre you sure you wish to start a New Game?",
+        button1 = OKAY,
+        button2 = CANCEL,
+        OnAccept = function()
+            self:StartNewGame()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+      }
+
+      -- Clear Board
+      StaticPopupDialogs[Game.ClearBoardConfirmDiag] = {
+        text = "Are you sure you wish to clear the board?",
+        button1 = OKAY,
+        button2 = CANCEL,
+        OnAccept = function()
+            self:ClearBoard()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+      }
 end
 
 -- Update Textures
@@ -59,18 +91,24 @@ function Game:RemovePiece(piece)
     removeFromTableByIndex(self.pieces, piece.id)
 end
 
--- Game Logic
-function Game:StartNewGame() 
+-- Starting a new game with a confirmation dialog
+function Game:StartNewGameWithConfirm() 
     if(table.getn(self.pieces) ~= 0) then
-        -- TODO - confirmation
+        -- If there is a game started, get confirmation
+        StaticPopup_Show(Game.NewGameConfirmDiag)
+    else
+        self:StartNewGame()
     end    
+end
 
+-- Force starting a new game
+function Game:StartNewGame()
     local order = 'rnbqkbnr'
     local cols = 'abcdefgh'
     local pawnType = 'p'
 
     -- Reset state
-    self:RemoveAllPieces()
+    self:ClearBoard()
 
 	for i=1,KC.boardDim,1 do
 		local pieceType = strsub(order, i, i)
@@ -84,31 +122,34 @@ function Game:StartNewGame()
 	end
 end
 
+-- Clear board with a confirmation popup
+function Game:ClearBoardWithConfirm() 
+    if(table.getn(self.pieces) == 0) then
+        -- Nothing to do
+        return
+    else
+        StaticPopup_Show(Game.ClearBoardConfirmDiag)
+    end
+end
+
+-- Remove all pieces
+function Game:ClearBoard()
+    -- Remove everything
+    local count = table.getn(self.pieces)
+    for i=1,count,1 do
+        self:RemovePiece(self.pieces[1])
+    end
+
+    -- Hide any UI hints
+    self:DeselectPiece()
+end
+
 -- Game Logic
 function Game:EndGameVictory() 
 end
 
 -- Game Logic
 function Game:EndGameDefeat() 
-end
-
--- Clear board with a confirmation popup
-function Game:ClearBoardWithConfirm() 
-    if(table.getn(self.pieces) == 0) then
-        -- Nothing to do
-        return
-    end
-
-    -- Do the work
-    self:RemoveAllPieces()
-end
-
--- Remove all pieces
-function Game:RemoveAllPieces()
-    local count = table.getn(self.pieces)
-    for i=1,count,1 do
-        self:RemovePiece(self.pieces[1])
-    end
 end
 
 -- Select a piece
@@ -133,6 +174,8 @@ end
 
 -- Deselect a piece
 function Game:DeselectPiece()
+    KC:clearLegalMovesAndCaptures()
+
     if(self.selectedPiece == nil) then
         return
     end
@@ -140,7 +183,6 @@ function Game:DeselectPiece()
     -- Handle cleaning up the board
     self.selectedPiece:SetDeselected()
     self.selectedPiece = nil
-    KC:clearLegalMovesAndCaptures()
 end
 
 -- Board selection
@@ -195,19 +237,4 @@ end
 
 function Game:CalculateValidCaptures()
     return {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
-end
-
-function Game:CreateStaticModals()
-    StaticPopupDialogs["EXAMPLE_HELLOWORLD"] = {
-        text = "Do you want to greet the world today?",
-        button1 = "Yes",
-        button2 = "No",
-        OnAccept = function()
-            GreetTheWorld()
-        end,
-        timeout = 0,
-        whileDead = true,
-        hideOnEscape = true,
-        preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
-      }
 end

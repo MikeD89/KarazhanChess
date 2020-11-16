@@ -91,7 +91,7 @@ function KC:createChessFrame(frame)
 	newGameButton:SetSize(buttonWidth, buttonHeight);
 	newGameButton:SetText("New Game");
 	newGameButton:SetNormalFontObject("GameFontNormalSmall");
-	newGameButton:SetScript("OnClick", function(self, arg) KC.game:StartNewGame() end)
+	newGameButton:SetScript("OnClick", function(self, arg) KC.game:StartNewGameWithConfirm() end)
 
 	-- Clear Board Button
 	local clearBoardButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");

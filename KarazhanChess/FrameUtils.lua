@@ -24,7 +24,9 @@ end
 
 -- Remove a frame and place it back in the pool
 function FrameUtils:returnFrameToPool(frame)
-    frame:Hide()
+	frame:Hide()
+	frame:ClearAllPoints()
+	frame.texture:SetTexture(nil)
     tinsert(FrameUtils.framePool, frame)
 end
 

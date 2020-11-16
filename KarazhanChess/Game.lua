@@ -19,14 +19,69 @@ function Game:new()
 
     -- Variables
     self.gameState = 0
+    self.pieces = {}
     self.selectedPiece = nil
+
+    -- Init
+    self:CreateStaticModals()
 
     -- Done!
     return self;
 end
 
+-- Update Textures
+function Game:UpdateTextures()
+    for i=1,table.getn(self.pieces),1 do
+		self.pieces[i]:UpdateTexture()
+	end
+end
+
+-- Register a piece so it can recieve a texture update
+function Game:CreatePiece(type, isWhite, startingLocation)
+    piece = Piece:new(type, isWhite)
+    table.insert(self.pieces, piece)
+
+    if(startingLocation ~= nil) then
+       -- Assume we want to show it, and stick it int he right locaton
+       piece:ApplyPosition(startingLocation)
+       piece:ShowPiece() 
+    end
+end
+
+function Game:RemovePiece(piece)
+    -- Clean the reverse lookup
+    local square = piece.currentSquare
+    if(square ~= nil) then
+        square.currentPiece = nil
+    end
+
+    FrameUtils:returnFrameToPool(piece.frame)
+    removeFromTableByIndex(self.pieces, piece.id)
+end
+
 -- Game Logic
 function Game:StartNewGame() 
+    if(table.getn(self.pieces) ~= 0) then
+        -- TODO - confirmation
+    end    
+
+    local order = 'rnbqkbnr'
+    local cols = 'abcdefgh'
+    local pawnType = 'p'
+
+    -- Reset state
+    self:RemoveAllPieces()
+
+	for i=1,KC.boardDim,1 do
+		local pieceType = strsub(order, i, i)
+		local c = strsub(cols, i, i)
+		
+        self:CreatePiece(pieceType, true,  c.."1")
+        self:CreatePiece(pieceType, false,  c.."8")
+
+		self:CreatePiece(pawnType, true,  c.."2")
+		self:CreatePiece(pawnType, false,  c.."7")
+	end
 end
 
 -- Game Logic
@@ -35,6 +90,25 @@ end
 
 -- Game Logic
 function Game:EndGameDefeat() 
+end
+
+-- Clear board with a confirmation popup
+function Game:ClearBoardWithConfirm() 
+    if(table.getn(self.pieces) ~= 0) then
+        -- Nothing to do
+        return
+    end
+
+    -- Do the work
+    self:RemoveAllPieces()
+end
+
+-- Remove all pieces
+function Game:RemoveAllPieces()
+    local count = table.getn(self.pieces)
+    for i=1,count,1 do
+        self:RemovePiece(self.pieces[1])
+    end
 end
 
 -- Select a piece
@@ -84,19 +158,18 @@ function Game:HandleBoardSquareClicked(square)
 end
 
 function Game:HandleCapture(piece)
-    -- TODO - King Check -> Victory
-
-    -- What space are we capturing onto 
+    -- What space are we capturing onto
     local square = piece.currentSquare
+    if(square == nil) then
+        KC:Print("Warning: Attempted to Capture Piece that isn't on a Square.")
+        return
+    end
 
-    -- Remove the peice from the board
-    piece:HidePiece()
-    piece:ClearSquareAssignment()
+    -- Remove the piece
+    self:RemovePiece(piece)
 
-    -- Move the current piece into the space
+    -- Move the new piece into position
     self:HandleBoardSquareClicked(square)
-
-    -- Visually deselect it
     self:DeselectPiece()
 end
 
@@ -124,30 +197,17 @@ function Game:CalculateValidCaptures()
     return {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
 end
 
-
-
--- -- Register a piece so it can recieve a texture update
--- function KC:RegisterPiece(piece)
--- 	table.insert(KC.pieces, piece)
--- end
-
--- function KC:UnregisterPiece(piece)
--- 	removeFromTableByIndex(KC.pieces, piece.id)
--- end
-
--- -- Preload the Pieces
--- function KC:PreloadPieces()
--- 	local order = 'rnbqkbnr'
--- 	local cols = 'abcdefgh'
-
--- 	for i=1,KC.boardDim,1 do
--- 		local p = strsub(order, i, i)
--- 		local c = strsub(cols, i, i)
-		
--- 		table.insert(KC.pieces, Piece:new(p, true, c.."1"))
--- 		table.insert(KC.pieces, Piece:new(p, false, c.."8"))
-
--- 		table.insert(KC.pieces, Piece:new("p", true, c.."2"))
--- 		table.insert(KC.pieces, Piece:new("p", false, c.."7"))
--- 	end
--- end
+function Game:CreateStaticModals()
+    StaticPopupDialogs["EXAMPLE_HELLOWORLD"] = {
+        text = "Do you want to greet the world today?",
+        button1 = "Yes",
+        button2 = "No",
+        OnAccept = function()
+            GreetTheWorld()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+      }
+end

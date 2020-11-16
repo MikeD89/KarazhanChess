@@ -27,7 +27,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.rowLabel = ""..rowIndex
     self.rowIndex = rowIndex
     self.lightSquare = lightSquare
-    self.piece = nil
+    self.currentPiece = nil
 
     -- Create the icon
     self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK", name)

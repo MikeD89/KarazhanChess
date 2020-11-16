@@ -52,7 +52,6 @@ KC.player = UnitName("player")
 KC.realm = GetRealmName();
 KC.faction = UnitFactionGroup("player");
 KC.profileName = "Default"
-KC.pieces = {}
 
 -- Frame Globals
 KC.frame = nil
@@ -93,42 +92,8 @@ end
 -- Enable Function
 function KC:OnEnable()
 	KC:createChessFrame(KC.frame);
-	KC.loaded = true
-	KC:MemoryManagementTest()
 	KC:Print(KC.formattedName.." Loaded!")
-end
-
--- Register a piece so it can recieve a texture update
-function KC:RegisterPiece(piece)
-	table.insert(KC.pieces, piece)
-end
-
-function KC:UnregisterPiece(piece)
-	removeFromTableByIndex(KC.pieces, piece.id)
-	FrameUtils:returnFrameToPool(piece.frame)
-end
-
--- Preload the Pieces
-function KC:MemoryManagementTest()
-	for i=1,10000,1 do
-		local p = 'r'
-		local c = 'a'
-
-		local one = Piece:new(p, true, c.."1")
-		local two = Piece:new(p, true, c.."1")
-		local three = Piece:new(p, true, c.."1")
-		local four = Piece:new(p, true, c.."1")
-		
-		table.insert(KC.pieces, one)
-		table.insert(KC.pieces, two)
-		table.insert(KC.pieces, three)
-		table.insert(KC.pieces, four)
-
-		KC:UnregisterPiece(one)
-		KC:UnregisterPiece(two)
-		KC:UnregisterPiece(three)
-		KC:UnregisterPiece(four)
-	end
+	KC.loaded = true
 end
 
 ----------------------

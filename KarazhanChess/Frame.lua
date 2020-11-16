@@ -93,9 +93,17 @@ function KC:createChessFrame(frame)
 	newGameButton:SetNormalFontObject("GameFontNormalSmall");
 	newGameButton:SetScript("OnClick", function(self, arg) KC.game:StartNewGame() end)
 
+	-- Clear Board Button
+	local clearBoardButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
+	clearBoardButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0);
+	clearBoardButton:SetSize(buttonWidth, buttonHeight);
+	clearBoardButton:SetText("Clear Board");
+	clearBoardButton:SetNormalFontObject("GameFontNormalSmall");
+	clearBoardButton:SetScript("OnClick", function(self, arg) KC.game:ClearBoardWithConfirm() end)
+
 	-- Options Button
 	local optionsButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
-	optionsButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0);
+	optionsButton:SetPoint("RIGHT", clearBoardButton, "LEFT", -buttonMargin, 0);
 	optionsButton:SetSize(buttonWidth, buttonHeight);
 	optionsButton:SetText("Options");
 	optionsButton:SetNormalFontObject("GameFontNormalSmall");
@@ -173,9 +181,7 @@ end
 -- Applies a user selected texture to all the pieces on the board
 function KC:applyPieceTextures()
 	-- Apply Chess Piece Textures
-	for i=1,table.getn(KC.pieces),1 do
-		KC.pieces[i]:UpdateTexture()
-	end
+	KC.game:UpdateTextures()
 end
 
 -- Toggles the board labels on and off

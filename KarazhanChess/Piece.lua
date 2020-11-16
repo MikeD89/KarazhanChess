@@ -63,11 +63,6 @@ function Piece:HidePiece()
     self.frame:Hide()
 end 
 
--- Reset position
-function Piece:ResetPosition()
-    self.ApplyPosition(self.startingPosition)
-end 
-
 -- String method
 function Piece:__tostring()
     return "Piece - "..self:getLookupKey()
@@ -91,13 +86,7 @@ function Piece:ApplyPosition(position)
     end
 end
 
-function Piece:ClearSquareAssignment() 
-    -- The square we are moving away from - clear its piece assignment
-    if(self.currentSquare ~= nil) then
-        self.currentSquare.piece = nil
-    end
-end
-
+-- Move a piece, with or without an animation
 function Piece:MovePiece(square, animated) 
     -- Put our piece in the center of the square
     if(animated and self.currentSquare ~= nil) then
@@ -129,14 +118,14 @@ function Piece:MovePiece(square, animated)
 
     -- The square we are moving away from - clear its piece assignment
     if(self.currentSquare ~= nil) then
-        self.currentSquare.piece = nil
+        self.currentSquare.currentPiece = nil
     end
 
     -- Store our piece inside the square for reverse lookup
-    if(square.piece ~= nil) then
-        --KC:Print("Overwriting Piece Stored Inside Square Position: "..square.name)
+    if(square.currentPiece ~= nil) then
+        KC:Print("Warning: Piece Already Stored Inside Square Position: "..square.name)
     end
-    square.piece = self
+    square.currentPiece = self
     self.currentSquare = square
 
     -- TODO - Handle Pawn Promotion

@@ -123,3 +123,31 @@ end
 function Game:CalculateValidCaptures()
     return {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
 end
+
+
+
+-- -- Register a piece so it can recieve a texture update
+-- function KC:RegisterPiece(piece)
+-- 	table.insert(KC.pieces, piece)
+-- end
+
+-- function KC:UnregisterPiece(piece)
+-- 	removeFromTableByIndex(KC.pieces, piece.id)
+-- end
+
+-- -- Preload the Pieces
+-- function KC:PreloadPieces()
+-- 	local order = 'rnbqkbnr'
+-- 	local cols = 'abcdefgh'
+
+-- 	for i=1,KC.boardDim,1 do
+-- 		local p = strsub(order, i, i)
+-- 		local c = strsub(cols, i, i)
+		
+-- 		table.insert(KC.pieces, Piece:new(p, true, c.."1"))
+-- 		table.insert(KC.pieces, Piece:new(p, false, c.."8"))
+
+-- 		table.insert(KC.pieces, Piece:new("p", true, c.."2"))
+-- 		table.insert(KC.pieces, Piece:new("p", false, c.."7"))
+-- 	end
+-- end

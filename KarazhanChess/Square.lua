@@ -26,31 +26,30 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.colIndex = colIndex
     self.rowLabel = ""..rowIndex
     self.rowIndex = rowIndex
-    self.fullLabel = name
     self.lightSquare = lightSquare
     self.piece = nil
 
     -- Create the icon
-    self.icon = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK", name)
-    self.icon:SetAlpha(KC.boardAlpha)
+    self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK", name)
+    self.frame:SetAlpha(KC.boardAlpha)
 
     -- Position
     local xpos = KC.frameMargin + ((self.colIndex - 1) * size)
     local ypos = Square.yOffset + KC.boardHeight - (self.rowIndex * size)
-    self.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
+    self.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
     -- Give it a Legal Move indicator
     self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK", self.name.."_lmi")
-    self.legalMove:SetPoint("CENTER", self.icon, "CENTER")
+    self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
     self.legalMove:Hide()
 
     -- Give it a Legal Capture indicator
     self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK", self.name.."_lci")
-    self.legalCapture:SetPoint("CENTER", self.icon, "CENTER")
+    self.legalCapture:SetPoint("CENTER", self.frame, "CENTER")
     self.legalCapture:Hide()
 
     -- Callbacks
-    self.icon:SetScript("OnMouseUp", function() KC.game:HandleBoardSquareClicked(self) end)   
+    self.frame:SetScript("OnMouseUp", function() KC.game:HandleBoardSquareClicked(self) end)   
     
     -- Done!
     return self;
@@ -59,7 +58,7 @@ end
 -- Texture update
 function Square:UpdateTexture() 
     local texture = Icons.Board:GetBoardIcon(self.lightSquare)
-    self.icon.texture:SetTexture(texture)
+    self.frame.texture:SetTexture(texture)
 end
 
 -- Legal Move

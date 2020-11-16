@@ -6,6 +6,27 @@
 -------------------------------------------------------------------------------
 
 FrameUtils = {}
+FrameUtils.framePool = {}
+
+-- Get a frame, either from the pool, or fresh
+function FrameUtils:getFrameFromPool()
+	-- Try to get a frame from the pool
+	local f = tremove(FrameUtils.framePool)
+	
+	if not f then
+		-- If it doesn't exist, make a new one
+        return CreateFrame("FRAME", nil, KC.frame)
+	else
+		-- This space reserved for cleaning up frames (if needed)
+    end
+    return f
+end
+
+-- Remove a frame and place it back in the pool
+function FrameUtils:returnFrameToPool(frame)
+    frame:Hide()
+    tinsert(FrameUtils.framePool, frame)
+end
 
 -- Function used to keep a frame from leaving the screen
 function FrameUtils:KeepFrameInBounds(frame, bounds)
@@ -31,7 +52,7 @@ end
 -- Function used to create an icon
 function FrameUtils:CreateIcon(w, h, textureName, layer, name)	
 	-- create this as a frame
-	frame = CreateFrame("FRAME", name, KC.frame)
+	frame = FrameUtils:getFrameFromPool()
 	frame:SetWidth(w)
 	frame:SetHeight(h)
     frame:EnableMouse(true)
@@ -53,10 +74,10 @@ function FrameUtils:CreateBoardLabel(square, frame, row)
 	
 	if (row) then
 		label:SetText(square.rowLabel)
-		label:SetPoint("TOPLEFT", square.icon, "TOPLEFT", offset, -offset)	
+		label:SetPoint("TOPLEFT", square.frame, "TOPLEFT", offset, -offset)	
 	else
 		label:SetText(square.colLabel)
-		label:SetPoint("BOTTOMRIGHT", square.icon, "BOTTOMRIGHT", -offset, offset)
+		label:SetPoint("BOTTOMRIGHT", square.frame, "BOTTOMRIGHT", -offset, offset)
 	end
 
 	return label

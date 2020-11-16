@@ -8,6 +8,7 @@
 Piece = {}
 Piece.__index = Piece;
 Piece.SubLayer = 4
+Piece.IndexCounter = 1
 
 -- (1: Abbreviation) (2: Point Value)
 Piece.Data = {
@@ -19,13 +20,16 @@ Piece.Data = {
     ["p"] = {"p", 1},
 };
 
-
 -- Constructor
-function Piece:new(name, isWhite, startingPosition)
+function Piece:new(name, isWhite)
     -- Metatable
     local self = {};
     local data = Piece.Data[name];
     setmetatable(self, Piece);
+
+    -- Index 
+    self.id = Piece.IndexCounter
+    Piece.IndexCounter = self.id + 1
 
     -- Variables
     self.name = data[1];
@@ -36,20 +40,16 @@ function Piece:new(name, isWhite, startingPosition)
     self.icon = Icons.Piece:GetPieceIcon(self.key)
     self.selected = false
     self.currentSquare = nil
-    self.startingPosition = startingPosition
 
     -- Pieces have to exist inside a frame
     self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY", self.key)
     self.frame:SetFrameLevel(Piece.SubLayer)
 
-    -- Give it a starting position
-    self:ApplyPosition(self.startingPosition)
-
     -- Handle click 
     self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
 
     -- Hide by default
-    -- self.frame:Hide()
+    self.frame:Hide()
     
     -- Done!
     return self;
@@ -101,8 +101,8 @@ end
 function Piece:MovePiece(square, animated) 
     -- Put our piece in the center of the square
     if(animated and self.currentSquare ~= nil) then
-        local _, _, _, currentX, currentY = self.currentSquare.icon:GetPoint()
-        local _, _, _, destX, destY = square.icon:GetPoint()
+        local _, _, _, currentX, currentY = self.currentSquare.frame:GetPoint()
+        local _, _, _, destX, destY = square.frame:GetPoint()
         local f = self.frame
 
         -- Move it to the top
@@ -117,14 +117,14 @@ function Piece:MovePiece(square, animated)
         -- When finished
         ag:SetScript("OnFinished", function(self)
             -- Fix it to the destination and reset the strata
-            f:SetPoint("CENTER", square.icon, "CENTER")
+            f:SetPoint("CENTER", square.frame, "CENTER")
             f:SetFrameLevel(Piece.SubLayer)
         end)
 
         -- GO!
         ag:Play()
     else
-        self.frame:SetPoint("CENTER", square.icon, "CENTER")
+        self.frame:SetPoint("CENTER", square.frame, "CENTER")
     end
 
     -- The square we are moving away from - clear its piece assignment
@@ -134,7 +134,7 @@ function Piece:MovePiece(square, animated)
 
     -- Store our piece inside the square for reverse lookup
     if(square.piece ~= nil) then
-        KC:Print("Overwriting Piece Stored Inside Square Position: "..square.fullLabel)
+        --KC:Print("Overwriting Piece Stored Inside Square Position: "..square.name)
     end
     square.piece = self
     self.currentSquare = square

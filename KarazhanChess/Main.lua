@@ -94,6 +94,7 @@ end
 function KC:OnEnable()
 	KC:createChessFrame(KC.frame);
 	KC.loaded = true
+	KC:MemoryManagementTest()
 	KC:Print(KC.formattedName.." Loaded!")
 end
 
@@ -102,23 +103,33 @@ function KC:RegisterPiece(piece)
 	table.insert(KC.pieces, piece)
 end
 
--- Preload the Pieces
-function KC:PreloadPieces()
-	local order = 'rnbqkbnr'
-	local cols = 'abcdefgh'
-
-	for i=1,KC.boardDim,1 do
-		local p = strsub(order, i, i)
-		local c = strsub(cols, i, i)
-		
-		table.insert(KC.pieces, Piece:new(p, true, c.."1"))
-		table.insert(KC.pieces, Piece:new(p, false, c.."8"))
-
-		table.insert(KC.pieces, Piece:new("p", true, c.."2"))
-		table.insert(KC.pieces, Piece:new("p", false, c.."7"))
-	end
+function KC:UnregisterPiece(piece)
+	removeFromTableByIndex(KC.pieces, piece.id)
+	FrameUtils:returnFrameToPool(piece.frame)
 end
 
+-- Preload the Pieces
+function KC:MemoryManagementTest()
+	for i=1,10000,1 do
+		local p = 'r'
+		local c = 'a'
+
+		local one = Piece:new(p, true, c.."1")
+		local two = Piece:new(p, true, c.."1")
+		local three = Piece:new(p, true, c.."1")
+		local four = Piece:new(p, true, c.."1")
+		
+		table.insert(KC.pieces, one)
+		table.insert(KC.pieces, two)
+		table.insert(KC.pieces, three)
+		table.insert(KC.pieces, four)
+
+		KC:UnregisterPiece(one)
+		KC:UnregisterPiece(two)
+		KC:UnregisterPiece(three)
+		KC:UnregisterPiece(four)
+	end
+end
 
 ----------------------
 ---- Minimap Icon ----

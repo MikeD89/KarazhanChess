@@ -34,3 +34,12 @@ end
 function ord(char)
 	return string.byte(char)-string.byte("a")+1
 end
+
+-- Remove an object from a table by an index
+function removeFromTableByIndex(tab, index)
+    for i, v in ipairs (tab) do 
+        if (v.id == index) then
+          tab[i] = nil
+        end
+    end
+end

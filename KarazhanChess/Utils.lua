@@ -38,8 +38,8 @@ end
 -- Remove an object from a table by an index
 function removeFromTableByIndex(tab, index)
     for i, v in ipairs (tab) do 
-        if (v.id == index) then
-          tab[i] = nil
+		if (v.id == index) then
+			tremove(tab, i)
         end
     end
 end

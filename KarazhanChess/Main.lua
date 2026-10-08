@@ -72,13 +72,13 @@ function KC:OnInitialize()
 	
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
-	self.KCOptions = KC.ACD:AddToBlizOptions(KC.name, KC.name);
+	self.KCOptions, self.KCOptionsID = KC.ACD:AddToBlizOptions(KC.name, KC.name);
 
 	-- Setup Brokers
 	KC:createBroker()
 
 	-- Create the frame. We do this early so the position is loaded
-	KC.frame = CreateFrame("FRAME", KC.name, UIParent)
+	KC.frame = CreateFrame("FRAME", KC.name, UIParent, "BackdropTemplate")
 	KC.frame:SetMovable(true)
 	KC.frame:Hide()
 
@@ -116,8 +116,8 @@ function KC:createBroker()
 		if (button == "LeftButton") then
 			KC:ToggleWindow()
 		elseif (button == "RightButton") then
-			if (InterfaceOptionsFrame and InterfaceOptionsFrame:IsShown()) then
-				InterfaceOptionsFrame:Hide();
+			if (SettingsPanel and SettingsPanel:IsShown()) then
+				HideUIPanel(SettingsPanel);
 			else
 				KC:OpenConfig();
 			end
@@ -151,9 +151,7 @@ function KC:HasWindow()
 end
 
 function KC:OpenConfig()
-	--Opening the frame needs to be run twice to avoid a bug.
-	InterfaceOptionsFrame_OpenToCategory(KC.name);
-	InterfaceOptionsFrame_OpenToCategory(KC.name);
+	Settings.OpenToCategory(KC.KCOptionsID);
 end
 
 -- Toggles the state of the window
@@ -170,7 +168,7 @@ end
 -- Safely shows the window
 function KC:ShowWindow() 
 	if KC:HasWindow() then
-		PlaySoundFile("sound/interface/iquestlogopena.ogg")
+		PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
 		self.frame:Show()
 	end
 end 

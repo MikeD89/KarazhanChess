@@ -31,19 +31,13 @@ jobs:
 
       # we first have to clone the AddOn project, this is a required step
       - name: Clone project
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
         with:
           # you can specify how much of the commit history you want to fetch,
           # which is useful for controlling the length of the automated changelog
           fetch-depth: 50
 
-      # once cloned, we just run the GitHub Action for the packager project
+      # once cloned, we just run the GitHub Action for the packager project.
+      # The game version is read from the TOC's "## Interface" line (WoW Forever: 16001)
       - name: Package and release
-        uses: BigWigsMods/packager@master
-
-      # another example where we supply additional arguments, this example is specifically to release
-      # for the Classic version of the game
-      - name: Package and release for Classic
-        uses: BigWigsMods/packager@master
-        with:
-          args: -g 1.13.5 -w 0
+        uses: BigWigsMods/packager@v2

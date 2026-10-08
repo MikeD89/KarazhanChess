@@ -1,15 +1,11 @@
-#@retail@
-## Interface: 90001
-#@end-retail@
-#@non-retail@
-## Interface: 11305
-#@end-non-retail@
+## Interface: 16001, 120100, 120105
 
 ## Title: |cff69ccf0Karazhan Chess|r
 ## Notes: Lightweight Chess Engine (WIP)
 ## Author: MeloN <Convicted>
 ## Version: @project-version@
 ## SavedVariables: KarazhanChessDB
+## IconTexture: Interface\AddOns\KarazhanChess\Textures\minimap
 
 ## X-Category: Minigame
 ## X-License: Apache License 2.0

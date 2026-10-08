@@ -15,6 +15,10 @@ Square.__index = Square;
 Square.colLabels = 'abcdefgh'
 Square.yOffset = 50
 
+-- Frame levels above KC.boardFrame: squares, then move markers, then pieces (Piece.SubLayer)
+Square.SquareLevel = 1
+Square.MarkerLevel = 2
+
 -- Constructor
 function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     -- Metatable
@@ -33,6 +37,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
 
     -- Create the icon
     self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK")
+    self.frame:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.SquareLevel)
 
     -- Position
     local xpos = KC.frameMargin + ((self.colIndex - 1) * size)
@@ -42,12 +47,14 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     -- Give it a Legal Move indicator
     self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
+    self.legalMove:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.MarkerLevel)
     self.legalMove:EnableMouse(false) -- Let clicks through to the square
     self.legalMove:Hide()
 
     -- Give it a Legal Capture indicator
     self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK")
     self.legalCapture:SetPoint("CENTER", self.frame, "CENTER")
+    self.legalCapture:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.MarkerLevel)
     self.legalCapture:EnableMouse(false)
     self.legalCapture:Hide()
 

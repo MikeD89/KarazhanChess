@@ -19,7 +19,7 @@ function FrameUtils:getFrameFromPool()
 	
 	if not f then
 		-- If it doesn't exist, make a new one
-        return CreateFrame("FRAME", nil, KC.frame, "BackdropTemplate")
+        return CreateFrame("FRAME", nil, KC.boardFrame, "BackdropTemplate")
 	else
 		-- This space reserved for cleaning up frames (if needed)
     end

@@ -38,10 +38,19 @@ function KC:createChessFrame(frame)
 	-- Hide it by default
 	frame:Hide()
 
+	-- The board, pieces, markers and labels live in their own container that ignores
+	-- the window opacity. WoW applies alpha to each texture separately rather than to
+	-- the window as a whole, so a translucent piece would show the square through it.
+	KC.boardFrame = CreateFrame("FRAME", nil, frame)
+	KC.boardFrame:SetAllPoints(frame)
+	KC.boardFrame:SetIgnoreParentAlpha(true)
+
 	-- Make it fade out when the mouse is away. Polled every frame because the
 	-- board's child frames swallow OnEnter/OnLeave, so the parent never sees the mouse leave.
+	-- The fade dims everything; the window opacity setting only applies to the window itself.
 	local fadeInTime = 0.2
 	local fadeOutTime = 1.0
+	local fade = mouseOverAlpha
 	frame:SetScript('OnUpdate', function(f, elapsed)
 		local target = mouseOverAlpha
 		local duration = fadeInTime
@@ -49,17 +58,18 @@ function KC:createChessFrame(frame)
 			target = mouseAwayAlpha
 			duration = fadeOutTime
 		end
-		target = target * KC:getWindowOpacity()
 
-		local alpha = f:GetAlpha()
-		if alpha ~= target then
+		if fade ~= target then
 			local step = (mouseOverAlpha - mouseAwayAlpha) * elapsed / duration
-			if alpha < target then
-				f:SetAlpha(math.min(alpha + step, target))
+			if fade < target then
+				fade = math.min(fade + step, target)
 			else
-				f:SetAlpha(math.max(alpha - step, target))
+				fade = math.max(fade - step, target)
 			end
 		end
+
+		f:SetAlpha(fade * KC:getWindowOpacity())
+		KC.boardFrame:SetAlpha(fade)
 	end)
 
 	-- Add the titles
@@ -183,11 +193,11 @@ function KC:createChessBoard(frame)
 
 			-- Create the neccersary labels
 			if (firstRow) then
-				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], frame, true)
+				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], KC.board[i][j].frame, true)
 				table.insert(KC.boardLabels, label)
 			end
 			if (newColumn) then
-				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], frame, false)
+				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], KC.board[i][j].frame, false)
 				table.insert(KC.boardLabels, label)
 			end
 

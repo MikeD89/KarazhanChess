@@ -13,6 +13,11 @@ local Piece = {}
 ns.Piece = Piece
 Piece.__index = Piece;
 Piece.SubLayer = 4
+
+-- Pieces sit SubLayer levels above the board container, so above squares and markers
+function Piece:GetBaseLevel()
+    return KC.boardFrame:GetFrameLevel() + Piece.SubLayer
+end
 Piece.IndexCounter = 1
 
 -- (1: Abbreviation) (2: Point Value)
@@ -80,7 +85,7 @@ function Piece:new(name, isWhite)
 
     -- Pieces have to exist inside a frame
     self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY")
-    self.frame:SetFrameLevel(Piece.SubLayer)
+    self.frame:SetFrameLevel(Piece:GetBaseLevel())
 
     -- Handle click 
     self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
@@ -227,7 +232,7 @@ function Piece:MovePiece(square, animated)
         local f = self.frame
 
         -- Move it to the top
-        f:SetFrameLevel(Piece.SubLayer + 2)
+        f:SetFrameLevel(Piece:GetBaseLevel() + 2)
     
         -- Animate the piece. The animation group lives on the frame and is reused,
         -- including when the frame is pooled and handed to another piece.
@@ -249,7 +254,7 @@ function Piece:MovePiece(square, animated)
         -- When finished (or interrupted), fix it to the destination and reset the level
         local function finish()
             f:SetPoint("CENTER", square.frame, "CENTER")
-            f:SetFrameLevel(Piece.SubLayer)
+            f:SetFrameLevel(Piece:GetBaseLevel())
         end
         ag:SetScript("OnFinished", finish)
         ag:SetScript("OnStop", finish)

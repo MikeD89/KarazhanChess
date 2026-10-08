@@ -49,7 +49,8 @@ The only intended globals are `KarazhanChessDB` (saved variables), the main fram
 - `Game:CalculateValidMoves()` delegates to `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves only go to empty squares: slides and pawn pushes stop at the first piece in the way. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: captures (`CalculateValidCaptures()` returns `{}`), en passant, promotion, check.
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.
 - Settings live in `KC.db.global` (AceDB, saved variable `KarazhanChessDB`). Each option has `get*`/`set*`/`update*` methods in `Options.lua`.
-- Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`).
+- Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`), parented to `KC.boardFrame`.
+- `KC.boardFrame` holds everything on the board (squares, markers, pieces, labels) and ignores the window's alpha: WoW applies alpha per texture, so translucent pieces would show the square through them. Window Opacity only affects `KC.frame` (background, border, text, buttons); the mouse-away fade is applied to both. Piece frame levels are relative to it via `Piece:GetBaseLevel()`.
 
 ## Conventions
 

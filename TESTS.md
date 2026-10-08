@@ -70,6 +70,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | M-2 | `/kc fen 6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1` | Play a1–a8 | Glow on g8; "Checkmate. White is victorious." |
 | M-3 | `/kc fen 7k/8/6K1/8/8/8/8/5Q2 w - - 0 1` | `/kc move f1f7` | No glow; chat: "Stalemate. The game is a draw." |
 | M-4 | Any check | Make a move that ends the check | Glow disappears |
+| M-6 | `/kc fen k7/8/2Q5/8/8/8/8/7K w - - 0 1` | `/kc move c6b6` (or drag the queen to b6) | No glow; chat: "Stalemate. The game is a draw." |
 | M-5 | `/kc fen rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3` | Load it | Loading a mated position shows the glow and the checkmate message |
 
 ### Promotion

@@ -205,6 +205,11 @@ function Game:HandleBoardSquareClicked(square, animated)
         local piece = self.selectedPiece
         local fromSquare = piece.currentSquare
 
+        -- Capturing: take the enemy piece off the board before moving in
+        if (square:IsLegalCapture() and square.currentPiece ~= nil) then
+            self:RemovePiece(square.currentPiece)
+        end
+
         piece:MovePiece(square, animated ~= false)
         piece.hasMoved = true
 
@@ -229,6 +234,7 @@ function Game:CompleteCastle(kingSquare)
     rook.hasMoved = true
 end
 
+-- Captures piece with the selected piece (used when the enemy piece itself is clicked)
 function Game:HandleCapture(piece)
     -- What space are we capturing onto
     local square = piece.currentSquare
@@ -237,19 +243,14 @@ function Game:HandleCapture(piece)
         return
     end
 
-    -- Remove the piece
-    self:RemovePiece(piece)
-
-    -- Move the new piece into position
+    -- Moving onto a legal capture square removes the piece there
     self:HandleBoardSquareClicked(square)
-    self:DeselectPiece()
 end
 
 -- Move display
 function Game:ShowValidMoves()
     -- Calculate valid moves
-    local validMoves = self:CalculateValidMoves()
-    local validCaptures = self:CalculateValidCaptures()
+    local validMoves, validCaptures = self:CalculateValidMoves()
 
     -- Display them all
     for i,move in ipairs(validMoves) do
@@ -260,15 +261,10 @@ function Game:ShowValidMoves()
     end
 end
 
--- Move calcultion
+-- Move calcultion: returns the selected piece's moves and captures
 function Game:CalculateValidMoves()
     if (self.selectedPiece == nil) then
-        return {}
+        return {}, {}
     end
     return self.selectedPiece:CalculateMoves()
-end
-
--- TODO - Captures need the board state, which moves don't consider yet
-function Game:CalculateValidCaptures()
-    return {}
 end

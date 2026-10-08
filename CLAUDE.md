@@ -1,6 +1,6 @@
 # Karazhan Chess
 
-A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement (with blocking and castling) exist; captures, turns, check and game flow do not.
+A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement (with blocking, castling and captures) exist; turns, check, en passant, promotion and game flow do not.
 
 ## Targets
 
@@ -47,7 +47,7 @@ The only intended globals are `KarazhanChessDB` (saved variables), the main fram
 - `Square.currentPiece` ↔ `Piece.currentSquare` is a two-way link; keep both sides in sync when moving or removing pieces.
 - Input: pressing a piece selects it (`Piece:HandleMouseDown`); moving the cursor more than `Piece.DragThreshold` px turns it into a drag (piece follows cursor via `OnUpdate`), and release drops onto `KC:GetSquareUnderCursor()` through `Game:HandleBoardSquareClicked(square, false)` or snaps back. A release without dragging is a click. Clicking a square moves the selected piece (animated). `Piece:CancelDrag` runs on hide.
 - Legal moves are shown by `Square.legalMove` / `legalCapture` marker frames, and **their visibility is the source of truth** for `IsLegalMove()` / `IsLegalCapture()`.
-- `Game:CalculateValidMoves()` delegates to `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves only go to empty squares: slides and pawn pushes stop at the first piece in the way. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: captures (`CalculateValidCaptures()` returns `{}`), en passant, promotion, check.
+- `Game:CalculateValidMoves()` returns `moves, captures` from `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves go to empty squares; slides and pawn pushes stop at the first piece in the way, and that piece is a capture if it is an enemy (pawns capture diagonally forward only). Kings are never capturable. Captures are executed in `Game:HandleBoardSquareClicked`, which removes the enemy piece before moving in — clicking the enemy piece (`Game:SelectPiece` → `HandleCapture`), clicking its square, and dropping onto it all go through there. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: en passant, promotion, check, turns.
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.
 - Settings live in `KC.db.global` (AceDB, saved variable `KarazhanChessDB`). Each option has `get*`/`set*`/`update*` methods in `Options.lua`.
 - Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`), parented to `KC.boardFrame`.

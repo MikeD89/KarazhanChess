@@ -120,14 +120,15 @@ function Piece:UpdateTexture(position)
 end
 
 -- Moves
--- Returns the empty squares this piece can move to, as positions like "e4".
--- Any piece in the way blocks a slide or a pawn push. Occupied squares are never
--- moves; taking a piece belongs to captures, which aren't calculated yet.
+-- Returns two lists of positions like "e4": the empty squares this piece can move
+-- to, and the squares holding enemy pieces it can capture. Any piece in the way
+-- blocks a slide or a pawn push; the first enemy piece in a slide can be captured.
+-- Kings are never capturable (check/checkmate would cover that, once it exists).
 function Piece:CalculateMoves()
-    local moves = {}
+    local moves, captures = {}, {}
     local square = self.currentSquare
     if (square == nil) then
-        return moves
+        return moves, captures
     end
 
     local col = square.colIndex
@@ -141,8 +142,23 @@ function Piece:CalculateMoves()
         return onBoard(c, r) and KC.board[c][r].currentPiece == nil
     end
 
+    local function position(c, r)
+        return strsub(Square.colLabels, c, c)..r
+    end
+
     local function addMove(c, r)
-        table.insert(moves, strsub(Square.colLabels, c, c)..r)
+        table.insert(moves, position(c, r))
+    end
+
+    -- Adds a capture if (c, r) holds an enemy piece that isn't a king
+    local function tryCapture(c, r)
+        if not onBoard(c, r) then
+            return
+        end
+        local target = KC.board[c][r].currentPiece
+        if (target and target.isWhite ~= self.isWhite and target.name ~= "k") then
+            table.insert(captures, position(c, r))
+        end
     end
 
     if (self.name == "p") then
@@ -156,7 +172,11 @@ function Piece:CalculateMoves()
                 addMove(col, row + (direction * 2))
             end
         end
-        return moves
+
+        -- Pawns capture one square diagonally forward
+        tryCapture(col - 1, row + direction)
+        tryCapture(col + 1, row + direction)
+        return moves, captures
     end
 
     local movement = Piece.Movement[self.name]
@@ -165,16 +185,19 @@ function Piece:CalculateMoves()
         local c, r = col + step[1], row + step[2]
         if isFree(c, r) then
             addMove(c, r)
+        else
+            tryCapture(c, r)
         end
     end
 
-    -- Slides stop at the first piece in the way
+    -- Slides stop at the first piece in the way, which can be captured if it's an enemy
     for _, slide in ipairs(movement.slides or {}) do
         local c, r = col + slide[1], row + slide[2]
         while isFree(c, r) do
             addMove(c, r)
             c, r = c + slide[1], r + slide[2]
         end
+        tryCapture(c, r)
     end
 
     if (self.name == "k") then
@@ -185,7 +208,7 @@ function Piece:CalculateMoves()
         end
     end
 
-    return moves
+    return moves, captures
 end
 
 -- Castling needs an unmoved king on its start square, an unmoved rook of the

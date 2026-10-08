@@ -48,6 +48,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     -- Drawn just above the square texture, below the labels and markers.
     self.selectedHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 1)
     self.selectedHighlight:SetAllPoints()
+    FrameUtils:DisablePixelSnapping(self.selectedHighlight)
     self.selectedHighlight:SetColorTexture(20/255, 85/255, 30/255, 0.5)
     self.selectedHighlight:Hide()
 

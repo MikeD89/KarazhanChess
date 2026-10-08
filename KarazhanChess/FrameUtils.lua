@@ -38,6 +38,14 @@ function FrameUtils:returnFrameToPool(frame)
     tinsert(FrameUtils.framePool, frame)
 end
 
+-- Stops a texture snapping to the screen's pixel grid. Snapping (the client default)
+-- nudges edges to whole pixels, which makes scaled artwork look jagged at window
+-- sizes that don't land on whole pixels. Unsnapped, it scales smoothly at any size.
+function FrameUtils:DisablePixelSnapping(texture)
+	texture:SetSnapToPixelGrid(false)
+	texture:SetTexelSnappingBias(0)
+end
+
 -- Function used to create an icon
 function FrameUtils:CreateIcon(w, h, textureName, layer)
 	-- create this as a frame
@@ -50,6 +58,7 @@ function FrameUtils:CreateIcon(w, h, textureName, layer)
 	if not frame.texture then
 		frame.texture = frame:CreateTexture(nil, layer)
 		frame.texture:SetAllPoints()
+		FrameUtils:DisablePixelSnapping(frame.texture)
 	end
 	frame.texture:SetDrawLayer(layer)
     frame.texture:SetTexture(textureName)

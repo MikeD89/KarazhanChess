@@ -236,6 +236,23 @@ function Piece:CanCastle(castle)
     return true
 end
 
+-- Promotion
+-- The rank a pawn of this colour promotes on
+function Piece:GetPromotionRow()
+    return self.isWhite and KC.boardDim or 1
+end
+
+-- Turns this piece (a pawn) into another type in place, keeping its square,
+-- frame and place in the game's piece list
+function Piece:PromoteTo(name)
+    local data = Piece.Data[name]
+    self.name = data[1]
+    self.points = data[2]
+    self.key = self.prefix..self.name
+    self.hasMoved = true
+    self:UpdateTexture()
+end
+
 -- Position
 function Piece:ApplyPosition(position)
     if (position ~= nil) then

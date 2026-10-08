@@ -1,6 +1,6 @@
 # Karazhan Chess
 
-A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement (with blocking, castling and captures) exist; turns, check, en passant, promotion and game flow do not.
+A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement (with blocking, castling and captures) exist; turns, check, en passant and game flow do not.
 
 ## Targets
 
@@ -28,6 +28,7 @@ There is no Lua toolchain or test suite. Verification is in-game: `/reload`, the
 | `Game.lua` | `Game` class: piece list, new game / clear board (with StaticPopup confirms), selection, moves, capture |
 | `Main.lua` | Constants, `OnInitialize`/`OnEnable`, minimap broker, Settings integration, slash commands |
 | `Frame.lua` | Builds the main window and the 8×8 `KC.board`; window position and opacity |
+| `Promotion.lua` | Pawn promotion picker (`KC:ShowPromotionPicker`): dims the board and shows Q/R/B/N on the promotion file; the pawn becomes the chosen piece via `Piece:PromoteTo` |
 | `Options.lua` | AceConfig options table, defaults, getters/setters |
 
 ### Namespace — no globals
@@ -47,7 +48,7 @@ The only intended globals are `KarazhanChessDB` (saved variables), the main fram
 - `Square.currentPiece` ↔ `Piece.currentSquare` is a two-way link; keep both sides in sync when moving or removing pieces.
 - Input: pressing a piece selects it (`Piece:HandleMouseDown`); moving the cursor more than `Piece.DragThreshold` px turns it into a drag (piece follows cursor via `OnUpdate`), and release drops onto `KC:GetSquareUnderCursor()` through `Game:HandleBoardSquareClicked(square, false)` or snaps back. A release without dragging is a click. Clicking a square moves the selected piece (animated). `Piece:CancelDrag` runs on hide.
 - Legal moves are shown by `Square.legalMove` / `legalCapture` marker frames, and **their visibility is the source of truth** for `IsLegalMove()` / `IsLegalCapture()`.
-- `Game:CalculateValidMoves()` returns `moves, captures` from `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves go to empty squares; slides and pawn pushes stop at the first piece in the way, and that piece is a capture if it is an enemy (pawns capture diagonally forward only). Kings are never capturable. Captures are executed in `Game:HandleBoardSquareClicked`, which removes the enemy piece before moving in — clicking the enemy piece (`Game:SelectPiece` → `HandleCapture`), clicking its square, and dropping onto it all go through there. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: en passant, promotion, check, turns.
+- `Game:CalculateValidMoves()` returns `moves, captures` from `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves go to empty squares; slides and pawn pushes stop at the first piece in the way, and that piece is a capture if it is an enemy (pawns capture diagonally forward only). Kings are never capturable. Captures are executed in `Game:HandleBoardSquareClicked`, which removes the enemy piece before moving in — clicking the enemy piece (`Game:SelectPiece` → `HandleCapture`), clicking its square, and dropping onto it all go through there. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Promotion: a pawn landing on its last rank (`Piece:GetPromotionRow`) opens the picker; its overlay swallows board clicks until a piece is chosen, and Clear Board / New Game hide it. Not yet: en passant, check, turns.
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.
 - Settings live in `KC.db.global` (AceDB, saved variable `KarazhanChessDB`). Each option has `get*`/`set*`/`update*` methods in `Options.lua`.
 - Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`), parented to `KC.boardFrame`. Board textures have pixel snapping disabled (`FrameUtils:DisablePixelSnapping`) so scaled art stays smooth at any window size — do the same for any new board texture.

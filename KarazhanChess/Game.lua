@@ -148,6 +148,7 @@ function Game:ClearBoard()
 
     -- Hide any UI hints
     self:DeselectPiece()
+    KC:HidePromotionPicker()
 end
 
 -- Game Logic
@@ -216,6 +217,11 @@ function Game:HandleBoardSquareClicked(square, animated)
         -- A king moving two files is castling, so bring the rook across too
         if (piece.name == "k" and math.abs(square.colIndex - fromSquare.colIndex) == 2) then
             self:CompleteCastle(square)
+        end
+
+        -- A pawn reaching the last rank promotes; the player picks what to
+        if (piece.name == "p" and square.rowIndex == piece:GetPromotionRow()) then
+            KC:ShowPromotionPicker(piece, square, function(name) piece:PromoteTo(name) end)
         end
 
         self:DeselectPiece()

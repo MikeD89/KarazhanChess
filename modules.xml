@@ -15,5 +15,6 @@
     <!-- Main -->
     <Script file="KarazhanChess/Main.lua"/>
     <Script file="KarazhanChess/Frame.lua"/>
+    <Script file="KarazhanChess/Promotion.lua"/>
     <Script file="KarazhanChess/Options.lua"/>
 </Ui>

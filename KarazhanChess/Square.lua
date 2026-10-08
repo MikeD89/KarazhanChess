@@ -44,6 +44,13 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     local ypos = Square.yOffset + KC.boardHeight - (self.rowIndex * size)
     self.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
+    -- Selection highlight (Lichess style): tints the square of the selected piece.
+    -- Drawn just above the square texture, below the labels and markers.
+    self.selectedHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 1)
+    self.selectedHighlight:SetAllPoints()
+    self.selectedHighlight:SetColorTexture(20/255, 85/255, 30/255, 0.5)
+    self.selectedHighlight:Hide()
+
     -- Give it a Legal Move indicator
     self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
@@ -71,8 +78,17 @@ function Square:UpdateTexture()
     self.frame.texture:SetTexture(texture)
 end
 
+-- Selection highlight
+function Square:ShowSelected()
+    self.selectedHighlight:Show()
+end
+
+function Square:ClearSelected()
+    self.selectedHighlight:Hide()
+end
+
 -- Legal Move
-function Square:IsLegalMove() 
+function Square:IsLegalMove()
     return self.legalMove:IsShown()
 end
 

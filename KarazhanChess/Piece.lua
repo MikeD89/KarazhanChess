@@ -88,7 +88,9 @@ function Piece:new(name, isWhite)
     self.frame:SetFrameLevel(Piece:GetBaseLevel())
 
     -- Handle click 
-    self.frame:SetScript("OnMouseUp", function() self:HandleMouseUp() end)    
+    self.frame:SetScript("OnMouseDown", function(_, button) self:HandleMouseDown(button) end)
+    self.frame:SetScript("OnMouseUp", function(_, button) self:HandleMouseUp(button) end)
+    self.frame:SetScript("OnHide", function() self:CancelDrag() end)
 
     -- Hide by default
     self.frame:Hide()
@@ -281,24 +283,103 @@ function Piece:MovePiece(square, animated)
 end
 
 -- Selection
-function Piece:HandleMouseUp()
-    if self.frame:IsMouseOver() then
-        if(self.selected) then
-            KC.game:DeselectPiece()
-        else
-            KC.game:SelectPiece(self)
-        end 
+-- Mouse handling: pressing a piece selects it (showing its moves). Moving the mouse
+-- more than DragThreshold pixels while held turns the press into a drag; releasing
+-- without dragging is a click, which deselects a piece that was already selected.
+Piece.DragThreshold = 4
+
+function Piece:HandleMouseDown(button)
+    if (button ~= "LeftButton") then
+        return
+    end
+
+    self.wasSelected = self.selected
+    if not self.selected then
+        KC.game:SelectPiece(self)
+
+        -- Selecting can capture this piece instead (another piece was selected)
+        if (KC.game.selectedPiece ~= self) then
+            return
+        end
+    end
+
+    -- Watch for the mouse moving far enough to start a drag
+    local startX, startY = GetCursorPosition()
+    self.pressed = true
+    self.dragging = false
+    self.frame:SetScript("OnUpdate", function()
+        local x, y = GetCursorPosition()
+        if not self.dragging then
+            if math.abs(x - startX) + math.abs(y - startY) < Piece.DragThreshold then
+                return
+            end
+            self.dragging = true
+            self.frame:SetFrameLevel(Piece:GetBaseLevel() + 2)
+        end
+
+        -- Follow the cursor (cursor position is in screen pixels)
+        local scale = self.frame:GetEffectiveScale()
+        self.frame:ClearAllPoints()
+        self.frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    end)
+end
+
+function Piece:HandleMouseUp(button)
+    if (button ~= "LeftButton" or not self.pressed) then
+        return
+    end
+    self.pressed = false
+    self.frame:SetScript("OnUpdate", nil)
+
+    if self.dragging then
+        self.dragging = false
+        self.frame:SetFrameLevel(Piece:GetBaseLevel())
+
+        -- Drop onto the square under the cursor if it's a legal move, otherwise snap back
+        local square = KC:GetSquareUnderCursor()
+        if not (square and KC.game:HandleBoardSquareClicked(square, false)) then
+            self:SnapBack()
+        end
+    elseif self.wasSelected and self.frame:IsMouseOver() then
+        -- A plain click on the already-selected piece deselects it
+        KC.game:DeselectPiece()
     end
 end
 
+-- Stops any press or drag in progress and puts the piece back on its square,
+-- e.g. when the window is closed mid-drag and the mouse-up never arrives
+function Piece:CancelDrag()
+    self.frame:SetScript("OnUpdate", nil)
+    if self.dragging and self.currentSquare then
+        self.frame:SetFrameLevel(Piece:GetBaseLevel())
+        self:SnapBack()
+    end
+    self.pressed = false
+    self.dragging = false
+end
+
+-- Returns a dragged piece to its square
+function Piece:SnapBack()
+    self.frame:ClearAllPoints()
+    self.frame:SetPoint("CENTER", self.currentSquare.frame, "CENTER")
+end
+
+-- Selection is shown by highlighting the piece's square (Lichess style), so the
+-- highlight stays on the origin square while the piece is dragged. The square is
+-- remembered because the piece has already moved by the time it's deselected.
 function Piece:SetSelected()
-    self.frame:SetBackdrop({ bgFile = [[Interface/Buttons/WHITE8X8]] })
-    self.frame:SetBackdropColor(0.16, 0.47, 0.04, 0.5)
+    self.highlightedSquare = self.currentSquare
+    if self.highlightedSquare then
+        self.highlightedSquare:ShowSelected()
+    end
     self.selected = true
 end
 
 function Piece:SetDeselected()
-    self.frame:SetBackdrop(nil)        
+    if self.highlightedSquare then
+        self.highlightedSquare:ClearSelected()
+        self.highlightedSquare = nil
+    end
     self.selected = false
 end
 

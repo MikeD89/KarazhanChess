@@ -31,7 +31,10 @@ function FrameUtils:returnFrameToPool(frame)
 	frame:Hide()
 	frame:ClearAllPoints()
 	frame.texture:SetTexture(nil)
+	frame:SetScript("OnMouseDown", nil)
 	frame:SetScript("OnMouseUp", nil)
+	frame:SetScript("OnUpdate", nil)
+	frame:SetScript("OnHide", nil)
     tinsert(FrameUtils.framePool, frame)
 end
 

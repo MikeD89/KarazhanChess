@@ -330,6 +330,17 @@ function KC:clearLegalMovesAndCaptures()
 	end
 end
 
+-- Gets the square under the mouse cursor, or nil if it's not over the board
+function KC:GetSquareUnderCursor()
+	for i=1,KC.boardDim,1 do
+		for j=1,KC.boardDim,1 do
+			if KC.board[i][j].frame:IsMouseOver() then
+				return KC.board[i][j]
+			end
+		end
+	end
+end
+
 -- Gets a specific board position
 function KC:GetBoardPosition(position)
 	local col = strsub(position, 1, 1)

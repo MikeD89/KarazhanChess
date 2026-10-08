@@ -45,6 +45,7 @@ The only intended globals are `KarazhanChessDB` (saved variables), the main fram
 
 - `KC.board[col][row]` — `Square` objects, both indices 1–8 (col 1 = file `a`). `KC:GetBoardPosition("e4")` maps algebraic notation to a square.
 - `Square.currentPiece` ↔ `Piece.currentSquare` is a two-way link; keep both sides in sync when moving or removing pieces.
+- Input: pressing a piece selects it (`Piece:HandleMouseDown`); moving the cursor more than `Piece.DragThreshold` px turns it into a drag (piece follows cursor via `OnUpdate`), and release drops onto `KC:GetSquareUnderCursor()` through `Game:HandleBoardSquareClicked(square, false)` or snaps back. A release without dragging is a click. Clicking a square moves the selected piece (animated). `Piece:CancelDrag` runs on hide.
 - Legal moves are shown by `Square.legalMove` / `legalCapture` marker frames, and **their visibility is the source of truth** for `IsLegalMove()` / `IsLegalCapture()`.
 - `Game:CalculateValidMoves()` delegates to `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves only go to empty squares: slides and pawn pushes stop at the first piece in the way. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: captures (`CalculateValidCaptures()` returns `{}`), en passant, promotion, check.
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.

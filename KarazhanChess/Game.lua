@@ -192,10 +192,12 @@ function Game:DeselectPiece()
 end
 
 -- Board selection
-function Game:HandleBoardSquareClicked(square)
+-- Moves the selected piece to square if that's a legal move. Returns whether it moved.
+-- animated is false when the piece was dropped there by dragging (it's already in place).
+function Game:HandleBoardSquareClicked(square, animated)
     -- Nothign to do if no piece selected
     if(self.selectedPiece == nil) then
-        return
+        return false
     end
 
     -- Is this a legit move?
@@ -203,7 +205,7 @@ function Game:HandleBoardSquareClicked(square)
         local piece = self.selectedPiece
         local fromSquare = piece.currentSquare
 
-        piece:MovePiece(square, true)
+        piece:MovePiece(square, animated ~= false)
         piece.hasMoved = true
 
         -- A king moving two files is castling, so bring the rook across too
@@ -212,7 +214,9 @@ function Game:HandleBoardSquareClicked(square)
         end
 
         self:DeselectPiece()
+        return true
     end
+    return false
 end
 
 -- Moves the rook to the other side of a king that has just castled onto kingSquare

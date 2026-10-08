@@ -1,0 +1,19 @@
+## Interface: 16001, 120100, 120105
+
+## Title: |cff69ccf0Karazhan Chess|r Puzzles
+## Notes: 250,000 Lichess puzzles for Karazhan Chess. Loaded only when you open puzzles.
+## Author: MeloN <Convicted>
+## Version: @project-version@
+## Dependencies: KarazhanChess
+## LoadOnDemand: 1
+## IconTexture: Interface\AddOns\KarazhanChess\Textures\minimap
+
+## X-Category: Minigame
+## X-License: Puzzle data CC0 1.0 (Lichess puzzle database); code Apache License 2.0
+
+Themes.lua
+RaidFinder.lua
+Normal.lua
+Heroic.lua
+Mythic.lua
+CuttingEdge.lua

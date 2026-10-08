@@ -19,6 +19,10 @@ externals:
 
 enable-nolib-creation: no
 
+# The puzzle data is a separate load-on-demand addon that lives in this repo
+move-folders:
+  KarazhanChess/KarazhanChess_Puzzles: KarazhanChess_Puzzles
+
 ignore:
   - .gitattributes
   - .gitignore

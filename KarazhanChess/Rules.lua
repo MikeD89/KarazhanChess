@@ -485,7 +485,11 @@ end
 
 -- The legal move (for the side to move) matching a UCI string like "e7e8q", or nil
 function Rules.FindMove(pos, uci)
-    for _, move in ipairs(Rules.GenerateLegalMoves(pos)) do
+    local from = Rules.SquareIndex(sub(uci or "", 1, 2))
+    if not from then
+        return nil
+    end
+    for _, move in ipairs(Rules.GenerateLegalMoves(pos, nil, from)) do
         if Rules.MoveToUCI(move) == uci then
             return move
         end

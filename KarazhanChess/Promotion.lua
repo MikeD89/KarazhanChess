@@ -27,6 +27,15 @@ local function createPicker()
 	overlay:EnableMouse(true) -- Swallow clicks so the board can't be used meanwhile
 	overlay:Hide()
 
+	-- Clicking the dimmed board (anywhere but a choice) cancels, as on Lichess
+	overlay:SetScript("OnMouseUp", function()
+		local onCancelled = overlay.onCancelled
+		KC:HidePromotionPicker()
+		if onCancelled then
+			onCancelled()
+		end
+	end)
+
 	local dim = overlay:CreateTexture(nil, "BACKGROUND")
 	dim:SetAllPoints()
 	dim:SetColorTexture(0, 0, 0, 0.5)
@@ -57,10 +66,13 @@ local function createPicker()
 end
 
 -- Shows the picker for a pawn that has just reached the last rank on square.
--- onChosen(pieceName) is called with the chosen piece ("q", "r", "b" or "n").
-function KC:ShowPromotionPicker(pawn, square, onChosen)
+-- onChosen(pieceName) is called with the chosen piece ("q", "r", "b" or "n");
+-- onCancelled() is called if the player clicks off the picker instead.
+-- Hiding the picker any other way (KC:HidePromotionPicker) calls neither.
+function KC:ShowPromotionPicker(pawn, square, onChosen, onCancelled)
 	KC.promotionPicker = KC.promotionPicker or createPicker()
 	local picker = KC.promotionPicker
+	picker.onCancelled = onCancelled
 
 	-- Run from the promotion square towards the centre of the board
 	local direction = pawn.isWhite and -1 or 1
@@ -82,6 +94,7 @@ end
 
 function KC:HidePromotionPicker()
 	if KC.promotionPicker then
+		KC.promotionPicker.onCancelled = nil
 		KC.promotionPicker:Hide()
 	end
 end

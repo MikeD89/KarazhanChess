@@ -24,6 +24,9 @@ Square.MarkerLevel = 2
 Square.MoveColour = { 20/255, 85/255, 30/255, 0.75 }  -- move-dest dot
 Square.CaptureColour = { 20/255, 85/255, 0, 0.6 }     -- capture corners
 Square.HoverColour = { 20/255, 85/255, 30/255, 0.5 }  -- destination under the cursor
+-- From/to of the last move: the gold of the window's title and labels (WoW's
+-- NORMAL_FONT_COLOR) at Lichess's last-move alpha
+Square.LastMoveColour = { NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.41 }
 
 -- Constructor
 function Square:new(frame, size, colIndex, rowIndex, lightSquare)
@@ -50,9 +53,18 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     local ypos = Square.yOffset + KC.boardHeight - (self.rowIndex * size)
     self.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
-    -- Selection highlight (Lichess style): tints the square of the selected piece.
-    -- Drawn just above the square texture, below the labels and markers.
-    self.selectedHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 1)
+    -- Square tints, drawn above the square texture (sublevel 0) and below the labels
+    -- and markers, in this order: last move, selected, hover.
+
+    -- Last move highlight (Lichess style): tints the from and to squares of the last move
+    self.lastMoveHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 1)
+    self.lastMoveHighlight:SetAllPoints()
+    FrameUtils:DisablePixelSnapping(self.lastMoveHighlight)
+    self.lastMoveHighlight:SetColorTexture(unpack(Square.LastMoveColour))
+    self.lastMoveHighlight:Hide()
+
+    -- Selection highlight (Lichess style): tints the square of the selected piece
+    self.selectedHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 2)
     self.selectedHighlight:SetAllPoints()
     FrameUtils:DisablePixelSnapping(self.selectedHighlight)
     self.selectedHighlight:SetColorTexture(20/255, 85/255, 30/255, 0.5)
@@ -60,7 +72,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
 
     -- Hover highlight (Lichess style): tints a destination square under the cursor,
     -- replacing its dot / capture corners. Driven by KC:UpdateHoverSquare.
-    self.hoverHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 2)
+    self.hoverHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 3)
     self.hoverHighlight:SetAllPoints()
     FrameUtils:DisablePixelSnapping(self.hoverHighlight)
     self.hoverHighlight:SetColorTexture(unpack(Square.HoverColour))
@@ -102,6 +114,11 @@ function Square:SetHovered(hovered)
     local markerAlpha = hovered and 0 or 1
     self.legalMove:SetAlpha(markerAlpha)
     self.legalCapture:SetAlpha(markerAlpha)
+end
+
+-- Last move highlight
+function Square:SetLastMove(shown)
+    self.lastMoveHighlight:SetShown(shown)
 end
 
 -- Selection highlight

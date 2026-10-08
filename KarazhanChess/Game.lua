@@ -82,8 +82,9 @@ function Game:CreatePiece(type, isWhite, startingLocation)
     if(startingLocation ~= nil) then
        -- Assume we want to show it, and stick it int he right locaton
        piece:ApplyPosition(startingLocation)
-       piece:ShowPiece() 
+       piece:ShowPiece()
     end
+    return piece
 end
 
 function Game:RemovePiece(piece)
@@ -148,7 +149,19 @@ function Game:ClearBoard()
 
     -- Hide any UI hints
     self:DeselectPiece()
+    self:SetLastMove(nil, nil)
     KC:HidePromotionPicker()
+end
+
+-- Highlights the from and to squares of the last move (Lichess style); nil clears it
+function Game:SetLastMove(fromSquare, toSquare)
+    if self.lastMoveFrom then self.lastMoveFrom:SetLastMove(false) end
+    if self.lastMoveTo then self.lastMoveTo:SetLastMove(false) end
+
+    self.lastMoveFrom, self.lastMoveTo = fromSquare, toSquare
+
+    if fromSquare then fromSquare:SetLastMove(true) end
+    if toSquare then toSquare:SetLastMove(true) end
 end
 
 -- Game Logic
@@ -206,28 +219,59 @@ function Game:HandleBoardSquareClicked(square, animated)
         local piece = self.selectedPiece
         local fromSquare = piece.currentSquare
 
+        -- What's needed to take this move back if a promotion is cancelled
+        local undo = {
+            piece = piece,
+            fromSquare = fromSquare,
+            toSquare = square,
+            hadMoved = piece.hasMoved,
+            lastMoveFrom = self.lastMoveFrom,
+            lastMoveTo = self.lastMoveTo,
+        }
+
         -- Capturing: take the enemy piece off the board before moving in
         if (square:IsLegalCapture() and square.currentPiece ~= nil) then
-            self:RemovePiece(square.currentPiece)
+            local target = square.currentPiece
+            undo.captured = { name = target.name, isWhite = target.isWhite, hasMoved = target.hasMoved }
+            self:RemovePiece(target)
         end
 
         piece:MovePiece(square, animated ~= false)
         piece.hasMoved = true
+        self:SetLastMove(fromSquare, square)
 
         -- A king moving two files is castling, so bring the rook across too
         if (piece.name == "k" and math.abs(square.colIndex - fromSquare.colIndex) == 2) then
             self:CompleteCastle(square)
         end
 
-        -- A pawn reaching the last rank promotes; the player picks what to
+        -- A pawn reaching the last rank promotes; the player picks what to, or
+        -- cancels (clicking off the picker), which takes the move back
         if (piece.name == "p" and square.rowIndex == piece:GetPromotionRow()) then
-            KC:ShowPromotionPicker(piece, square, function(name) piece:PromoteTo(name) end)
+            KC:ShowPromotionPicker(piece, square,
+                function(name) piece:PromoteTo(name) end,
+                function() self:UndoMove(undo) end)
         end
 
         self:DeselectPiece()
         return true
     end
     return false
+end
+
+-- Takes back a move recorded by HandleBoardSquareClicked: the piece returns to its
+-- square, any captured piece is put back, and the previous last move is restored.
+-- Used when a promotion is cancelled (castling moves are never undone).
+function Game:UndoMove(undo)
+    undo.piece:MovePiece(undo.fromSquare, true)
+    undo.piece.hasMoved = undo.hadMoved
+
+    if undo.captured then
+        local restored = self:CreatePiece(undo.captured.name, undo.captured.isWhite, undo.toSquare.name)
+        restored.hasMoved = undo.captured.hasMoved
+    end
+
+    self:SetLastMove(undo.lastMoveFrom, undo.lastMoveTo)
 end
 
 -- Moves the rook to the other side of a king that has just castled onto kingSquare

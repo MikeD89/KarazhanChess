@@ -20,4 +20,10 @@
     <Script file="KarazhanChess/Promotion.lua"/>
     <Script file="KarazhanChess/Puzzles.lua"/>
     <Script file="KarazhanChess/Options.lua"/>
+
+    <!-- Dev builds only: manual test panel (the packager strips this block) -->
+    <!--@do-not-package@-->
+    <Script file="KarazhanChess/Dev/Tests.lua"/>
+    <Script file="KarazhanChess/Dev/TestPanel.lua"/>
+    <!--@end-do-not-package@-->
 </Ui>

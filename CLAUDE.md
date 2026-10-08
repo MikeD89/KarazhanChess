@@ -12,12 +12,15 @@ A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in pr
 
 ## Testing
 
-UI verification is in-game: `/reload`, then `/kc` (window), `/kco` (options). [TESTS.md](TESTS.md) lists the manual test cases (by ID) with FEN setups; add cases there when adding features, as they are meant to become automated suites in a dev-build test mode later. BugSack/BugGrabber are installed in both clients and capture Lua errors. State clearly when a change has not been tested in game.
+UI verification is in-game: `/reload`, then `/kc` (window), `/kco` (options). BugSack/BugGrabber are installed in both clients and capture Lua errors. State clearly when a change has not been tested in game.
+
+**In-game test panel (dev builds).** The manual test cases live in [KarazhanChess/Dev/Tests.lua](KarazhanChess/Dev/Tests.lua) (`ns.DevTests`): each has an `id` (e.g. `R-2`), `section`, `name`, a `load` spec (`fen`, `newGame`, `clear`, `moves`, `flipped`, `mode`), `steps` and `check`. [Dev/TestPanel.lua](KarazhanChess/Dev/TestPanel.lua) shows them one at a time with Load / Previous / Next and a section menu; it opens from the **Tests** button in the options (hidden unless `ns.TestPanel` exists) or `/kc tests`, and remembers the current test (`KC.db.global.devTest`) across `/reload`. Both files return early unless `KC.isDevBuild` (version `0.0_dev`), and the packager drops them (`@do-not-package@` block in `modules.xml`, `KarazhanChess/Dev` ignored in `.pkgmeta`). Add cases there when adding features; they are meant to become automated suites later. Run `node lua.js tests/devtests.lua` after editing them. [TESTS.md](TESTS.md) is kept for now with the same cases (plus the offline ones); keep the two in step.
 
 Code without WoW API (`Rules.lua`, `PuzzleCodec.lua`) is tested offline under [fengari](https://github.com/fengari-lua/fengari) (Lua 5.3 in Node, close enough for 5.1 code). In `Tools/` (run `npm install` once):
 
 - `node lua.js tests/perft.lua` checks move generation against known perft counts plus checkmate/stalemate (add `quick` to skip the slow depths; the full run takes about 40 s). Run it after any change to `Rules.lua`.
-- `node lua.js tests/syntax.lua ../KarazhanChess/*.lua` compiles every addon file to catch syntax errors.
+- `node lua.js tests/syntax.lua ../KarazhanChess/*.lua ../KarazhanChess/Dev/*.lua` compiles every addon file to catch syntax errors.
+- `node lua.js tests/devtests.lua` checks the in-game test cases: unique IDs, required fields, every FEN parses and every setup move is legal.
 - `node lua.js tests/puzzles.lua [N]` loads the puzzle data addon through a stub LibStub and checks counts, unique IDs, lookups, decoding and that every solution is legal (`N` checks every Nth puzzle; 25 takes about 2 minutes). Run it after rebuilding the data or changing `PuzzleCodec.lua`.
 - `node lua.js script.lua [args]` runs any Lua script; the global `ADDON_ROOT` is the repo root and `readfile(path)` returns a file's contents (fengari has no `io.open`). Load addon files with `loadfile(path)("KarazhanChess", ns)` to mimic WoW's `...`. `luastate.js` has the same helpers for Node scripts.
 
@@ -41,6 +44,7 @@ Code without WoW API (`Rules.lua`, `PuzzleCodec.lua`) is tested offline under [f
 | `Promotion.lua` | Pawn promotion picker (`KC:ShowPromotionPicker`): dims the board and shows Q/R/B/N on the promotion file; the pawn becomes the chosen piece via `Piece:PromoteTo` |
 | `Puzzles.lua` | `Puzzles`: loads the data addon, picks puzzles, runs the puzzle flow, puzzle rating; `KC:RegisterPuzzles` / `RegisterPuzzleThemes` for the data addon |
 | `Options.lua` | AceConfig options table, defaults, getters/setters; reads `ns.Puzzles` at load |
+| `Dev/Tests.lua`, `Dev/TestPanel.lua` | Dev builds only: manual test cases and the test panel (see Testing) |
 
 ### Namespace — no globals
 

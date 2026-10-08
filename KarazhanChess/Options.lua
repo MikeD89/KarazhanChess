@@ -55,6 +55,14 @@ KC.options = {
 			order = 6,
 			func = "resetWindowSize"
 		},
+		testsButton = {
+			type = "execute",
+			name = "Tests",
+			desc = "Opens the manual test panel (development builds only)",
+			order = 7,
+			hidden = function() return not ns.TestPanel end,
+			func = function() ns.TestPanel:OpenFromOptions() end,
+		},
         generalHeader = {
 			type = "header",
 			name = "General",

@@ -23,6 +23,9 @@ if KC.version:find("@", nil, true) then
     KC.version = "0.0_dev"
 end
 
+-- Unpackaged (a git checkout): enables the test panel in Dev/
+KC.isDevBuild = (KC.version == "0.0_dev")
+
 if KC.dateChanged:find("@", nil, true) then
     KC.dateChanged = "20080808133730"
 end
@@ -235,11 +238,14 @@ end
 --   /kc fen <FEN>   set the board up from a FEN string
 --   /kc move <uci>  play a move in UCI notation, e.g. e2e4 or e7e8q
 --   /kc puzzle      switch to puzzles (/kc play switches back)
+--   /kc tests       toggle the test panel (dev builds only)
 SlashCmdList['CHESSCMD'] = function(msg)
     local command, rest = strtrim(msg or ""):match("^(%S*)%s*(.-)$")
     command = string.lower(command or "")
 
-    if (command == "fen") then
+    if (command == "tests" and ns.TestPanel) then
+        ns.TestPanel:Toggle()
+    elseif (command == "fen") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         local turn, err = KC.game:LoadFEN(rest)
         if not turn then

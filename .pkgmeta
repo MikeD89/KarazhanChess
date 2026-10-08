@@ -29,6 +29,7 @@ ignore:
   - README.md
   - CLAUDE.md
   - TESTS.md
+  - KarazhanChess/Dev
   - .vscode
   - .github
   - Converter

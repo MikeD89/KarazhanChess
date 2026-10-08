@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Karazhan Chess (https://github.com/MikeD89/KarazhanChess)
+-- Karazhan Chess
 -- Author:  Mike D (MeloN <Convicted>)
 --
 -- Piece Handling
@@ -133,7 +133,7 @@ end
 
 -- Selection
 function Piece:HandleMouseUp()
-    if MouseIsOver(self.frame) then
+    if self.frame:IsMouseOver() then
         if(self.selected) then
             KC.game:DeselectPiece()
         else

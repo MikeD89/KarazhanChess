@@ -9,7 +9,6 @@
 
 ## X-Category: Minigame
 ## X-License: Apache License 2.0
-## X-Website: https://github.com/MikeD89/KarazhanChess
 ## X-Curse-Project-ID: 0
 ## X-WoWI-ID: 0
 

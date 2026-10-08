@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Karazhan Chess (https://github.com/MikeD89/KarazhanChess)
+-- Karazhan Chess
 -- Author: Mike D (MeloN <Convicted>)
 --
 -- Option Handler
@@ -24,12 +24,6 @@ KC.options = {
 			name = "|cFF9CD6DE" .. "By MeloN <".."|cffff5c33Convicted".."|cFF9CD6DE>",
 			fontSize = "small",
 			order = 3,
-		},
-		github = {
-			type = "description",
-			name = "|cFF9CD6DE" .. "https://github.com/MikeD89/KarazhanChess",
-			fontSize = "small",
-			order = 2,
 		},
 		mainText = {
 			type = "description",

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Karazhan Chess (https://github.com/MikeD89/KarazhanChess)
+-- Karazhan Chess
 -- Author:  Mike D (MeloN <Convicted>)
 --
 -- Main Loader and Entry Point

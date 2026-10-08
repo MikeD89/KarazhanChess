@@ -23,6 +23,7 @@ ignore:
   - .gitattributes
   - .gitignore
   - README.md
+  - CLAUDE.md
   - .vscode
   - .github
   - Converter

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Karazhan Chess (https://github.com/MikeD89/KarazhanChess)
+-- Karazhan Chess
 -- Author:  Mike D (MeloN <Convicted>)
 --
 -- Primary Frame
@@ -27,24 +27,34 @@ function KC:createChessFrame(frame)
 	
 	-- Set the default position and fixed size
 	frame:SetSize(KC.fixedWidth, KC.fixedHeight)
+	frame:ClearAllPoints()
 	frame:SetPoint("CENTER", UIParent, "CENTER")
 	
 	-- Hide it by default
 	frame:Hide()
 
-	-- Make it fade out when the mouse is away
-	local function setFadeState() 
-		if (self.db.global.fadeoutWindow) then
-			if MouseIsOver(frame) then
-				UIFrameFadeIn(frame, 1.0, frame:GetAlpha(), mouseOverAlpha)
+	-- Make it fade out when the mouse is away. Polled every frame because the
+	-- board's child frames swallow OnEnter/OnLeave, so the parent never sees the mouse leave.
+	local fadeInTime = 0.2
+	local fadeOutTime = 1.0
+	frame:SetScript('OnUpdate', function(f, elapsed)
+		local target = mouseOverAlpha
+		local duration = fadeInTime
+		if self.db.global.fadeoutWindow and not f:IsMouseOver() then
+			target = mouseAwayAlpha
+			duration = fadeOutTime
+		end
+
+		local alpha = f:GetAlpha()
+		if alpha ~= target then
+			local step = (mouseOverAlpha - mouseAwayAlpha) * elapsed / duration
+			if alpha < target then
+				f:SetAlpha(math.min(alpha + step, target))
 			else
-				UIFrameFadeOut(frame, 0.20, frame:GetAlpha(), mouseAwayAlpha)
+				f:SetAlpha(math.max(alpha - step, target))
 			end
 		end
-	end
-
-	frame:SetScript('OnEnter', setFadeState)
-	frame:SetScript('OnLeave', setFadeState)
+	end)
 
 	-- Add the titles
 	local titleText = frame:CreateFontString(nil, "ARTWORK") 	

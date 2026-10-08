@@ -35,6 +35,22 @@ Piece.Movement = {
     ["n"] = { steps = knightJumps },
 };
 
+-- Castling, by column. The king starts on column 5 (e) and moves two squares
+-- towards the rook, which jumps to the square the king passed over.
+Piece.KingStartCol = 5
+Piece.Castles = {
+    { rookCol = 8, kingToCol = 7, rookToCol = 6, between = { 6, 7 } },    -- Kingside (O-O)
+    { rookCol = 1, kingToCol = 3, rookToCol = 4, between = { 2, 3, 4 } }, -- Queenside (O-O-O)
+};
+
+function Piece:GetCastleByKingCol(kingToCol)
+    for _, castle in ipairs(Piece.Castles) do
+        if (castle.kingToCol == kingToCol) then
+            return castle
+        end
+    end
+end
+
 -- Constructor
 function Piece:new(name, isWhite)
     -- Metatable
@@ -55,6 +71,7 @@ function Piece:new(name, isWhite)
     self.icon = Icons.Piece:GetPieceIcon(self.key)
     self.selected = false
     self.currentSquare = nil
+    self.hasMoved = false
 
     -- Pieces have to exist inside a frame
     self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY", self.key)
@@ -142,7 +159,40 @@ function Piece:CalculateMoves()
         end
     end
 
+    if (self.name == "k") then
+        for _, castle in ipairs(Piece.Castles) do
+            if self:CanCastle(castle) then
+                addMove(castle.kingToCol, row)
+            end
+        end
+    end
+
     return moves
+end
+
+-- Castling needs an unmoved king on its start square, an unmoved rook of the
+-- same colour in the corner, and empty squares between them.
+-- TODO - The king may not castle out of, through, or into check
+function Piece:CanCastle(castle)
+    local square = self.currentSquare
+    local homeRow = self.isWhite and 1 or KC.boardDim
+
+    if (self.hasMoved or square.colIndex ~= Piece.KingStartCol or square.rowIndex ~= homeRow) then
+        return false
+    end
+
+    local rook = KC.board[castle.rookCol][homeRow].currentPiece
+    if (rook == nil or rook.name ~= "r" or rook.isWhite ~= self.isWhite or rook.hasMoved) then
+        return false
+    end
+
+    for _, col in ipairs(castle.between) do
+        if (KC.board[col][homeRow].currentPiece ~= nil) then
+            return false
+        end
+    end
+
+    return true
 end
 
 -- Position

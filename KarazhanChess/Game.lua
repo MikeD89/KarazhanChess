@@ -194,9 +194,29 @@ function Game:HandleBoardSquareClicked(square)
 
     -- Is this a legit move?
     if (square:IsLegalMove() or square:IsLegalCapture()) then
-        self.selectedPiece:MovePiece(square, true)
+        local piece = self.selectedPiece
+        local fromSquare = piece.currentSquare
+
+        piece:MovePiece(square, true)
+        piece.hasMoved = true
+
+        -- A king moving two files is castling, so bring the rook across too
+        if (piece.name == "k" and math.abs(square.colIndex - fromSquare.colIndex) == 2) then
+            self:CompleteCastle(square)
+        end
+
         self:DeselectPiece()
     end
+end
+
+-- Moves the rook to the other side of a king that has just castled onto kingSquare
+function Game:CompleteCastle(kingSquare)
+    local castle = Piece:GetCastleByKingCol(kingSquare.colIndex)
+    local row = kingSquare.rowIndex
+    local rook = KC.board[castle.rookCol][row].currentPiece
+
+    rook:MovePiece(KC.board[castle.rookToCol][row], true)
+    rook.hasMoved = true
 end
 
 function Game:HandleCapture(piece)

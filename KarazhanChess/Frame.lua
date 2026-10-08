@@ -45,6 +45,10 @@ function KC:createChessFrame(frame)
 	KC.boardFrame:SetAllPoints(frame)
 	KC.boardFrame:SetIgnoreParentAlpha(true)
 
+	-- Hover highlight for legal destinations. Polled because the cursor is usually
+	-- over a piece (dragged, or the capture target), which hides OnEnter from squares.
+	KC.boardFrame:SetScript("OnUpdate", function() KC:UpdateHoverSquare() end)
+
 	-- Make it fade out when the mouse is away. Polled every frame because the
 	-- board's child frames swallow OnEnter/OnLeave, so the parent never sees the mouse leave.
 	-- The fade dims everything; the window opacity setting only applies to the window itself.
@@ -338,6 +342,27 @@ function KC:GetSquareUnderCursor()
 				return KC.board[i][j]
 			end
 		end
+	end
+end
+
+-- Highlights the legal move / capture square under the cursor while a piece is selected
+function KC:UpdateHoverSquare()
+	local square = nil
+	if KC.game.selectedPiece and KC.boardFrame:IsMouseOver() then
+		local candidate = KC:GetSquareUnderCursor()
+		if candidate and (candidate:IsLegalMove() or candidate:IsLegalCapture()) then
+			square = candidate
+		end
+	end
+
+	if square ~= KC.hoverSquare then
+		if KC.hoverSquare then
+			KC.hoverSquare:SetHovered(false)
+		end
+		if square then
+			square:SetHovered(true)
+		end
+		KC.hoverSquare = square
 	end
 end
 

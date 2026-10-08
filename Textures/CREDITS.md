@@ -25,4 +25,4 @@ Brown, Blue, Green, Purple and Khaki are flat two-colour boards whose colours ma
 
 ## Other textures
 
-The minimap, legal-move and legal-capture icons predate this file.
+The legal-move dot and legal-capture corners were generated for this addon to match the shapes and colours of Lichess's move indicators (chessground CSS; only the geometry and colour values were reused). They are white and tinted in game. The minimap icon predates this file.

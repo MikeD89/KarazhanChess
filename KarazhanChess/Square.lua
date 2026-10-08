@@ -19,6 +19,12 @@ Square.yOffset = 50
 Square.SquareLevel = 1
 Square.MarkerLevel = 2
 
+-- Indicator colours as r, g, b, a. Lichess (chessground) colours, with the alpha
+-- raised from Lichess's (0.5 / 0.3 / 0.3) as those read too faint in game.
+Square.MoveColour = { 20/255, 85/255, 30/255, 0.75 }  -- move-dest dot
+Square.CaptureColour = { 20/255, 85/255, 0, 0.6 }     -- capture corners
+Square.HoverColour = { 20/255, 85/255, 30/255, 0.5 }  -- destination under the cursor
+
 -- Constructor
 function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     -- Metatable
@@ -52,18 +58,28 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.selectedHighlight:SetColorTexture(20/255, 85/255, 30/255, 0.5)
     self.selectedHighlight:Hide()
 
-    -- Give it a Legal Move indicator
-    self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK")
+    -- Hover highlight (Lichess style): tints a destination square under the cursor,
+    -- replacing its dot / capture corners. Driven by KC:UpdateHoverSquare.
+    self.hoverHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 2)
+    self.hoverHighlight:SetAllPoints()
+    FrameUtils:DisablePixelSnapping(self.hoverHighlight)
+    self.hoverHighlight:SetColorTexture(unpack(Square.HoverColour))
+    self.hoverHighlight:Hide()
+
+    -- Legal move indicator: a dot in the centre of the square (white texture, tinted)
+    self.legalMove = FrameUtils:CreateIcon(size, size, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
     self.legalMove:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.MarkerLevel)
     self.legalMove:EnableMouse(false) -- Let clicks through to the square
+    self.legalMove.texture:SetVertexColor(unpack(Square.MoveColour))
     self.legalMove:Hide()
 
-    -- Give it a Legal Capture indicator
+    -- Legal capture indicator: corners tinted around the target piece (white texture, tinted)
     self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK")
     self.legalCapture:SetPoint("CENTER", self.frame, "CENTER")
     self.legalCapture:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.MarkerLevel)
     self.legalCapture:EnableMouse(false)
+    self.legalCapture.texture:SetVertexColor(unpack(Square.CaptureColour))
     self.legalCapture:Hide()
 
     -- Callbacks
@@ -77,6 +93,15 @@ end
 function Square:UpdateTexture() 
     local texture = Icons.Board:GetBoardIcon(self.lightSquare)
     self.frame.texture:SetTexture(texture)
+end
+
+-- Hover highlight. The markers are faded out rather than hidden, as their
+-- visibility is what marks the square as a legal move / capture.
+function Square:SetHovered(hovered)
+    self.hoverHighlight:SetShown(hovered)
+    local markerAlpha = hovered and 0 or 1
+    self.legalMove:SetAlpha(markerAlpha)
+    self.legalCapture:SetAlpha(markerAlpha)
 end
 
 -- Selection highlight

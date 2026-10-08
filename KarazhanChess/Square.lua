@@ -49,9 +49,14 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.frame:SetFrameLevel(KC.boardFrame:GetFrameLevel() + Square.SquareLevel)
 
     -- Position
-    local xpos = KC.frameMargin + ((self.colIndex - 1) * size)
-    local ypos = Square.yOffset + KC.boardHeight - (self.rowIndex * size)
-    self.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
+    self.parent = frame
+    self.size = size
+    self:UpdatePosition()
+
+    -- Rank and file labels. Every square has both; only those on the displayed
+    -- left and bottom edges are shown (see Square:UpdateLabels), so they follow a flip.
+    self.rankLabel = FrameUtils:CreateBoardLabel(self, self.frame, true)
+    self.fileLabel = FrameUtils:CreateBoardLabel(self, self.frame, false)
 
     -- Square tints, drawn above the square texture (sublevel 0) and below the labels
     -- and markers, in this order: last move, selected, hover.
@@ -108,8 +113,25 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     return self;
 end
 
+-- Places the square on the board, mirrored when the board is flipped (black at the bottom).
+-- Pieces, markers and labels are anchored to the square, so they move with it.
+function Square:UpdatePosition()
+    local col, row = KC:GetDisplayPosition(self.colIndex, self.rowIndex)
+    local xpos = KC.frameMargin + ((col - 1) * self.size)
+    local ypos = Square.yOffset + KC.boardHeight - (row * self.size)
+    self.frame:ClearAllPoints()
+    self.frame:SetPoint("TOPLEFT", self.parent, "TOPLEFT", xpos, -ypos)
+end
+
+-- Shows the rank label on the displayed left edge and the file label on the bottom edge
+function Square:UpdateLabels(visible)
+    local col, row = KC:GetDisplayPosition(self.colIndex, self.rowIndex)
+    self.rankLabel:SetShown(visible and col == 1)
+    self.fileLabel:SetShown(visible and row == 1)
+end
+
 -- Texture update
-function Square:UpdateTexture() 
+function Square:UpdateTexture()
     local texture = Icons.Board:GetBoardIcon(self.lightSquare)
     self.frame.texture:SetTexture(texture)
 end

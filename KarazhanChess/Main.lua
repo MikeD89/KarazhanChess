@@ -61,6 +61,7 @@ KC.profileName = "Default"
 -- Frame Globals
 KC.frame = nil
 KC.game = nil
+KC.boardFlipped = false -- Black at the bottom (KC:SetBoardFlipped)
 KC.fixedWidth = 450
 KC.fixedHeight = 500
 KC.boardAlpha = 0.8

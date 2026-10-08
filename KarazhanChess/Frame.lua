@@ -110,6 +110,20 @@ function KC:createChessFrame(frame)
 	closebutton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset+2, -inset+2)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
 
+	-- Flip Board button, in the opposite corner to the close button
+	local flipButton = CreateFrame("BUTTON", nil, title)
+	flipButton:SetSize(20, 20)
+	flipButton:SetPoint("TOPLEFT", frame, "TOPLEFT", inset + 6, -inset - 6)
+	flipButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton")
+	flipButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+	flipButton:SetScript("OnClick", function() KC:FlipBoard() end)
+	flipButton:SetScript("OnEnter", function(button)
+		GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+		GameTooltip:SetText("Flip board")
+		GameTooltip:Show()
+	end)
+	flipButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 	-- Button consts
 	local buttonWidth = 70
 	local buttonHeight = 20
@@ -244,49 +258,60 @@ end
 function KC:createChessBoard(frame)
 	-- Flipped at the start of each column, so a1 starts dark ("light on the right")
 	local lightSquare = true
-	local firstRow = true
-	local newColumn = true
 
-	-- Globals
 	KC.board = {}
-	KC.boardLabels = {}
-	
-	-- Columns
-	for i=1,KC.boardDim,1 do
-		-- New row
-		KC.board[i] = {}  
-		lightSquare = not lightSquare
-		newColumn = true
 
-		-- Rows
-		for j=1,KC.boardDim,1 do	
-			-- Create a piece and flip the colour
+	for i=1,KC.boardDim,1 do
+		KC.board[i] = {}
+		lightSquare = not lightSquare
+
+		for j=1,KC.boardDim,1 do
 			KC.board[i][j] = Square:new(frame, KC.boardSectionSize, i, j, lightSquare)
 			lightSquare = not lightSquare
-
-			-- Create the neccersary labels
-			if (firstRow) then
-				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], KC.board[i][j].frame, true)
-				table.insert(KC.boardLabels, label)
-			end
-			if (newColumn) then
-				local label = FrameUtils:CreateBoardLabel(KC.board[i][j], KC.board[i][j].frame, false)
-				table.insert(KC.boardLabels, label)
-			end
-
-			-- This is no longer a new column 
-			newColumn = false
-		end	
-		
-		-- After the first row we don't need labels any more
-		firstRow = false			
+		end
 	end
 
-	-- We've added labels (probably) - We might need to hide them
+	-- Show the labels on the board's edges (if enabled)
 	KC:applyBoardLabelVisibility()
 
 	-- Apply the opacity setting to the whole window
 	KC:applyWindowOpacity()
+end
+
+-- Board orientation
+-- Where a square is drawn, as a column and row counted from the displayed
+-- bottom-left corner. Unflipped, that's a1 and the square's own indices.
+function KC:GetDisplayPosition(col, row)
+	if KC.boardFlipped then
+		return KC.boardDim + 1 - col, KC.boardDim + 1 - row
+	end
+	return col, row
+end
+
+-- The square drawn at a displayed column and row (the mapping is its own inverse)
+function KC:GetSquareAtDisplay(col, row)
+	local c, r = KC:GetDisplayPosition(col, row)
+	return KC.board[c][r]
+end
+
+-- Turns the board so black (flipped) or white is at the bottom
+function KC:SetBoardFlipped(flipped)
+	if (KC.boardFlipped == flipped) then
+		return
+	end
+	KC.boardFlipped = flipped
+
+	for i=1,KC.boardDim,1 do
+		for j=1,KC.boardDim,1 do
+			KC.board[i][j]:UpdatePosition()
+		end
+	end
+	KC:applyBoardLabelVisibility()
+	KC:AnchorPromotionPicker()
+end
+
+function KC:FlipBoard()
+	KC:SetBoardFlipped(not KC.boardFlipped)
 end
 
 -- Applies the user selected opacity to the whole window. The fade (OnUpdate in
@@ -315,11 +340,9 @@ end
 function KC:applyBoardLabelVisibility()
 	local state = KC:getBoardLabelsVisible()
 
-	for i=1,table.getn(KC.boardLabels),1 do
-		if(state) then
-			KC.boardLabels[i]:Show()
-		else
-			KC.boardLabels[i]:Hide()
+	for i=1,KC.boardDim,1 do
+		for j=1,KC.boardDim,1 do
+			KC.board[i][j]:UpdateLabels(state)
 		end
 	end
 end

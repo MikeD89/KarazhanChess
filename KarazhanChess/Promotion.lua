@@ -21,8 +21,6 @@ local optionLevel = 11
 
 local function createPicker()
 	local overlay = CreateFrame("FRAME", nil, KC.boardFrame)
-	overlay:SetPoint("TOPLEFT", KC.board[1][KC.boardDim].frame, "TOPLEFT")
-	overlay:SetPoint("BOTTOMRIGHT", KC.board[KC.boardDim][1].frame, "BOTTOMRIGHT")
 	overlay:SetFrameLevel(KC.boardFrame:GetFrameLevel() + overlayLevel)
 	overlay:EnableMouse(true) -- Swallow clicks so the board can't be used meanwhile
 	overlay:Hide()
@@ -73,8 +71,10 @@ function KC:ShowPromotionPicker(pawn, square, onChosen, onCancelled)
 	KC.promotionPicker = KC.promotionPicker or createPicker()
 	local picker = KC.promotionPicker
 	picker.onCancelled = onCancelled
+	KC:AnchorPromotionPicker()
 
-	-- Run from the promotion square towards the centre of the board
+	-- Run from the promotion square towards the centre of the board. The options
+	-- are anchored to squares, so they follow the board if it is flipped.
 	local direction = pawn.isWhite and -1 or 1
 	for i, option in ipairs(picker.options) do
 		local name = promotionOptions[i]
@@ -90,6 +90,18 @@ function KC:ShowPromotionPicker(pawn, square, onChosen, onCancelled)
 	end
 
 	picker:Show()
+end
+
+-- Fits the dimmed overlay to the displayed corners of the board, which swap when
+-- it is flipped
+function KC:AnchorPromotionPicker()
+	local picker = KC.promotionPicker
+	if not picker then
+		return
+	end
+	picker:ClearAllPoints()
+	picker:SetPoint("TOPLEFT", KC:GetSquareAtDisplay(1, KC.boardDim).frame, "TOPLEFT")
+	picker:SetPoint("BOTTOMRIGHT", KC:GetSquareAtDisplay(KC.boardDim, 1).frame, "BOTTOMRIGHT")
 end
 
 function KC:HidePromotionPicker()

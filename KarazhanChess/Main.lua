@@ -86,7 +86,30 @@ function KC:OnInitialize()
 	KC.game = Game:new()
 
 	-- Insert ourselves into the special frame list so we close on ESC
-	table.insert(UISpecialFrames, KC.name)
+	KC:SetCloseOnEscape(true)
+
+	-- Being in UISpecialFrames means opening or closing the Settings panel closes us too.
+	-- While Settings is open we leave UISpecialFrames, so closing it doesn't touch us.
+	-- Opening it still hides us before OnShow fires, so re-show if we were hidden that frame.
+	KC.frame:HookScript("OnHide", function() KC.frameHiddenAt = GetTime() end)
+	if SettingsPanel then
+		SettingsPanel:HookScript("OnShow", function()
+			KC:SetCloseOnEscape(false)
+
+			local shownAt = GetTime()
+			local function restore()
+				if KC.frameHiddenAt == shownAt then
+					KC.frame:Show()
+				end
+			end
+			restore()
+			C_Timer.After(0, restore)
+		end)
+		SettingsPanel:HookScript("OnHide", function()
+			-- Wait a frame so whatever is closing Settings has finished closing windows
+			C_Timer.After(0, function() KC:SetCloseOnEscape(true) end)
+		end)
+	end
 end
 
 -- Enable Function
@@ -147,6 +170,18 @@ function KC:HasWindow()
 		return false
 	else 
 		return true
+	end
+end
+
+-- Adds or removes the window from the list of frames closed by Escape
+function KC:SetCloseOnEscape(enabled)
+	for i = #UISpecialFrames, 1, -1 do
+		if UISpecialFrames[i] == KC.name then
+			tremove(UISpecialFrames, i)
+		end
+	end
+	if enabled then
+		tinsert(UISpecialFrames, KC.name)
 	end
 end
 

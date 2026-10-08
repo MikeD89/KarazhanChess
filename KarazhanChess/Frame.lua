@@ -13,7 +13,7 @@ function KC:createChessFrame(frame)
 	
 	-- Format the frame
 	frame:SetBackdrop({
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+		bgFile = "Interface\\Buttons\\WHITE8X8",
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 		tile = true,
 		tileSize = 32,
@@ -44,6 +44,7 @@ function KC:createChessFrame(frame)
 			target = mouseAwayAlpha
 			duration = fadeOutTime
 		end
+		target = target * KC:getWindowOpacity()
 
 		local alpha = f:GetAlpha()
 		if alpha ~= target then
@@ -176,6 +177,15 @@ function KC:createChessBoard(frame)
 
 	-- We've added labels (probably) - We might need to hide them
 	KC:applyBoardLabelVisibility()
+
+	-- Apply the opacity setting to the whole window
+	KC:applyWindowOpacity()
+end
+
+-- Applies the user selected opacity to the whole window. The fade (OnUpdate in
+-- createChessFrame) scales from this value, so it only needs setting directly here.
+function KC:applyWindowOpacity()
+	KC.frame:SetAlpha(KC:getWindowOpacity())
 end
 
 -- Applies a user selected texture to all the board squares

@@ -67,6 +67,18 @@ KC.options = {
 			get = "getBoardLabelsVisible",
 			set = "setBoardLabelsVisible",
 		},
+		windowOpacitySlider = {
+			type = "range",
+            name = "Window Opacity",
+            desc = "Opacity of the whole chess window.",
+			order = 24,
+			min = 0.2,
+			max = 1,
+			step = 0.05,
+			isPercent = true,
+			get = "getWindowOpacity",
+			set = "setWindowOpacity",
+		},
 		colorHeader = {
 			type = "header",
 			name = "Themes",
@@ -108,6 +120,7 @@ KC.optionDefaults = {
 		minimapButton = true,
 		fadeoutWindow = false,
 		boardLabels = true,
+		windowOpacity = 0.75,
 		boardTheme = 1,
 		pieceTheme = 1,
 	},
@@ -123,6 +136,7 @@ function KC:resetProfile(info)
 	KC:updateMinimapButton()
 	KC:updateWindowFadeout()
 	KC:updateBoardLabelsVisible()
+	KC:updateWindowOpacity()
 	KC:updateBoardTheme()
 	KC:updatePieceTheme()
 end
@@ -168,7 +182,7 @@ end
 function KC:updateWindowFadeout()
 	-- Make sure we can see the window if we're turning it off
 	if (not KC:getWindowFadeout()) then
-		KC.frame:SetAlpha(1.0)
+		KC.frame:SetAlpha(KC:getWindowOpacity())
 	end
 end
 
@@ -186,6 +200,22 @@ end
 
 function KC:updateBoardLabelsVisible()
 	self:applyBoardLabelVisibility();
+end
+
+
+-- Window Opacity
+
+function KC:setWindowOpacity(info, value)
+	self.db.global.windowOpacity = value;
+	self:updateWindowOpacity()
+end
+
+function KC:getWindowOpacity(info)
+	return self.db.global.windowOpacity;
+end
+
+function KC:updateWindowOpacity()
+	self:applyWindowOpacity()
 end
 
 

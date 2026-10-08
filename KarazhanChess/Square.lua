@@ -31,7 +31,6 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
 
     -- Create the icon
     self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK", name)
-    self.frame:SetAlpha(KC.boardAlpha)
 
     -- Position
     local xpos = KC.frameMargin + ((self.colIndex - 1) * size)

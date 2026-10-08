@@ -110,6 +110,24 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | I-6 | Close the window mid-drag and reopen | Piece is back on its square |
 | I-7 | Clear Board / New Game with a board in play | Confirmation; check glow, last move and picker are cleared |
 
+### Move history (< >)
+
+| ID | Do | Expected |
+|---|---|---|
+| H-1 | `/reload`, `/kc` | Bottom left has < and > (no author or version text); both greyed out |
+| H-2 | New Game, play e4, e5, Nf3 | < enabled, > greyed |
+| H-3 | Press < three times | Steps back to the start position instantly; last-move tint follows; < greys out at the start |
+| H-4 | Press > | Each press replays the next move with the slide animation; > greys out at the latest move |
+| H-5 | Go back two moves and play a different move | That move replaces the later ones; > is greyed |
+| H-6 | Play a capture, castle, en passant and a promotion; step back and forward over each | Captured pieces return and disappear correctly; the rook moves with the king; the promoted piece is a pawn before and the chosen piece after |
+| H-7 | Give check, step back past it and forward again | Check glow follows the position |
+| H-8 | Open the promotion picker, press < | Nothing happens until the promotion is chosen or cancelled |
+| H-9 | New Game / Clear Board / `/kc fen` | History starts again (both buttons greyed) |
+| H-10 | In a puzzle, after the opponent's move, press < | Shows the position before it; pieces can't be picked up until > returns to the latest position |
+| H-11 | In a puzzle, press < while the opponent is about to reply | The reply still plays, from the latest position |
+| H-12 | Make a wrong puzzle move and press < before it is taken back | The wrong move disappears from the history; the latest position is shown |
+| H-13 | Finish a puzzle, step back and play a different move | Allowed (exploring); it replaces the later moves |
+
 ### UCI command
 
 | ID | Do | Expected |

@@ -43,6 +43,15 @@ function Game:new()
     -- Whether checkmate / stalemate is announced in the info bar (free play)
     self.announceResults = true
 
+    -- Move history for the < > buttons: one entry per position, the first being
+    -- the starting position. Each is { pos, from, to, uci } (pos a rules engine
+    -- snapshot, the rest the move that led to it). historyIndex is the entry on
+    -- the board. lockHistory stops moves while an earlier position is shown
+    -- (puzzles); otherwise a move there replaces the moves after it.
+    self.history = {}
+    self.historyIndex = 0
+    self.lockHistory = false
+
     -- Init
     self:CreateStaticModals()
 
@@ -72,6 +81,7 @@ function Game:CreateStaticModals()
         button2 = CANCEL,
         OnAccept = function()
             self:ClearBoard()
+            self:ResetHistory("w")
         end,
         timeout = 0,
         whileDead = true,
@@ -140,6 +150,8 @@ function Game:StartNewGame()
 		self:CreatePiece(pawnType, true,  c.."2")
 		self:CreatePiece(pawnType, false,  c.."7")
 	end
+
+    self:ResetHistory("w")
 end
 
 -- Clear board with a confirmation popup
@@ -192,6 +204,9 @@ end
 
 -- Whether the player may pick up piece (see allowedColour)
 function Game:CanMove(piece)
+    if (self.lockHistory and not self:IsAtLatest()) then
+        return false
+    end
     if (self.allowedColour == nil) then
         return true
     end
@@ -285,6 +300,7 @@ function Game:HandleBoardSquareClicked(square, animated)
 end
 
 function Game:NotifyPlayerMove(move, uci, undo)
+    self:RecordMove(move, uci)
     if self.onPlayerMove then
         self.onPlayerMove(move, uci, undo)
     end
@@ -334,6 +350,11 @@ end
 -- Used by puzzles for the opponent's replies. Returns the rules engine move, or
 -- nil if it isn't legal here.
 function Game:ExecuteMove(uci)
+    -- Scripted moves continue the game, so leave any earlier position being viewed
+    if (not self.replaying and not self:IsAtLatest()) then
+        self:ShowHistory(#self.history)
+    end
+
     local from = Rules.SquareIndex(string.sub(uci or "", 1, 2))
     local piece = from and self:GetPieceAt(from)
     if (piece == nil) then
@@ -360,6 +381,9 @@ function Game:ExecuteMove(uci)
         undo.promoted = true
     end
     self:UpdateCheckState(piece.isWhite and "b" or "w")
+    if not self.replaying then
+        self:RecordMove(found, uci)
+    end
     return found, undo
 end
 
@@ -374,8 +398,10 @@ function Game:LoadFEN(fen)
     return self:LoadPosition(pos)
 end
 
--- Sets the board up from a rules engine position (see LoadFEN). Returns the side to move.
-function Game:LoadPosition(pos)
+-- Sets the board up from a rules engine position (see LoadFEN). Returns the side
+-- to move. The move history starts again from here, unless keepHistory is set
+-- (when showing a position from the history).
+function Game:LoadPosition(pos, keepHistory)
     self:ClearBoard()
     for sq = 1, 64 do
         local letter = pos.board[sq]
@@ -396,8 +422,85 @@ function Game:LoadPosition(pos)
     end
 
     self.epSquare = pos.ep
+    if not keepHistory then
+        self:ResetHistory(pos.turn)
+    end
     self:UpdateCheckState(pos.turn)
     return pos.turn
+end
+
+-- Move history ---------------------------------------------------------------
+
+-- Starts the history at the current board, with turn the side to move
+function Game:ResetHistory(turn)
+    self.history = { { pos = self:GetPosition(turn) } }
+    self.historyIndex = 1
+    KC:UpdateHistoryButtons()
+end
+
+function Game:IsAtLatest()
+    return self.historyIndex >= #self.history
+end
+
+-- Adds the position after move. A move made while an earlier position is shown
+-- replaces everything after it.
+function Game:RecordMove(move, uci)
+    for i = #self.history, self.historyIndex + 1, -1 do
+        self.history[i] = nil
+    end
+    local mover = Rules.Colour[move.piece]
+    table.insert(self.history, {
+        pos = self:GetPosition(mover == "w" and "b" or "w"),
+        from = move.from,
+        to = move.to,
+        uci = uci,
+    })
+    self.historyIndex = #self.history
+    KC:UpdateHistoryButtons()
+end
+
+-- Drops the latest entry (a puzzle move that was taken back)
+function Game:PopHistory()
+    if (#self.history > 1) then
+        self.history[#self.history] = nil
+    end
+    self.historyIndex = math.min(self.historyIndex, #self.history)
+    KC:UpdateHistoryButtons()
+end
+
+-- Puts history entry index on the board, without animation
+function Game:ShowHistory(index)
+    local entry = self.history[index]
+    if (entry == nil) then
+        return
+    end
+    self.historyIndex = index
+    self:LoadPosition(Rules.Copy(entry.pos), true)
+    if entry.from then
+        self:SetLastMove(self:GetSquare(entry.from), self:GetSquare(entry.to))
+    end
+    KC:UpdateHistoryButtons()
+end
+
+-- < and >: back one move instantly, forward one move animated (as played)
+function Game:StepHistory(delta)
+    local target = self.historyIndex + delta
+    -- A move waiting for its promotion choice isn't in the history yet
+    if (target < 1 or target > #self.history or KC:IsPromotionPickerShown()) then
+        return
+    end
+
+    if (delta == 1) then
+        self.replaying = true
+        local played = self:ExecuteMove(self.history[target].uci)
+        self.replaying = false
+        if played then
+            self.historyIndex = target
+            KC:UpdateHistoryButtons()
+            return
+        end
+    end
+    self:ShowHistory(target)
 end
 
 -- The rules engine's legal move taking piece to square, or nil. A promotion

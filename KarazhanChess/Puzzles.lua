@@ -128,6 +128,7 @@ function Puzzles:Enter()
     self.savedFlip = KC.boardFlipped
 
     game.announceResults = false
+    game.lockHistory = true
     game.onPlayerMove = function(move, uci, undo) self:OnPlayerMove(move, uci, undo) end
 
     local current = self:GetProgress().current
@@ -152,11 +153,13 @@ function Puzzles:Leave()
     game.onPlayerMove = nil
     game.allowedColour = nil
     game.announceResults = true
+    game.lockHistory = false
 
     if self.savedFEN then
         game:LoadFEN(self.savedFEN)
     else
         game:ClearBoard()
+        game:ResetHistory("w")
     end
     KC:SetBoardFlipped(self.savedFlip or false)
     KC:UpdatePuzzleButtons()
@@ -251,6 +254,7 @@ function Puzzles:Start(puzzle)
     self:GetProgress().current = puzzle.id
 
     -- The opponent moves first, so the solver is the other side
+    game.lockHistory = true
     local opponent = game:LoadPosition(Rules.Copy(puzzle.position))
     self.solver = (opponent == "w") and "b" or "w"
     KC:SetBoardFlipped(self.solver == "b")
@@ -316,8 +320,16 @@ end
 
 function Puzzles:TakeBackWrongMove()
     if self.pendingUndo then
-        KC.game:UndoMove(self.pendingUndo)
-        KC.game:UpdateCheckState(self.solver)
+        local game = KC.game
+        if game:IsAtLatest() then
+            game:UndoMove(self.pendingUndo)
+            game:PopHistory()
+            game:UpdateCheckState(self.solver)
+        else
+            -- The player is looking at an earlier position: just drop the move
+            game:PopHistory()
+            game:ShowHistory(#game.history)
+        end
         self.pendingUndo = nil
     end
 end
@@ -360,8 +372,10 @@ function Puzzles:Finish(solved)
     end
     self.feedback = solved and "solved" or "complete"
 
-    -- Free to move pieces around afterwards, as on Lichess
+    -- Free to move pieces around afterwards, as on Lichess, including from an
+    -- earlier position in the history
     KC.game.allowedColour = nil
+    KC.game.lockHistory = false
     self:ShowStatus()
     KC:UpdatePuzzleButtons()
 end

@@ -83,14 +83,6 @@ function KC:createChessFrame(frame)
 	titleText:SetText(KC.name)
 	titleText:SetPoint("TOP", frame, "TOP", 0, -18)
 
-	local authorText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall") 
-	authorText:SetText("By MeloN <"..format("|cffff5c33%s|r","Convicted")..">")
-	authorText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", KC.frameMargin, 14)	
-
-	local versionText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall") 
-	versionText:SetText("Version: "..KC.formattedVersion)
-	versionText:SetPoint("BOTTOMLEFT", authorText, "TOPLEFT", 0, 2)	
-
 	-- Add the title drag bar
 	local title = CreateFrame("FRAME", nil, frame)
 	title:SetWidth(frame:GetWidth())
@@ -162,6 +154,23 @@ function KC:createChessFrame(frame)
 	KC.tierButton:SetPoint("RIGHT", KC.solutionButton, "LEFT", -buttonMargin, 0)
 
 	KC.puzzleButtons = { nextButton, KC.solutionButton, KC.tierButton }
+
+	-- Move history buttons (both modes), bottom left: back one move / forward one move
+	local function createHistoryButton(text, tooltip, delta)
+		local button = createButton(text, 30, function() KC.game:StepHistory(delta) end)
+		button:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:SetText(tooltip)
+			GameTooltip:Show()
+		end)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		return button
+	end
+	KC.prevMoveButton = createHistoryButton("<", "Previous move", -1)
+	KC.prevMoveButton:SetPoint("BOTTOMLEFT", KC.frameMargin, 17)
+	KC.nextMoveButton = createHistoryButton(">", "Next move", 1)
+	KC.nextMoveButton:SetPoint("LEFT", KC.prevMoveButton, "RIGHT", 4, 0)
+	KC:UpdateHistoryButtons()
 	for _, button in ipairs(KC.puzzleButtons) do
 		button:Hide()
 	end
@@ -264,6 +273,16 @@ function KC:SetMode(mode)
 		button:SetShown(mode == "puzzle")
 	end
 	KC:UpdatePuzzleButtons()
+end
+
+-- < and > are enabled when there is an earlier / later position to show
+function KC:UpdateHistoryButtons()
+	if not KC.prevMoveButton then
+		return
+	end
+	local game = KC.game
+	KC.prevMoveButton:SetEnabled(game.historyIndex > 1)
+	KC.nextMoveButton:SetEnabled(game.historyIndex < #game.history)
 end
 
 -- Tier name on the tier button; Solution only while a puzzle is unsolved

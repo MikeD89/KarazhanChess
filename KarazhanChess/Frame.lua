@@ -129,31 +129,45 @@ function KC:createChessFrame(frame)
 	local buttonHeight = 20
 	local buttonMargin = 10
 
-	-- New Game Button
-	local newGameButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
-	newGameButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17);
-	newGameButton:SetSize(buttonWidth, buttonHeight);
-	newGameButton:SetText("New Game");
-	newGameButton:SetNormalFontObject("GameFontNormalSmall");
-	newGameButton:SetScript("OnClick", function(self, arg) KC.game:StartNewGameWithConfirm() end)
+	local function createButton(text, width, onClick)
+		local button = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate")
+		button:SetSize(width or buttonWidth, buttonHeight)
+		button:SetText(text)
+		button:SetNormalFontObject("GameFontNormalSmall")
+		button:SetScript("OnClick", onClick)
+		return button
+	end
 
-	-- Clear Board Button
-	local clearBoardButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
-	clearBoardButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0);
-	clearBoardButton:SetSize(buttonWidth, buttonHeight);
-	clearBoardButton:SetText("Clear Board");
-	clearBoardButton:SetNormalFontObject("GameFontNormalSmall");
-	clearBoardButton:SetScript("OnClick", function(self, arg) KC.game:ClearBoardWithConfirm() end)
+	-- Play mode buttons, right to left
+	local newGameButton = createButton("New Game", nil, function() KC.game:StartNewGameWithConfirm() end)
+	newGameButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17)
 
-	-- Options Button
-	local optionsButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
-	optionsButton:SetPoint("RIGHT", clearBoardButton, "LEFT", -buttonMargin, 0);
-	optionsButton:SetSize(buttonWidth, buttonHeight);
-	optionsButton:SetText("Options");
-	optionsButton:SetNormalFontObject("GameFontNormalSmall");
-	optionsButton:SetScript("OnClick", function(self, arg)
-		KC:OpenConfig()
-	end)
+	local clearBoardButton = createButton("Clear Board", nil, function() KC.game:ClearBoardWithConfirm() end)
+	clearBoardButton:SetPoint("RIGHT", newGameButton, "LEFT", -buttonMargin, 0)
+
+	local optionsButton = createButton("Options", nil, function() KC:OpenConfig() end)
+	optionsButton:SetPoint("RIGHT", clearBoardButton, "LEFT", -buttonMargin, 0)
+
+	KC.playButtons = { newGameButton, clearBoardButton, optionsButton }
+
+	-- Puzzle mode buttons, in the same places
+	local nextButton = createButton("Next Puzzle", nil, function() ns.Puzzles:Next() end)
+	nextButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17)
+
+	KC.solutionButton = createButton("Solution", nil, function() ns.Puzzles:ShowSolution() end)
+	KC.solutionButton:SetPoint("RIGHT", nextButton, "LEFT", -buttonMargin, 0)
+
+	-- Tier selector: shows the chosen tier and opens a menu of them
+	KC.tierButton = createButton("", buttonWidth + 10, function(button) KC:OpenTierMenu(button) end)
+	KC.tierButton:SetPoint("RIGHT", KC.solutionButton, "LEFT", -buttonMargin, 0)
+
+	KC.puzzleButtons = { nextButton, KC.solutionButton, KC.tierButton }
+	for _, button in ipairs(KC.puzzleButtons) do
+		button:Hide()
+	end
+
+	-- Mode tabs (Play / Puzzles), hanging below the window like Blizzard's panel tabs
+	KC:createModeTabs(frame)
 
 	-- Resize grip in the bottom-right corner
 	KC:createResizeGrip(frame)
@@ -161,13 +175,134 @@ function KC:createChessFrame(frame)
 	-- Add the board
 	KC:createChessBoard(frame)
 
-	-- Add the placeholder text for victory.
-	KC.statusText = frame:CreateFontString(nil, "OVERLAY") 	
-	KC.statusText:SetFont("Fonts\\MORPHEUS.TTF", 24, "OUTLINE")
-	KC.statusText:SetTextColor(0, 1, 0)
-	KC.statusText:SetText("Victory, or Death!")
-	KC.statusText:SetPoint("CENTER", frame, "CENTER", 0, 20)	
-	KC.statusText:Hide()
+	-- Info bar under the board: a headline, a detail line and a small footer,
+	-- set with KC:SetStatus (game results in free play, puzzle feedback in puzzles)
+	local boardBottom = Square.yOffset + KC.boardHeight
+	KC.infoStatus = frame:CreateFontString(nil, "OVERLAY")
+	KC.infoStatus:SetFont("Fonts\\MORPHEUS.TTF", 20, "OUTLINE")
+	KC.infoStatus:SetPoint("TOP", frame, "TOP", 0, -(boardBottom + 6))
+
+	KC.infoDetail = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	KC.infoDetail:SetPoint("TOP", KC.infoStatus, "BOTTOM", 0, -3)
+	KC.infoDetail:SetWidth(KC.boardWidth)
+	KC.infoDetail:SetWordWrap(false)
+
+	KC.infoFooter = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	KC.infoFooter:SetPoint("TOP", KC.infoDetail, "BOTTOM", 0, -3)
+	KC.infoFooter:SetWidth(KC.boardWidth)
+
+	KC:SetStatus(nil)
+end
+
+-- Colours for the info bar headline, as r, g, b
+ns.Colours = {
+	Normal = { NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b },
+	Good = { 0.38, 0.85, 0.32 },     -- Lichess "good move" green
+	Bad = { 0.88, 0.28, 0.25 },      -- Lichess "mistake" red
+	Neutral = { 0.85, 0.85, 0.85 },
+}
+
+-- Sets the info bar under the board. status nil clears it.
+function KC:SetStatus(status, colour, detail, footer)
+	if not KC.infoStatus then
+		return
+	end
+	colour = colour or ns.Colours.Normal
+	KC.infoStatus:SetText(status or "")
+	KC.infoStatus:SetTextColor(colour[1], colour[2], colour[3])
+	KC.infoDetail:SetText(detail or "")
+	KC.infoFooter:SetText(footer or "")
+end
+
+-- Modes
+-- Two tabs below the window switch between free play and puzzles
+function KC:createModeTabs(frame)
+	KC.modeTabs = {}
+	local names = { "Play", "Puzzles" }
+	for i, name in ipairs(names) do
+		local tab = CreateFrame("BUTTON", nil, frame, "PanelTabButtonTemplate")
+		tab:SetID(i)
+		tab:SetText(name)
+		PanelTemplates_TabResize(tab, 0)
+		if (i == 1) then
+			tab:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 12, 7)
+		else
+			tab:SetPoint("LEFT", KC.modeTabs[i - 1], "RIGHT", -16, 0)
+		end
+		tab:SetScript("OnClick", function()
+			PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
+			KC:SetMode((i == 1) and "play" or "puzzle")
+		end)
+		KC.modeTabs[i] = tab
+	end
+	frame.Tabs = KC.modeTabs
+	PanelTemplates_SetNumTabs(frame, #KC.modeTabs)
+	PanelTemplates_SetTab(frame, 1)
+	KC.mode = "play"
+end
+
+-- Switches between "play" (free play) and "puzzle"
+function KC:SetMode(mode)
+	if (mode == KC.mode) then
+		return
+	end
+
+	if (mode == "puzzle") then
+		if not ns.Puzzles:Enter() then
+			return -- The info bar says why
+		end
+	else
+		ns.Puzzles:Leave()
+	end
+
+	KC.mode = mode
+	PanelTemplates_SetTab(KC.frame, (mode == "play") and 1 or 2)
+	for _, button in ipairs(KC.playButtons) do
+		button:SetShown(mode == "play")
+	end
+	for _, button in ipairs(KC.puzzleButtons) do
+		button:SetShown(mode == "puzzle")
+	end
+	KC:UpdatePuzzleButtons()
+end
+
+-- Tier name on the tier button; Solution only while a puzzle is unsolved
+function KC:UpdatePuzzleButtons()
+	if not KC.tierButton then
+		return
+	end
+	local Puzzles = ns.Puzzles
+	KC.tierButton:SetText(Puzzles:GetTier().name)
+	KC.solutionButton:SetEnabled(Puzzles.active and Puzzles.puzzle ~= nil and not Puzzles.done)
+end
+
+-- The tier menu: one entry per tier with its rating range
+function KC:OpenTierMenu(owner)
+	local Puzzles = ns.Puzzles
+	if (MenuUtil and MenuUtil.CreateContextMenu) then
+		MenuUtil.CreateContextMenu(owner, function(_, root)
+			root:CreateTitle("Puzzle difficulty")
+			for _, tier in ipairs(Puzzles.Tiers) do
+				root:CreateRadio(tier.name.." |cff9d9d9d("..tier.range..")|r",
+					function() return Puzzles:GetTier().key == tier.key end,
+					function()
+						Puzzles:SetTier(tier.key)
+						KC:UpdatePuzzleButtons()
+					end)
+			end
+		end)
+		return
+	end
+
+	-- No menu API: step to the next tier
+	local current = Puzzles:GetTier().key
+	for i, tier in ipairs(Puzzles.Tiers) do
+		if (tier.key == current) then
+			Puzzles:SetTier(Puzzles.Tiers[i % #Puzzles.Tiers + 1].key)
+			break
+		end
+	end
+	KC:UpdatePuzzleButtons()
 end
 
 -- Stores the window's anchor so it reopens in the same place next session

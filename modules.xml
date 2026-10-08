@@ -7,6 +7,7 @@
     <!-- Order matters: each file imports from the namespace what earlier files exported -->
     <Script file="KarazhanChess/Utils.lua"/>
     <Script file="KarazhanChess/Rules.lua"/>
+    <Script file="KarazhanChess/PuzzleCodec.lua"/>
     <Script file="KarazhanChess/FrameUtils.lua"/>
     <Script file="KarazhanChess/Icons.lua"/>
     <Script file="KarazhanChess/Square.lua"/>
@@ -17,5 +18,6 @@
     <Script file="KarazhanChess/Main.lua"/>
     <Script file="KarazhanChess/Frame.lua"/>
     <Script file="KarazhanChess/Promotion.lua"/>
+    <Script file="KarazhanChess/Puzzles.lua"/>
     <Script file="KarazhanChess/Options.lua"/>
 </Ui>

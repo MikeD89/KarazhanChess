@@ -23,6 +23,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | OFF-1 | `node lua.js tests/perft.lua quick` | Every line `ok`, then `all passed` (a few seconds) |
 | OFF-2 | `node lua.js tests/perft.lua` | Also start position depth 4 = 197281 and Kiwipete depth 3 = 97862 (about 40 s) |
 | OFF-3 | `node lua.js tests/syntax.lua ../KarazhanChess/*.lua` | `N/N files compile` |
+| OFF-4 | `node lua.js tests/puzzles.lua 25` | Six files load, five tiers of 50000, `all passed` (about 2 minutes) |
 
 ## Rules engine
 
@@ -66,11 +67,11 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 
 | ID | Setup | Do | Expected |
 |---|---|---|---|
-| M-1 | New Game | `/kc move f2f3`, `/kc move e7e5`, `/kc move g2g4`, `/kc move d8h4` | Glow on e1; chat: "Checkmate. Black is victorious." |
-| M-2 | `/kc fen 6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1` | Play a1–a8 | Glow on g8; "Checkmate. White is victorious." |
-| M-3 | `/kc fen 7k/8/6K1/8/8/8/8/5Q2 w - - 0 1` | `/kc move f1f7` | No glow; chat: "Stalemate. The game is a draw." |
-| M-4 | Any check | Make a move that ends the check | Glow disappears |
-| M-6 | `/kc fen k7/8/2Q5/8/8/8/8/7K w - - 0 1` | `/kc move c6b6` (or drag the queen to b6) | No glow; chat: "Stalemate. The game is a draw." |
+| M-1 | New Game | `/kc move f2f3`, `/kc move e7e5`, `/kc move g2g4`, `/kc move d8h4` | Glow on e1; info bar: "Checkmate" / "Black is victorious" |
+| M-2 | `/kc fen 6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1` | Play a1–a8 | Glow on g8; info bar: "Checkmate" / "White is victorious" |
+| M-3 | `/kc fen 7k/8/6K1/8/8/8/8/5Q2 w - - 0 1` | `/kc move f1f7` | No glow; info bar: "Stalemate" / "The game is a draw" |
+| M-4 | Any check | Make a move that ends the check | Glow disappears; a following normal move clears the info bar |
+| M-6 | `/kc fen k7/8/2Q5/8/8/8/8/7K w - - 0 1` | `/kc move c6b6` (or drag the queen to b6) | No glow; info bar: "Stalemate" / "The game is a draw" |
 | M-5 | `/kc fen rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3` | Load it | Loading a mated position shows the glow and the checkmate message |
 
 ### Promotion
@@ -116,6 +117,50 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | U-1 | New Game, `/kc move e2e4` | Pawn slides e2 → e4 |
 | U-2 | `/kc move e2e5` | "Not a legal move here: e2e5" |
 | U-3 | `/kc fen not a fen` | "Invalid FEN: malformed FEN" |
+
+## Puzzles
+
+Puzzle progress is saved, so note your rating before testing and use **Reset Puzzle Progress** in `/kco` afterwards if you want a clean start. `/kc puzzle` opens puzzles directly.
+
+### Loading and modes
+
+| ID | Do | Expected |
+|---|---|---|
+| PZ-1 | `/reload`, `/kc` | Two tabs below the window, Play selected; the info bar under the board is empty; the window is taller than before |
+| PZ-2 | Click the Puzzles tab | The data loads (a short pause the first time only); a puzzle starts; the bottom buttons become tier / Solution / Next Puzzle |
+| PZ-3 | Disable "Karazhan Chess Puzzles" in the AddOns list, `/reload`, click Puzzles | Stays on Play; info bar: "Puzzles unavailable" and how to enable them |
+| PZ-4 | Set up a position in Play (a few moves, board flipped), go to Puzzles, then back to Play | The free-play position and orientation come back |
+| PZ-5 | `/kc puzzle` then `/kc play` | Same as clicking the tabs, opening the window if needed |
+
+### Solving
+
+| ID | Do | Expected |
+|---|---|---|
+| PZ-10 | Start a puzzle | The board turns so the solver is at the bottom; "Get ready", then after half a second the opponent's move animates and "Your turn" / "Find the best move for White/Black" |
+| PZ-11 | During "Get ready" or while the opponent replies, try to pick up a piece | Nothing can be picked up |
+| PZ-12 | On your turn, try to pick up an opponent piece | It doesn't select |
+| PZ-13 | Play the right move in a multi-move puzzle | "Best move!" / "Keep going...", then the opponent replies |
+| PZ-14 | Play a wrong move | "That's not the move!" in red; the move is taken back after half a second (including a castling rook or a promoted pawn); the rating drops (the footer shows a red change); you can keep trying |
+| PZ-15 | Solve a puzzle without mistakes | "Success!" in green; the detail line shows the puzzle ID, its rating and themes; the rating rises (green change); Solved +1 |
+| PZ-16 | Solve after a mistake | "Puzzle complete"; no further rating change |
+| PZ-17 | A "Mate in 1" puzzle: mate with a different move from the solution, if there is one | Counts as solved |
+| PZ-18 | Press Solution mid-puzzle | The remaining moves play out, then "Puzzle complete"; counts as failed if it was the first attempt; Solution is greyed out afterwards |
+| PZ-19 | Press Solution straight after a wrong move | The wrong move is taken back first, then the solution plays correctly |
+| PZ-20 | Press Next Puzzle mid-animation | The new puzzle starts cleanly; nothing from the old one plays on top |
+| PZ-21 | After a puzzle ends, move pieces | Either side can move freely (exploring), with no feedback |
+| PZ-22 | Promotion during a puzzle | The picker appears; the chosen piece is part of the move that is checked |
+
+### Rating, tiers and progress
+
+| ID | Do | Expected |
+|---|---|---|
+| PZ-30 | Tier button | Menu of Raid Finder, Normal, Heroic, Mythic and Cutting Edge with rating ranges; the current one is checked; choosing one starts a puzzle from it and the button shows its name |
+| PZ-31 | Several puzzles per tier | Puzzle ratings (shown after each) are inside the tier's range |
+| PZ-32 | Leave mid-puzzle (Play tab or `/reload`), come back | The same unfinished puzzle starts again |
+| PZ-33 | Note a solved puzzle's ID; keep playing | It doesn't come up again |
+| PZ-34 | `/kco`, Puzzles section | Lichess credit; rating / solved / failed match the footer |
+| PZ-35 | Reset Puzzle Progress (confirm) | Rating 1500, counts 0 |
+| PZ-36 | Reset Options | Options reset; puzzle rating and counts are kept |
 
 ## Window and options
 

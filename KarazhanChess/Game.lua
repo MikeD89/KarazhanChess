@@ -32,6 +32,17 @@ function Game:new()
     self.epSquare = nil      -- En passant target (rules engine square) after a double pawn push
     self.checkSquares = {}   -- Squares showing the check glow
 
+    -- Who may move: nil = either colour (free play), "w" / "b" = that colour only,
+    -- false = nobody (e.g. while a puzzle plays the opponent's reply)
+    self.allowedColour = nil
+
+    -- Called as onPlayerMove(move, uci, undo) once a player's move is complete
+    -- (after the promotion choice). uci includes the chosen promotion piece.
+    self.onPlayerMove = nil
+
+    -- Whether checkmate / stalemate is announced in the info bar (free play)
+    self.announceResults = true
+
     -- Init
     self:CreateStaticModals()
 
@@ -153,6 +164,9 @@ function Game:ClearBoard()
     self:DeselectPiece()
     self:SetLastMove(nil, nil)
     self:ClearCheck()
+    if self.announceResults then
+        KC:SetStatus(nil)
+    end
     self.epSquare = nil
     KC:HidePromotionPicker()
 end
@@ -176,6 +190,14 @@ end
 function Game:EndGameDefeat() 
 end
 
+-- Whether the player may pick up piece (see allowedColour)
+function Game:CanMove(piece)
+    if (self.allowedColour == nil) then
+        return true
+    end
+    return self.allowedColour == (piece.isWhite and "w" or "b")
+end
+
 -- Select a piece
 function Game:SelectPiece(piece) 
     if(self.selectedPiece ~= nil) then
@@ -188,6 +210,11 @@ function Game:SelectPiece(piece)
             -- Just picking a different piece
             self:DeselectPiece()
         end
+    end
+
+    -- Only pieces of the side allowed to move can be picked up
+    if not self:CanMove(piece) then
+        return
     end
 
     -- This is definately a selection, so render it and update the board
@@ -232,13 +259,17 @@ function Game:HandleBoardSquareClicked(square, animated)
     local undo = self:ApplyMove(piece, move, animated ~= false)
     local opponent = piece.isWhite and "b" or "w"
 
+    local uci = Rules.SquareName(move.from)..Rules.SquareName(move.to)
+
     -- A pawn reaching the last rank promotes; the player picks what to, or
     -- cancels (clicking off the picker), which takes the move back
     if (move.promotion) then
         KC:ShowPromotionPicker(piece, square,
             function(name)
                 piece:PromoteTo(name)
+                undo.promoted = true
                 self:UpdateCheckState(opponent)
+                self:NotifyPlayerMove(move, uci..name, undo)
             end,
             function()
                 self:UndoMove(undo)
@@ -246,10 +277,17 @@ function Game:HandleBoardSquareClicked(square, animated)
             end)
     else
         self:UpdateCheckState(opponent)
+        self:NotifyPlayerMove(move, uci, undo)
     end
 
     self:DeselectPiece()
     return true
+end
+
+function Game:NotifyPlayerMove(move, uci, undo)
+    if self.onPlayerMove then
+        self.onPlayerMove(move, uci, undo)
+    end
 end
 
 -- Plays a rules engine move on the board frames: removes any captured piece (en
@@ -261,6 +299,7 @@ function Game:ApplyMove(piece, move, animated)
     local fromSquare = piece.currentSquare
     local toSquare = self:GetSquare(move.to)
     local undo = {
+        move = move,
         piece = piece,
         fromSquare = fromSquare,
         toSquare = toSquare,
@@ -315,12 +354,13 @@ function Game:ExecuteMove(uci)
 
     self:DeselectPiece()
     KC:HidePromotionPicker()
-    self:ApplyMove(piece, found, true)
+    local undo = self:ApplyMove(piece, found, true)
     if (found.promotion) then
         piece:PromoteTo(string.lower(found.promotion))
+        undo.promoted = true
     end
     self:UpdateCheckState(piece.isWhite and "b" or "w")
-    return found
+    return found, undo
 end
 
 -- Sets the board up from a FEN string. Castling rights become hasMoved flags:
@@ -331,7 +371,11 @@ function Game:LoadFEN(fen)
     if (pos == nil) then
         return nil, err
     end
+    return self:LoadPosition(pos)
+end
 
+-- Sets the board up from a rules engine position (see LoadFEN). Returns the side to move.
+function Game:LoadPosition(pos)
     self:ClearBoard()
     for sq = 1, 64 do
         local letter = pos.board[sq]
@@ -369,13 +413,25 @@ function Game:FindLegalMove(piece, square)
     end
 end
 
--- Takes back a move recorded by HandleBoardSquareClicked: the piece returns to its
--- square, any captured piece is put back, and the previous last move and en
--- passant square are restored. Used when a promotion is cancelled (castling
--- moves are never undone).
+-- Takes back a move recorded by Game:ApplyMove: the piece returns to its square
+-- (as a pawn again if it promoted), a castling rook goes back to its corner, any
+-- captured piece is put back, and the previous last move and en passant square
+-- are restored. Used when a promotion is cancelled and for a wrong puzzle move.
+-- The caller updates the check state.
 function Game:UndoMove(undo)
+    self:DeselectPiece()
+    if undo.promoted then
+        undo.piece:SetType("p")
+    end
     undo.piece:MovePiece(undo.fromSquare, true)
     undo.piece.hasMoved = undo.hadMoved
+
+    -- A legal castle means the rook hadn't moved before
+    if (undo.move and undo.move.flag == "castle") then
+        local rook = self:GetPieceAt(undo.move.rookTo)
+        rook:MovePiece(self:GetSquare(undo.move.rookFrom), true)
+        rook.hasMoved = false
+    end
 
     if undo.captured then
         local restored = self:CreatePiece(undo.captured.name, undo.captured.isWhite, undo.captured.square.name)
@@ -441,11 +497,15 @@ function Game:UpdateCheckState(colour)
     end
 
     local status, inCheck = Rules.GetStatus(pos)
-    local mover = (colour == "w") and "Black" or "White"
-    if (status == "checkmate") then
-        KC:Print("Checkmate. "..mover.." is victorious.")
-    elseif (status == "stalemate") then
-        KC:Print("Stalemate. The game is a draw.")
+    if self.announceResults then
+        local mover = (colour == "w") and "Black" or "White"
+        if (status == "checkmate") then
+            KC:SetStatus("Checkmate", ns.Colours.Good, mover.." is victorious")
+        elseif (status == "stalemate") then
+            KC:SetStatus("Stalemate", ns.Colours.Neutral, "The game is a draw")
+        else
+            KC:SetStatus(nil)
+        end
     end
     return status, inCheck
 end

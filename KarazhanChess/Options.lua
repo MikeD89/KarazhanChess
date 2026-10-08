@@ -31,13 +31,13 @@ KC.options = {
 		},
 		lichessText = {
 			type = "description",
-			name = "|cFF9CD6DE" .. "Themes and puzzles from lichess.org",
+			name = "|cFF9CD6DE" .. "Piece sets, board colours and puzzles from lichess.org",
 			fontSize = "small",
 			order = 2,
 		},
 		mainText = {
 			type = "description",
-			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kco - Options Panel",
+			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kc puzzle - Puzzles\n/kco - Options Panel",
 			fontSize = "medium",
 			order = 4,
 		},
@@ -133,6 +133,32 @@ KC.options = {
 			get = "getPieceTheme",
 			set = "setPieceTheme",
 		},
+		puzzleHeader = {
+			type = "header",
+			name = "Puzzles",
+			order = 60,
+		},
+		puzzleCredits = {
+			type = "description",
+			name = "Puzzles come from the Lichess puzzle database (database.lichess.org), released into the public domain under CC0. Thank you to Lichess and its players.\n",
+			fontSize = "medium",
+			order = 61,
+		},
+		puzzleProgress = {
+			type = "description",
+			name = function() return KC:getPuzzleProgressText() end,
+			fontSize = "medium",
+			order = 62,
+		},
+		resetPuzzlesButton = {
+			type = "execute",
+			name = "Reset Puzzle Progress",
+			desc = "Sets your puzzle rating back to "..ns.Puzzles.StartRating.." and forgets which puzzles you have solved or failed.",
+			confirm = true,
+			confirmText = "Reset your puzzle rating and forget all solved and failed puzzles?",
+			order = 63,
+			func = function() ns.Puzzles:ResetProgress() end,
+		},
 		hiddenHeader = {
 			type = "header",
 			hidden = true,
@@ -155,6 +181,13 @@ KC.optionDefaults = {
 		windowScale = 1.0,
 		boardTheme = "Default",
 		pieceTheme = "Default",
+		puzzles = {
+			rating = 1500,
+			tier = "Normal",
+			solved = {},
+			failed = {},
+			current = nil,
+		},
 	},
 };
 
@@ -162,7 +195,10 @@ KC.optionDefaults = {
 -- Reset Options --
 -------------------
 function KC:resetProfile(info)
+	-- Puzzle progress isn't an option, so it survives (it has its own reset)
+	local puzzles = self.db.global.puzzles
 	self.db:ResetDB(KC.profileName)
+	self.db.global.puzzles = puzzles
 
 	-- ResetDB replaces db.global, so point the minimap icon at the new settings table
 	KC.ICON:Refresh(KC.name, KC.db.global.minimapIcon)
@@ -274,6 +310,17 @@ end
 
 function KC:updateWindowOpacity()
 	self:applyWindowOpacity()
+end
+
+
+-- Puzzle Progress
+
+function KC:getPuzzleProgressText()
+	local progress = self.db.global.puzzles
+	local solved, failed = 0, 0
+	for _ in pairs(progress.solved) do solved = solved + 1 end
+	for _ in pairs(progress.failed) do failed = failed + 1 end
+	return "Puzzle rating: |cffffffff"..progress.rating.."|r   Solved: |cffffffff"..solved.."|r   Failed: |cffffffff"..failed.."|r\n"
 end
 
 

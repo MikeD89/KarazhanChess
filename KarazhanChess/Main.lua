@@ -63,7 +63,7 @@ KC.frame = nil
 KC.game = nil
 KC.boardFlipped = false -- Black at the bottom (KC:SetBoardFlipped)
 KC.fixedWidth = 450
-KC.fixedHeight = 500
+KC.fixedHeight = 570 -- Board plus the info bar under it
 KC.boardAlpha = 0.8
 KC.boardDim = 8 
 KC.boardSectionSize = floor(KC.fixedWidth / (KC.boardDim + 0.75))
@@ -234,6 +234,7 @@ end
 -- Main Window. Also takes testing commands:
 --   /kc fen <FEN>   set the board up from a FEN string
 --   /kc move <uci>  play a move in UCI notation, e.g. e2e4 or e7e8q
+--   /kc puzzle      switch to puzzles (/kc play switches back)
 SlashCmdList['CHESSCMD'] = function(msg)
     local command, rest = strtrim(msg or ""):match("^(%S*)%s*(.-)$")
     command = string.lower(command or "")
@@ -244,6 +245,9 @@ SlashCmdList['CHESSCMD'] = function(msg)
         if not turn then
             KC:Print("Invalid FEN: "..err)
         end
+    elseif (command == "puzzle" or command == "puzzles" or command == "play") then
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        KC:SetMode((command == "play") and "play" or "puzzle")
     elseif (command == "move") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         if not KC.game:ExecuteMove(string.lower(rest)) then

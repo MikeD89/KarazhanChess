@@ -74,6 +74,7 @@ KC.frameMargin = (KC.fixedWidth - KC.boardWidth) / 2
 function KC:OnInitialize()
 	-- Open the databace and register options
 	self.db = LibStub("AceDB-3.0"):New(KC.dbName, KC.optionDefaults, KC.profileName);
+	KC:migrateThemeSettings()
 	
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);

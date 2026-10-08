@@ -29,6 +29,12 @@ KC.options = {
 			fontSize = "small",
 			order = 3,
 		},
+		lichessText = {
+			type = "description",
+			name = "|cFF9CD6DE" .. "Themes and puzzles by lichess.org",
+			fontSize = "small",
+			order = 2,
+		},
 		mainText = {
 			type = "description",
 			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kco - Options Panel",
@@ -92,7 +98,8 @@ KC.options = {
 			type = "select",
             name = "Board Theme",
 			order = 41,
-			values = Icons.Board.Themes,
+			values = Icons.Board.ThemeValues,
+			sorting = Icons.Board.Themes,
 			style = "dropdown",
 			get = "getBoardTheme",
 			set = "setBoardTheme",
@@ -101,7 +108,8 @@ KC.options = {
 			type = "select",
             name = "Piece Theme",
 			order = 42,
-			values = Icons.Piece.Themes,
+			values = Icons.Piece.ThemeValues,
+			sorting = Icons.Piece.Themes,
 			style = "dropdown",
 			get = "getPieceTheme",
 			set = "setPieceTheme",
@@ -125,8 +133,8 @@ KC.optionDefaults = {
 		fadeoutWindow = false,
 		boardLabels = true,
 		windowOpacity = 0.75,
-		boardTheme = 1,
-		pieceTheme = 1,
+		boardTheme = "Default",
+		pieceTheme = "Default",
 	},
 };
 
@@ -224,6 +232,27 @@ end
 
 function KC:updateWindowOpacity()
 	self:applyWindowOpacity()
+end
+
+
+-- Theme Migration
+
+-- Themes used to be saved as an index into the theme list. Convert any index to
+-- the theme name it meant, and fall back to Default for anything unknown (for
+-- example a theme that has since been removed).
+local function migrateTheme(value, themes)
+	if type(value) == "number" then
+		value = themes.LegacyThemes[value]
+	end
+	if value == nil or themes.ThemeValues[value] == nil then
+		return "Default"
+	end
+	return value
+end
+
+function KC:migrateThemeSettings()
+	self.db.global.boardTheme = migrateTheme(self.db.global.boardTheme, Icons.Board)
+	self.db.global.pieceTheme = migrateTheme(self.db.global.pieceTheme, Icons.Piece)
 end
 
 

@@ -17,27 +17,43 @@ Icons.LegalCapture = dir("Textures\\legalcapture")
 
 --
 
+-- Themes are saved by name, which is also the texture folder name. The Themes
+-- list only sets the order shown in the options dropdown.
+-- LegacyThemes is the list from before themes were saved by name, used to
+-- convert old index-based settings (see KC:migrateThemeSettings).
+
+-- Builds the { [name] = name } table AceConfig needs for a select's values
+local function themeValues(themes)
+    local values = {}
+    for _, name in ipairs(themes) do
+        values[name] = name
+    end
+    return values
+end
+
 Icons.Board = {}
 Icons.Board.Folder = dir("Textures\\Board\\")
-Icons.Board.Themes = { "Default", "Bubblegum" }
+Icons.Board.Themes = { "Default", "Horde", "Alliance", "Brown", "Blue", "Green", "Purple", "Khaki" }
+Icons.Board.ThemeValues = themeValues(Icons.Board.Themes)
+Icons.Board.LegacyThemes = { "Default", "Bubblegum" }
 Icons.Board.LightSquare = "\\ls.blp"
 Icons.Board.DarkSquare = "\\ds.blp"
 
-function Icons.Board:GetBoardIcon(light) 
+function Icons.Board:GetBoardIcon(light)
     local icon = ternary(light == true, Icons.Board.LightSquare, Icons.Board.DarkSquare)
-    local selectedTheme = Icons.Board.Themes[KC:getBoardTheme()]
-    return Icons.Board.Folder..selectedTheme..icon
+    return Icons.Board.Folder..KC:getBoardTheme()..icon
 end
 
--- 
+--
 
 Icons.Piece = {}
 Icons.Piece.Folder = dir("Textures\\Piece\\")
-Icons.Piece.Themes = { "Default", "Tournament" }
+Icons.Piece.Themes = { "Default", "Tournament", "Merida", "Chessnut", "Fantasy", "Celtic", "Spatial", "RhosGFX", "Papercut" }
+Icons.Piece.ThemeValues = themeValues(Icons.Piece.Themes)
+Icons.Piece.LegacyThemes = { "Default", "Tournament" }
 
-function Icons.Piece:GetPieceIcon(piece) 
-    local selectedTheme = Icons.Piece.Themes[KC:getPieceTheme()]
-    return Icons.Piece.Folder..selectedTheme.."\\"..piece..".blp"
+function Icons.Piece:GetPieceIcon(piece)
+    return Icons.Piece.Folder..KC:getPieceTheme().."\\"..piece..".blp"
 end
 
 -- 

@@ -27,4 +27,6 @@ ignore:
   - .vscode
   - .github
   - Converter
-  - TextureSource
+  # TextureSource/Lichess ships: it holds the source SVGs for the GPL piece sets
+  - TextureSource/legalcapture.pdn
+  - TextureSource/minimap.pdn

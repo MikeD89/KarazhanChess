@@ -96,7 +96,7 @@ KC.options = {
 		pieceTheme = {
 			type = "select",
             name = "Piece Theme",
-			order = 41,
+			order = 42,
 			values = Icons.Piece.Themes,
 			style = "dropdown",
 			get = "getPieceTheme",
@@ -131,6 +131,9 @@ KC.optionDefaults = {
 -------------------
 function KC:resetProfile(info)
 	self.db:ResetDB(KC.profileName)
+
+	-- ResetDB replaces db.global, so point the minimap icon at the new settings table
+	KC.ICON:Refresh(KC.name, KC.db.global.minimapIcon)
 
 	-- Call all the update methods
 	KC:updateMinimapButton()

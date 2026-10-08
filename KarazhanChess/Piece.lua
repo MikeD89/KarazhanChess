@@ -74,7 +74,7 @@ function Piece:new(name, isWhite)
     self.hasMoved = false
 
     -- Pieces have to exist inside a frame
-    self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY", self.key)
+    self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY")
     self.frame:SetFrameLevel(Piece.SubLayer)
 
     -- Handle click 
@@ -97,7 +97,8 @@ end
 
 -- String method
 function Piece:__tostring()
-    return "Piece - "..self:getLookupKey()
+    local position = self.currentSquare and self.currentSquare.name or "off board"
+    return "Piece - "..self.key.." ("..position..")"
 end
 
 -- Interface
@@ -208,7 +209,7 @@ function Piece:ApplyPosition(position)
         self:MovePiece(board, false)
     else
         self.frame:Hide()
-        KC:Print("Invalid Position for Piece: "..position)
+        KC:Print("Invalid Position for Piece: "..self.key)
     end
 end
 
@@ -223,18 +224,30 @@ function Piece:MovePiece(square, animated)
         -- Move it to the top
         f:SetFrameLevel(Piece.SubLayer + 2)
     
-        -- Animate the piece
-        local ag = self.frame:CreateAnimationGroup()    
-        local a1 = ag:CreateAnimation("Translation")
-        a1:SetOffset(destX - currentX, destY - currentY)    
-        a1:SetDuration(0.1)
+        -- Animate the piece. The animation group lives on the frame and is reused,
+        -- including when the frame is pooled and handed to another piece.
+        local ag = f.moveAnimation
+        if not ag then
+            ag = f:CreateAnimationGroup()
+            ag.translation = ag:CreateAnimation("Translation")
+            ag.translation:SetDuration(0.1)
+            f.moveAnimation = ag
+        end
 
-        -- When finished
-        ag:SetScript("OnFinished", function(self)
-            -- Fix it to the destination and reset the strata
+        -- If a previous move is still animating, stopping it runs its OnStop,
+        -- which snaps the piece to that move's destination first
+        if ag:IsPlaying() then
+            ag:Stop()
+        end
+        ag.translation:SetOffset(destX - currentX, destY - currentY)
+
+        -- When finished (or interrupted), fix it to the destination and reset the level
+        local function finish()
             f:SetPoint("CENTER", square.frame, "CENTER")
             f:SetFrameLevel(Piece.SubLayer)
-        end)
+        end
+        ag:SetScript("OnFinished", finish)
+        ag:SetScript("OnStop", finish)
 
         -- GO!
         ag:Play()

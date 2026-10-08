@@ -70,7 +70,7 @@ end
 
 -- Register a piece so it can recieve a texture update
 function Game:CreatePiece(type, isWhite, startingLocation)
-    piece = Piece:new(type, isWhite)
+    local piece = Piece:new(type, isWhite)
     table.insert(self.pieces, piece)
 
     if(startingLocation ~= nil) then

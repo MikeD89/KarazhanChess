@@ -27,6 +27,7 @@ function FrameUtils:returnFrameToPool(frame)
 	frame:Hide()
 	frame:ClearAllPoints()
 	frame.texture:SetTexture(nil)
+	frame:SetScript("OnMouseUp", nil)
     tinsert(FrameUtils.framePool, frame)
 end
 
@@ -52,24 +53,27 @@ function FrameUtils:KeepFrameInBounds(frame, bounds)
 end
 
 -- Function used to create an icon
-function FrameUtils:CreateIcon(w, h, textureName, layer, name)	
+function FrameUtils:CreateIcon(w, h, textureName, layer)
 	-- create this as a frame
-	frame = FrameUtils:getFrameFromPool()
+	local frame = FrameUtils:getFrameFromPool()
 	frame:SetWidth(w)
 	frame:SetHeight(h)
     frame:EnableMouse(true)
-	
-	-- And with a texture
-	frame.texture = frame:CreateTexture(name, layer)
+
+	-- And with a texture. Pooled frames already have one, so reuse it.
+	if not frame.texture then
+		frame.texture = frame:CreateTexture(nil, layer)
+		frame.texture:SetAllPoints()
+	end
+	frame.texture:SetDrawLayer(layer)
     frame.texture:SetTexture(textureName)
-    frame.texture:SetAllPoints()
 
 	return frame
 end
 
 -- Function used to create a movable icon with a callback and sub coords
 function FrameUtils:CreateBoardLabel(square, frame, row)
-	offset = 2
+	local offset = 2
 
 	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") 	
 	label:SetAlpha(KC.boardAlpha)

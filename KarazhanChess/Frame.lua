@@ -93,9 +93,9 @@ function KC:createChessFrame(frame)
 	closebutton:SetScript("OnClick", function() KC:HideWindow() end)
 
 	-- Button consts
-	buttonWidth = 70
-	buttonHeight = 20
-	buttonMargin = 10
+	local buttonWidth = 70
+	local buttonHeight = 20
+	local buttonMargin = 10
 
 	-- New Game Button
 	local newGameButton = CreateFrame("BUTTON", nil, frame, "UIPanelButtonTemplate");
@@ -154,7 +154,8 @@ end
 
 -- Add the visual and logical board into the frame
 function KC:createChessBoard(frame)
-	local lightSquare = false
+	-- Flipped at the start of each column, so a1 starts dark ("light on the right")
+	local lightSquare = true
 	local firstRow = true
 	local newColumn = true
 
@@ -172,7 +173,7 @@ function KC:createChessBoard(frame)
 		-- Rows
 		for j=1,KC.boardDim,1 do	
 			-- Create a piece and flip the colour
-			KC.board[i][j] = Square:new(frame, size, i, j, lightSquare)
+			KC.board[i][j] = Square:new(frame, KC.boardSectionSize, i, j, lightSquare)
 			lightSquare = not lightSquare
 
 			-- Create the neccersary labels

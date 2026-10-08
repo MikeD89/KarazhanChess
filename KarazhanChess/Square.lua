@@ -16,13 +16,10 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     local self = {};
     setmetatable(self, Square);
 
-    -- Locals
-    local size = KC.boardSectionSize
-
     -- Variables
     self.boardIcon = Icons.Board:GetBoardIcon(lightSquare)
     self.colLabel = strsub(Square.colLabels, colIndex, colIndex)
-    self.name = self.colLabel..colIndex
+    self.name = self.colLabel..rowIndex
     self.colIndex = colIndex
     self.rowLabel = ""..rowIndex
     self.rowIndex = rowIndex
@@ -30,7 +27,7 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.currentPiece = nil
 
     -- Create the icon
-    self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK", name)
+    self.frame = FrameUtils:CreateIcon(size, size, self.boardIcon, "ARTWORK")
 
     -- Position
     local xpos = KC.frameMargin + ((self.colIndex - 1) * size)
@@ -38,12 +35,12 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", xpos, -ypos)
 
     -- Give it a Legal Move indicator
-    self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK", self.name.."_lmi")
+    self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
     self.legalMove:Hide()
 
     -- Give it a Legal Capture indicator
-    self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK", self.name.."_lci")
+    self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK")
     self.legalCapture:SetPoint("CENTER", self.frame, "CENTER")
     self.legalCapture:Hide()
 

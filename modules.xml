@@ -6,6 +6,7 @@
     <!-- Utilites -->
     <!-- Order matters: each file imports from the namespace what earlier files exported -->
     <Script file="KarazhanChess/Utils.lua"/>
+    <Script file="KarazhanChess/Rules.lua"/>
     <Script file="KarazhanChess/FrameUtils.lua"/>
     <Script file="KarazhanChess/Icons.lua"/>
     <Script file="KarazhanChess/Square.lua"/>

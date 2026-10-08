@@ -7,7 +7,7 @@
 
 local _, ns = ...
 local KC = ns.KC
-local FrameUtils, Icons, Square = ns.FrameUtils, ns.Icons, ns.Square
+local FrameUtils, Icons, Rules = ns.FrameUtils, ns.Icons, ns.Rules
 
 local Piece = {}
 ns.Piece = Piece
@@ -29,37 +29,6 @@ Piece.Data = {
     ["b"] = {"b", 3},
     ["p"] = {"p", 1},
 };
-
--- Movement offsets as {column, row}. Slides repeat a direction to the board edge,
--- steps move once. Pawns are handled separately as they depend on colour.
-local orthogonal = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} }
-local diagonal = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} }
-local allDirections = { {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} }
-local knightJumps = { {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2} }
-
-Piece.Movement = {
-    ["k"] = { steps = allDirections },
-    ["q"] = { slides = allDirections },
-    ["r"] = { slides = orthogonal },
-    ["b"] = { slides = diagonal },
-    ["n"] = { steps = knightJumps },
-};
-
--- Castling, by column. The king starts on column 5 (e) and moves two squares
--- towards the rook, which jumps to the square the king passed over.
-Piece.KingStartCol = 5
-Piece.Castles = {
-    { rookCol = 8, kingToCol = 7, rookToCol = 6, between = { 6, 7 } },    -- Kingside (O-O)
-    { rookCol = 1, kingToCol = 3, rookToCol = 4, between = { 2, 3, 4 } }, -- Queenside (O-O-O)
-};
-
-function Piece:GetCastleByKingCol(kingToCol)
-    for _, castle in ipairs(Piece.Castles) do
-        if (castle.kingToCol == kingToCol) then
-            return castle
-        end
-    end
-end
 
 -- Constructor
 function Piece:new(name, isWhite)
@@ -120,90 +89,31 @@ function Piece:UpdateTexture(position)
 end
 
 -- Moves
--- Returns two lists of positions like "e4": the empty squares this piece can move
--- to, and the squares holding enemy pieces it can capture. Any piece in the way
--- blocks a slide or a pawn push; the first enemy piece in a slide can be captured.
--- Kings are never capturable (check/checkmate would cover that, once it exists).
+-- Returns two lists of positions like "e4": the squares this piece can legally
+-- move to, and the squares holding enemy pieces it can capture. The rules engine
+-- works out legality (pins, check, castling through check, en passant) from a
+-- snapshot of the board. An en passant capture lands on an empty square, so it
+-- shows as a move dot, as on Lichess. Kings are never capturable.
 function Piece:CalculateMoves()
     local moves, captures = {}, {}
-    local square = self.currentSquare
-    if (square == nil) then
+    if (self.currentSquare == nil) then
         return moves, captures
     end
 
-    local col = square.colIndex
-    local row = square.rowIndex
+    local colour = self.isWhite and "w" or "b"
+    local pos = KC.game:GetPosition(colour)
+    local from = Rules.Index(self.currentSquare.colIndex, self.currentSquare.rowIndex)
 
-    local function onBoard(c, r)
-        return c >= 1 and c <= KC.boardDim and r >= 1 and r <= KC.boardDim
-    end
-
-    local function isFree(c, r)
-        return onBoard(c, r) and KC.board[c][r].currentPiece == nil
-    end
-
-    local function position(c, r)
-        return strsub(Square.colLabels, c, c)..r
-    end
-
-    local function addMove(c, r)
-        table.insert(moves, position(c, r))
-    end
-
-    -- Adds a capture if (c, r) holds an enemy piece that isn't a king
-    local function tryCapture(c, r)
-        if not onBoard(c, r) then
-            return
-        end
-        local target = KC.board[c][r].currentPiece
-        if (target and target.isWhite ~= self.isWhite and target.name ~= "k") then
-            table.insert(captures, position(c, r))
-        end
-    end
-
-    if (self.name == "p") then
-        -- Pawns move forward one, or two from their starting rank, if nothing is in the way
-        local direction = self.isWhite and 1 or -1
-        local startRow = self.isWhite and 2 or (KC.boardDim - 1)
-
-        if isFree(col, row + direction) then
-            addMove(col, row + direction)
-            if (row == startRow and isFree(col, row + (direction * 2))) then
-                addMove(col, row + (direction * 2))
-            end
-        end
-
-        -- Pawns capture one square diagonally forward
-        tryCapture(col - 1, row + direction)
-        tryCapture(col + 1, row + direction)
-        return moves, captures
-    end
-
-    local movement = Piece.Movement[self.name]
-
-    for _, step in ipairs(movement.steps or {}) do
-        local c, r = col + step[1], row + step[2]
-        if isFree(c, r) then
-            addMove(c, r)
-        else
-            tryCapture(c, r)
-        end
-    end
-
-    -- Slides stop at the first piece in the way, which can be captured if it's an enemy
-    for _, slide in ipairs(movement.slides or {}) do
-        local c, r = col + slide[1], row + slide[2]
-        while isFree(c, r) do
-            addMove(c, r)
-            c, r = c + slide[1], r + slide[2]
-        end
-        tryCapture(c, r)
-    end
-
-    if (self.name == "k") then
-        for _, castle in ipairs(Piece.Castles) do
-            if self:CanCastle(castle) then
-                addMove(castle.kingToCol, row)
+    -- Promotions give four moves to the same square, so only list each square once
+    local seen = {}
+    for _, move in ipairs(Rules.GenerateLegalMoves(pos, colour, from)) do
+        local name = Rules.SquareName(move.to)
+        if not seen[name] then
+            seen[name] = true
+            if (move.captured and move.flag ~= "ep") then
+                table.insert(captures, name)
+            else
+                table.insert(moves, name)
             end
         end
     end
@@ -211,29 +121,9 @@ function Piece:CalculateMoves()
     return moves, captures
 end
 
--- Castling needs an unmoved king on its start square, an unmoved rook of the
--- same colour in the corner, and empty squares between them.
--- TODO - The king may not castle out of, through, or into check
-function Piece:CanCastle(castle)
-    local square = self.currentSquare
-    local homeRow = self.isWhite and 1 or KC.boardDim
-
-    if (self.hasMoved or square.colIndex ~= Piece.KingStartCol or square.rowIndex ~= homeRow) then
-        return false
-    end
-
-    local rook = KC.board[castle.rookCol][homeRow].currentPiece
-    if (rook == nil or rook.name ~= "r" or rook.isWhite ~= self.isWhite or rook.hasMoved) then
-        return false
-    end
-
-    for _, col in ipairs(castle.between) do
-        if (KC.board[col][homeRow].currentPiece ~= nil) then
-            return false
-        end
-    end
-
-    return true
+-- This piece as a rules engine letter: upper case for white ("N"), lower for black
+function Piece:GetLetter()
+    return self.isWhite and string.upper(self.name) or self.name
 end
 
 -- Promotion

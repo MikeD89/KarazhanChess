@@ -1,0 +1,12 @@
+{
+  "name": "karazhanchess-tools",
+  "private": true,
+  "description": "Offline tools for Karazhan Chess: runs addon Lua under fengari (rules tests, puzzle builder)",
+  "scripts": {
+    "test": "node lua.js tests/perft.lua"
+  },
+  "dependencies": {
+    "fengari": "0.1.4",
+    "fzstd": "0.1.1"
+  }
+}

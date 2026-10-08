@@ -78,6 +78,13 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     self.hoverHighlight:SetColorTexture(unpack(Square.HoverColour))
     self.hoverHighlight:Hide()
 
+    -- Check highlight (Lichess style): a red glow under a king in check
+    self.checkHighlight = self.frame:CreateTexture(nil, "ARTWORK", nil, 4)
+    self.checkHighlight:SetAllPoints()
+    FrameUtils:DisablePixelSnapping(self.checkHighlight)
+    self.checkHighlight:SetTexture(Icons.Check)
+    self.checkHighlight:Hide()
+
     -- Legal move indicator: a dot in the centre of the square (white texture, tinted)
     self.legalMove = FrameUtils:CreateIcon(size, size, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
@@ -119,6 +126,11 @@ end
 -- Last move highlight
 function Square:SetLastMove(shown)
     self.lastMoveHighlight:SetShown(shown)
+end
+
+-- Check highlight
+function Square:SetCheck(shown)
+    self.checkHighlight:SetShown(shown)
 end
 
 -- Selection highlight

@@ -7,7 +7,7 @@
 
 local _, ns = ...
 local KC = ns.KC
-local FrameUtils, Piece = ns.FrameUtils, ns.Piece
+local FrameUtils, Rules, Piece = ns.FrameUtils, ns.Rules, ns.Piece
 local removeFromTableByIndex = ns.removeFromTableByIndex
 
 local Game = {}
@@ -29,6 +29,8 @@ function Game:new()
     self.gameState = 0
     self.pieces = {}
     self.selectedPiece = nil
+    self.epSquare = nil      -- En passant target (rules engine square) after a double pawn push
+    self.checkSquares = {}   -- Squares showing the check glow
 
     -- Init
     self:CreateStaticModals()
@@ -150,6 +152,8 @@ function Game:ClearBoard()
     -- Hide any UI hints
     self:DeselectPiece()
     self:SetLastMove(nil, nil)
+    self:ClearCheck()
+    self.epSquare = nil
     KC:HidePromotionPicker()
 end
 
@@ -209,79 +213,175 @@ end
 -- Moves the selected piece to square if that's a legal move. Returns whether it moved.
 -- animated is false when the piece was dropped there by dragging (it's already in place).
 function Game:HandleBoardSquareClicked(square, animated)
-    -- Nothign to do if no piece selected
+    -- Nothing to do if no piece selected
     if(self.selectedPiece == nil) then
         return false
     end
 
     -- Is this a legit move?
-    if (square:IsLegalMove() or square:IsLegalCapture()) then
-        local piece = self.selectedPiece
-        local fromSquare = piece.currentSquare
-
-        -- What's needed to take this move back if a promotion is cancelled
-        local undo = {
-            piece = piece,
-            fromSquare = fromSquare,
-            toSquare = square,
-            hadMoved = piece.hasMoved,
-            lastMoveFrom = self.lastMoveFrom,
-            lastMoveTo = self.lastMoveTo,
-        }
-
-        -- Capturing: take the enemy piece off the board before moving in
-        if (square:IsLegalCapture() and square.currentPiece ~= nil) then
-            local target = square.currentPiece
-            undo.captured = { name = target.name, isWhite = target.isWhite, hasMoved = target.hasMoved }
-            self:RemovePiece(target)
-        end
-
-        piece:MovePiece(square, animated ~= false)
-        piece.hasMoved = true
-        self:SetLastMove(fromSquare, square)
-
-        -- A king moving two files is castling, so bring the rook across too
-        if (piece.name == "k" and math.abs(square.colIndex - fromSquare.colIndex) == 2) then
-            self:CompleteCastle(square)
-        end
-
-        -- A pawn reaching the last rank promotes; the player picks what to, or
-        -- cancels (clicking off the picker), which takes the move back
-        if (piece.name == "p" and square.rowIndex == piece:GetPromotionRow()) then
-            KC:ShowPromotionPicker(piece, square,
-                function(name) piece:PromoteTo(name) end,
-                function() self:UndoMove(undo) end)
-        end
-
-        self:DeselectPiece()
-        return true
+    if not (square:IsLegalMove() or square:IsLegalCapture()) then
+        return false
     end
-    return false
+
+    local piece = self.selectedPiece
+    local fromSquare = piece.currentSquare
+    local move = self:FindLegalMove(piece, square)
+    if (move == nil) then
+        return false
+    end
+
+    -- What's needed to take this move back if a promotion is cancelled
+    local undo = {
+        piece = piece,
+        fromSquare = fromSquare,
+        toSquare = square,
+        hadMoved = piece.hasMoved,
+        lastMoveFrom = self.lastMoveFrom,
+        lastMoveTo = self.lastMoveTo,
+        epSquare = self.epSquare,
+    }
+
+    -- Capturing: take the enemy piece off the board before moving in. En passant
+    -- captures the pawn beside the moving pawn, not one on the destination.
+    if (move.capSq) then
+        local target = self:GetPieceAt(move.capSq)
+        undo.captured = { name = target.name, isWhite = target.isWhite, hasMoved = target.hasMoved, square = target.currentSquare }
+        self:RemovePiece(target)
+    end
+
+    piece:MovePiece(square, animated ~= false)
+    piece.hasMoved = true
+    self:SetLastMove(fromSquare, square)
+
+    -- Castling brings the rook across too
+    if (move.flag == "castle") then
+        self:CompleteCastle(move)
+    end
+
+    -- A double pawn push can be taken en passant on the next move only
+    self.epSquare = (move.flag == "double") and (move.from + (piece.isWhite and 8 or -8)) or nil
+
+    local opponent = piece.isWhite and "b" or "w"
+
+    -- A pawn reaching the last rank promotes; the player picks what to, or
+    -- cancels (clicking off the picker), which takes the move back
+    if (move.promotion) then
+        KC:ShowPromotionPicker(piece, square,
+            function(name)
+                piece:PromoteTo(name)
+                self:UpdateCheckState(opponent)
+            end,
+            function()
+                self:UndoMove(undo)
+                self:UpdateCheckState(opponent)
+            end)
+    else
+        self:UpdateCheckState(opponent)
+    end
+
+    self:DeselectPiece()
+    return true
+end
+
+-- The rules engine's legal move taking piece to square, or nil. A promotion
+-- matches the first of its four moves; the picker decides the piece.
+function Game:FindLegalMove(piece, square)
+    local colour = piece.isWhite and "w" or "b"
+    local from = Rules.Index(piece.currentSquare.colIndex, piece.currentSquare.rowIndex)
+    local to = Rules.Index(square.colIndex, square.rowIndex)
+    for _, move in ipairs(Rules.GenerateLegalMoves(self:GetPosition(colour), colour, from)) do
+        if (move.to == to) then
+            return move
+        end
+    end
 end
 
 -- Takes back a move recorded by HandleBoardSquareClicked: the piece returns to its
--- square, any captured piece is put back, and the previous last move is restored.
--- Used when a promotion is cancelled (castling moves are never undone).
+-- square, any captured piece is put back, and the previous last move and en
+-- passant square are restored. Used when a promotion is cancelled (castling
+-- moves are never undone).
 function Game:UndoMove(undo)
     undo.piece:MovePiece(undo.fromSquare, true)
     undo.piece.hasMoved = undo.hadMoved
 
     if undo.captured then
-        local restored = self:CreatePiece(undo.captured.name, undo.captured.isWhite, undo.toSquare.name)
+        local restored = self:CreatePiece(undo.captured.name, undo.captured.isWhite, undo.captured.square.name)
         restored.hasMoved = undo.captured.hasMoved
     end
 
     self:SetLastMove(undo.lastMoveFrom, undo.lastMoveTo)
+    self.epSquare = undo.epSquare
 end
 
--- Moves the rook to the other side of a king that has just castled onto kingSquare
-function Game:CompleteCastle(kingSquare)
-    local castle = Piece:GetCastleByKingCol(kingSquare.colIndex)
-    local row = kingSquare.rowIndex
-    local rook = KC.board[castle.rookCol][row].currentPiece
-
-    rook:MovePiece(KC.board[castle.rookToCol][row], true)
+-- Moves the rook of a castling move to the other side of the king
+function Game:CompleteCastle(move)
+    local rook = self:GetPieceAt(move.rookFrom)
+    rook:MovePiece(self:GetSquare(move.rookTo), true)
     rook.hasMoved = true
+end
+
+-- Rules engine squares (1-64) to board squares and the pieces on them
+function Game:GetSquare(sq)
+    return KC.board[Rules.Col(sq)][Rules.Row(sq)]
+end
+
+function Game:GetPieceAt(sq)
+    return self:GetSquare(sq).currentPiece
+end
+
+-- A rules engine snapshot of the board, with turn as the side to move ("w" by
+-- default). Castling is allowed on a side whose king and rook are on their
+-- start squares and have never moved.
+function Game:GetPosition(turn)
+    local pos = Rules.NewPosition()
+    for _, piece in ipairs(self.pieces) do
+        local square = piece.currentSquare
+        if square then
+            pos.board[Rules.Index(square.colIndex, square.rowIndex)] = piece:GetLetter()
+        end
+    end
+
+    for _, castle in ipairs(Rules.Castles) do
+        local king, rook = self:GetPieceAt(castle.kingFrom), self:GetPieceAt(castle.rookFrom)
+        pos.castling[castle.right] = (king ~= nil and not king.hasMoved and rook ~= nil and not rook.hasMoved)
+    end
+
+    pos.ep = self.epSquare
+    pos.turn = turn or "w"
+    return pos
+end
+
+-- Check
+-- Shows the check glow on any king in check, and announces checkmate or stalemate
+-- for colour (the side to move next). Returns the status ("checkmate",
+-- "stalemate" or nil) and whether colour is in check.
+function Game:UpdateCheckState(colour)
+    self:ClearCheck()
+
+    local pos = self:GetPosition(colour)
+    for _, side in ipairs({ "w", "b" }) do
+        if Rules.InCheck(pos, side) then
+            local square = self:GetSquare(Rules.FindKing(pos, side))
+            square:SetCheck(true)
+            table.insert(self.checkSquares, square)
+        end
+    end
+
+    local status, inCheck = Rules.GetStatus(pos)
+    local mover = (colour == "w") and "Black" or "White"
+    if (status == "checkmate") then
+        KC:Print("Checkmate. "..mover.." is victorious.")
+    elseif (status == "stalemate") then
+        KC:Print("Stalemate. The game is a draw.")
+    end
+    return status, inCheck
+end
+
+function Game:ClearCheck()
+    for _, square in ipairs(self.checkSquares) do
+        square:SetCheck(false)
+    end
+    self.checkSquares = {}
 end
 
 -- Captures piece with the selected piece (used when the enemy piece itself is clicked)

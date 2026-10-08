@@ -231,9 +231,27 @@ end
 ---- Slash Commands ----
 ------------------------
 
--- Main Window
+-- Main Window. Also takes testing commands:
+--   /kc fen <FEN>   set the board up from a FEN string
+--   /kc move <uci>  play a move in UCI notation, e.g. e2e4 or e7e8q
 SlashCmdList['CHESSCMD'] = function(msg)
-    KC:ToggleWindow() 
+    local command, rest = strtrim(msg or ""):match("^(%S*)%s*(.-)$")
+    command = string.lower(command or "")
+
+    if (command == "fen") then
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        local turn, err = KC.game:LoadFEN(rest)
+        if not turn then
+            KC:Print("Invalid FEN: "..err)
+        end
+    elseif (command == "move") then
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        if not KC.game:ExecuteMove(string.lower(rest)) then
+            KC:Print("Not a legal move here: "..rest)
+        end
+    else
+        KC:ToggleWindow()
+    end
 end
 
 SLASH_CHESSCMD1, SLASH_CHESSCMD2, SLASH_CHESSCMD3, SLASH_CHESSCMD4, SLASH_CHESSCMD5 

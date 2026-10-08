@@ -224,43 +224,12 @@ function Game:HandleBoardSquareClicked(square, animated)
     end
 
     local piece = self.selectedPiece
-    local fromSquare = piece.currentSquare
     local move = self:FindLegalMove(piece, square)
     if (move == nil) then
         return false
     end
 
-    -- What's needed to take this move back if a promotion is cancelled
-    local undo = {
-        piece = piece,
-        fromSquare = fromSquare,
-        toSquare = square,
-        hadMoved = piece.hasMoved,
-        lastMoveFrom = self.lastMoveFrom,
-        lastMoveTo = self.lastMoveTo,
-        epSquare = self.epSquare,
-    }
-
-    -- Capturing: take the enemy piece off the board before moving in. En passant
-    -- captures the pawn beside the moving pawn, not one on the destination.
-    if (move.capSq) then
-        local target = self:GetPieceAt(move.capSq)
-        undo.captured = { name = target.name, isWhite = target.isWhite, hasMoved = target.hasMoved, square = target.currentSquare }
-        self:RemovePiece(target)
-    end
-
-    piece:MovePiece(square, animated ~= false)
-    piece.hasMoved = true
-    self:SetLastMove(fromSquare, square)
-
-    -- Castling brings the rook across too
-    if (move.flag == "castle") then
-        self:CompleteCastle(move)
-    end
-
-    -- A double pawn push can be taken en passant on the next move only
-    self.epSquare = (move.flag == "double") and (move.from + (piece.isWhite and 8 or -8)) or nil
-
+    local undo = self:ApplyMove(piece, move, animated ~= false)
     local opponent = piece.isWhite and "b" or "w"
 
     -- A pawn reaching the last rank promotes; the player picks what to, or
@@ -281,6 +250,110 @@ function Game:HandleBoardSquareClicked(square, animated)
 
     self:DeselectPiece()
     return true
+end
+
+-- Plays a rules engine move on the board frames: removes any captured piece (en
+-- passant takes the pawn beside, not one on the destination), moves the piece,
+-- brings the rook across when castling, and records the en passant square and
+-- last move. Promotion and the check state are left to the caller. Returns what
+-- Game:UndoMove needs to take the move back.
+function Game:ApplyMove(piece, move, animated)
+    local fromSquare = piece.currentSquare
+    local toSquare = self:GetSquare(move.to)
+    local undo = {
+        piece = piece,
+        fromSquare = fromSquare,
+        toSquare = toSquare,
+        hadMoved = piece.hasMoved,
+        lastMoveFrom = self.lastMoveFrom,
+        lastMoveTo = self.lastMoveTo,
+        epSquare = self.epSquare,
+    }
+
+    if (move.capSq) then
+        local target = self:GetPieceAt(move.capSq)
+        undo.captured = { name = target.name, isWhite = target.isWhite, hasMoved = target.hasMoved, square = target.currentSquare }
+        self:RemovePiece(target)
+    end
+
+    piece:MovePiece(toSquare, animated)
+    piece.hasMoved = true
+    self:SetLastMove(fromSquare, toSquare)
+
+    if (move.flag == "castle") then
+        self:CompleteCastle(move)
+    end
+
+    -- A double pawn push can be taken en passant on the next move only
+    self.epSquare = (move.flag == "double") and (move.from + (piece.isWhite and 8 or -8)) or nil
+
+    return undo
+end
+
+-- Plays a move given in UCI notation ("e2e4", "e1g1" to castle, "e7e8q" to
+-- promote), animated, for whichever side owns the piece on the from square.
+-- Used by puzzles for the opponent's replies. Returns the rules engine move, or
+-- nil if it isn't legal here.
+function Game:ExecuteMove(uci)
+    local from = Rules.SquareIndex(string.sub(uci or "", 1, 2))
+    local piece = from and self:GetPieceAt(from)
+    if (piece == nil) then
+        return nil
+    end
+
+    local colour = piece.isWhite and "w" or "b"
+    local found
+    for _, move in ipairs(Rules.GenerateLegalMoves(self:GetPosition(colour), colour, from)) do
+        if (Rules.MoveToUCI(move) == uci) then
+            found = move
+            break
+        end
+    end
+    if (found == nil) then
+        return nil
+    end
+
+    self:DeselectPiece()
+    KC:HidePromotionPicker()
+    self:ApplyMove(piece, found, true)
+    if (found.promotion) then
+        piece:PromoteTo(string.lower(found.promotion))
+    end
+    self:UpdateCheckState(piece.isWhite and "b" or "w")
+    return found
+end
+
+-- Sets the board up from a FEN string. Castling rights become hasMoved flags:
+-- every piece counts as moved except a king and rook that may still castle.
+-- Returns the side to move ("w" or "b"), or nil and an error message.
+function Game:LoadFEN(fen)
+    local pos, err = Rules.FromFEN(fen)
+    if (pos == nil) then
+        return nil, err
+    end
+
+    self:ClearBoard()
+    for sq = 1, 64 do
+        local letter = pos.board[sq]
+        if letter then
+            local piece = self:CreatePiece(string.lower(letter), Rules.Colour[letter] == "w", Rules.SquareName(sq))
+            piece.hasMoved = true
+        end
+    end
+
+    for _, castle in ipairs(Rules.Castles) do
+        if pos.castling[castle.right] then
+            local king, rook = self:GetPieceAt(castle.kingFrom), self:GetPieceAt(castle.rookFrom)
+            if (king and rook) then
+                king.hasMoved = false
+                rook.hasMoved = false
+            end
+        end
+    end
+
+    self.epSquare = pos.ep
+    self:UpdateCheckState(pos.turn)
+    return pos.turn
 end
 
 -- The rules engine's legal move taking piece to square, or nil. A promotion

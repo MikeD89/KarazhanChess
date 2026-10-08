@@ -20,6 +20,21 @@ Piece.Data = {
     ["p"] = {"p", 1},
 };
 
+-- Movement offsets as {column, row}. Slides repeat a direction to the board edge,
+-- steps move once. Pawns are handled separately as they depend on colour.
+local orthogonal = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} }
+local diagonal = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} }
+local allDirections = { {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} }
+local knightJumps = { {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2} }
+
+Piece.Movement = {
+    ["k"] = { steps = allDirections },
+    ["q"] = { slides = allDirections },
+    ["r"] = { slides = orthogonal },
+    ["b"] = { slides = diagonal },
+    ["n"] = { steps = knightJumps },
+};
+
 -- Constructor
 function Piece:new(name, isWhite)
     -- Metatable
@@ -74,8 +89,64 @@ function Piece:UpdateTexture(position)
 	self.frame.texture:SetTexture(self.icon)
 end
 
--- Position 
-function Piece:ApplyPosition(position) 
+-- Moves
+-- Returns the squares this piece could move to by its movement rules alone, as
+-- positions like "e4". Other pieces on the board are not considered yet, so
+-- nothing blocks a slide and pawns never move diagonally.
+function Piece:CalculateMoves()
+    local moves = {}
+    local square = self.currentSquare
+    if (square == nil) then
+        return moves
+    end
+
+    local col = square.colIndex
+    local row = square.rowIndex
+
+    local function onBoard(c, r)
+        return c >= 1 and c <= KC.boardDim and r >= 1 and r <= KC.boardDim
+    end
+
+    local function addMove(c, r)
+        table.insert(moves, strsub(Square.colLabels, c, c)..r)
+    end
+
+    if (self.name == "p") then
+        -- Pawns move forward one, or two from their starting rank
+        local direction = self.isWhite and 1 or -1
+        local startRow = self.isWhite and 2 or (KC.boardDim - 1)
+
+        if onBoard(col, row + direction) then
+            addMove(col, row + direction)
+            if (row == startRow) then
+                addMove(col, row + (direction * 2))
+            end
+        end
+        return moves
+    end
+
+    local movement = Piece.Movement[self.name]
+
+    for _, step in ipairs(movement.steps or {}) do
+        local c, r = col + step[1], row + step[2]
+        if onBoard(c, r) then
+            addMove(c, r)
+        end
+    end
+
+    for _, slide in ipairs(movement.slides or {}) do
+        local c, r = col + slide[1], row + slide[2]
+        while onBoard(c, r) do
+            addMove(c, r)
+            c, r = c + slide[1], r + slide[2]
+        end
+    end
+
+    return moves
+end
+
+-- Position
+function Piece:ApplyPosition(position)
     if (position ~= nil) then
         -- Get the board and put ourselves there
         local board = KC:GetBoardPosition(position)

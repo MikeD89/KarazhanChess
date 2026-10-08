@@ -218,8 +218,8 @@ end
 -- Move display
 function Game:ShowValidMoves()
     -- Calculate valid moves
-    validMoves = self:CalculateValidMoves()
-    validCaptures = self:CalculateValidCaptures()
+    local validMoves = self:CalculateValidMoves()
+    local validCaptures = self:CalculateValidCaptures()
 
     -- Display them all
     for i,move in ipairs(validMoves) do
@@ -232,9 +232,13 @@ end
 
 -- Move calcultion
 function Game:CalculateValidMoves()
-    return {"a1", "a2", "c3", "c4", "e5", "e6", "g7", "g8" }
+    if (self.selectedPiece == nil) then
+        return {}
+    end
+    return self.selectedPiece:CalculateMoves()
 end
 
+-- TODO - Captures need the board state, which moves don't consider yet
 function Game:CalculateValidCaptures()
-    return {"b2", "b3", "d4", "d5", "f6", "f7", "h8", "h1", "e8" }
+    return {}
 end

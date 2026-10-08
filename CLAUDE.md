@@ -1,6 +1,6 @@
 # Karazhan Chess
 
-A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement patterns exist; blocking, captures, turns, check and game flow do not.
+A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in progress — the UI, board, piece rendering, selection, themes and per-piece movement (with blocking and castling) exist; captures, turns, check and game flow do not.
 
 ## Targets
 
@@ -36,7 +36,7 @@ There is no Lua toolchain or test suite. Verification is in-game: `/reload`, the
 - `KC.board[col][row]` — `Square` objects, both indices 1–8 (col 1 = file `a`). `KC:GetBoardPosition("e4")` maps algebraic notation to a square.
 - `Square.currentPiece` ↔ `Piece.currentSquare` is a two-way link; keep both sides in sync when moving or removing pieces.
 - Legal moves are shown by `Square.legalMove` / `legalCapture` marker frames, and **their visibility is the source of truth** for `IsLegalMove()` / `IsLegalCapture()`.
-- `Game:CalculateValidMoves()` delegates to `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. It ignores other pieces (no blocking, no captures, no en passant/promotion), except castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares via `Square.currentPiece`, and `Game:CompleteCastle` moves the rook. Check is not considered. `CalculateValidCaptures()` returns `{}`.
+- `Game:CalculateValidMoves()` delegates to `Piece:CalculateMoves()`, which uses `Piece.Movement` (steps vs slides) plus special-cased pawns. Moves only go to empty squares: slides and pawn pushes stop at the first piece in the way. Castling: `Piece:CanCastle` checks `hasMoved` flags and empty squares, and `Game:CompleteCastle` moves the rook. Not yet: captures (`CalculateValidCaptures()` returns `{}`), en passant, promotion, check.
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.
 - Settings live in `KC.db.global` (AceDB, saved variable `KarazhanChessDB`). Each option has `get*`/`set*`/`update*` methods in `Options.lua`.
 - Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`).

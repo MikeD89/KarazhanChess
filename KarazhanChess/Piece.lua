@@ -107,9 +107,9 @@ function Piece:UpdateTexture(position)
 end
 
 -- Moves
--- Returns the squares this piece could move to by its movement rules alone, as
--- positions like "e4". Other pieces on the board are not considered yet, so
--- nothing blocks a slide and pawns never move diagonally.
+-- Returns the empty squares this piece can move to, as positions like "e4".
+-- Any piece in the way blocks a slide or a pawn push. Occupied squares are never
+-- moves; taking a piece belongs to captures, which aren't calculated yet.
 function Piece:CalculateMoves()
     local moves = {}
     local square = self.currentSquare
@@ -124,18 +124,22 @@ function Piece:CalculateMoves()
         return c >= 1 and c <= KC.boardDim and r >= 1 and r <= KC.boardDim
     end
 
+    local function isFree(c, r)
+        return onBoard(c, r) and KC.board[c][r].currentPiece == nil
+    end
+
     local function addMove(c, r)
         table.insert(moves, strsub(Square.colLabels, c, c)..r)
     end
 
     if (self.name == "p") then
-        -- Pawns move forward one, or two from their starting rank
+        -- Pawns move forward one, or two from their starting rank, if nothing is in the way
         local direction = self.isWhite and 1 or -1
         local startRow = self.isWhite and 2 or (KC.boardDim - 1)
 
-        if onBoard(col, row + direction) then
+        if isFree(col, row + direction) then
             addMove(col, row + direction)
-            if (row == startRow) then
+            if (row == startRow and isFree(col, row + (direction * 2))) then
                 addMove(col, row + (direction * 2))
             end
         end
@@ -146,14 +150,15 @@ function Piece:CalculateMoves()
 
     for _, step in ipairs(movement.steps or {}) do
         local c, r = col + step[1], row + step[2]
-        if onBoard(c, r) then
+        if isFree(c, r) then
             addMove(c, r)
         end
     end
 
+    -- Slides stop at the first piece in the way
     for _, slide in ipairs(movement.slides or {}) do
         local c, r = col + slide[1], row + slide[2]
-        while onBoard(c, r) do
+        while isFree(c, r) do
             addMove(c, r)
             c, r = c + slide[1], r + slide[2]
         end

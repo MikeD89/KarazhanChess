@@ -11,7 +11,7 @@ A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in pr
 
 ## Testing
 
-UI verification is in-game: `/reload`, then `/kc` (window), `/kco` (options). BugSack/BugGrabber are installed in both clients and capture Lua errors. State clearly when a change has not been tested in game.
+UI verification is in-game: `/reload`, then `/kc` (window), `/kco` (options). [TESTS.md](TESTS.md) lists the manual test cases (by ID) with FEN setups; add cases there when adding features, as they are meant to become automated suites in a dev-build test mode later. BugSack/BugGrabber are installed in both clients and capture Lua errors. State clearly when a change has not been tested in game.
 
 Code without WoW API (`Rules.lua`) is tested offline under [fengari](https://github.com/fengari-lua/fengari) (Lua 5.3 in Node, close enough for 5.1 code). In `Tools/` (run `npm install` once):
 

@@ -5,6 +5,11 @@
 -- Primary Frame
 -------------------------------------------------------------------------------
 
+local _, ns = ...
+local KC = ns.KC
+local FrameUtils, Square = ns.FrameUtils, ns.Square
+local ord = ns.ord
+
 function KC:createChessFrame(frame)
 	-- Variables
 	local inset = 8

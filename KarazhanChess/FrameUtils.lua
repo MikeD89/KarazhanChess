@@ -5,7 +5,11 @@
 -- Frame Creation Utilites
 -------------------------------------------------------------------------------
 
-FrameUtils = {}
+local _, ns = ...
+local KC = ns.KC
+
+local FrameUtils = {}
+ns.FrameUtils = FrameUtils
 FrameUtils.framePool = {}
 
 -- Get a frame, either from the pool, or fresh

@@ -5,11 +5,16 @@
 -- Main Loader and Entry Point
 -------------------------------------------------------------------------------
 
+local _, ns = ...
+local KC = ns.KC
+local Game, Icons = ns.Game, ns.Icons
+local showRealDate, isNull = ns.showRealDate, ns.isNull
+
 ------------------------
 ---- Initialisation ----
 ------------------------
 
-KC = LibStub("AceAddon-3.0"):NewAddon("KarazhanChess", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0");
+-- The addon object (KC) is created in Init.lua
 
 -- Get the version & date. This is set by the packager.
 KC.version = "@project-version@"

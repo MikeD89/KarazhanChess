@@ -5,7 +5,12 @@
 -- Board Square Handling
 -------------------------------------------------------------------------------
 
-Square = {}
+local _, ns = ...
+local KC = ns.KC
+local FrameUtils, Icons = ns.FrameUtils, ns.Icons
+
+local Square = {}
+ns.Square = Square
 Square.__index = Square;
 Square.colLabels = 'abcdefgh'
 Square.yOffset = 50
@@ -37,11 +42,13 @@ function Square:new(frame, size, colIndex, rowIndex, lightSquare)
     -- Give it a Legal Move indicator
     self.legalMove = FrameUtils:CreateIcon(size/3, size/3, Icons.LegalMove, "ARTWORK")
     self.legalMove:SetPoint("CENTER", self.frame, "CENTER")
+    self.legalMove:EnableMouse(false) -- Let clicks through to the square
     self.legalMove:Hide()
 
     -- Give it a Legal Capture indicator
     self.legalCapture = FrameUtils:CreateIcon(size, size, Icons.LegalCapture, "ARTWORK")
     self.legalCapture:SetPoint("CENTER", self.frame, "CENTER")
+    self.legalCapture:EnableMouse(false)
     self.legalCapture:Hide()
 
     -- Callbacks

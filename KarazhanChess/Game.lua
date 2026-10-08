@@ -5,10 +5,16 @@
 -- Gameplay Logic
 -------------------------------------------------------------------------------
 
-Game = {}
+local _, ns = ...
+local KC = ns.KC
+local FrameUtils, Piece = ns.FrameUtils, ns.Piece
+local removeFromTableByIndex = ns.removeFromTableByIndex
+
+local Game = {}
+ns.Game = Game
 Game.__index = Game;
-Game.NewGameConfirmDiag = "GAME_NEW_GAME_CONFIRM_DIAGLOG"
-Game.ClearBoardConfirmDiag = "GAME_CLEAR_BOARD_CONFIRM_DIAGLOG"
+Game.NewGameConfirmDiag = "KARAZHANCHESS_NEW_GAME_CONFIRM"
+Game.ClearBoardConfirmDiag = "KARAZHANCHESS_CLEAR_BOARD_CONFIRM"
 
 -- Constructor
 function Game:new()

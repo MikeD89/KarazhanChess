@@ -5,7 +5,12 @@
 -- Piece Handling
 -------------------------------------------------------------------------------
 
-Piece = {}
+local _, ns = ...
+local KC = ns.KC
+local FrameUtils, Icons, Square = ns.FrameUtils, ns.Icons, ns.Square
+
+local Piece = {}
+ns.Piece = Piece
 Piece.__index = Piece;
 Piece.SubLayer = 4
 Piece.IndexCounter = 1

@@ -15,21 +15,31 @@ There is no Lua toolchain or test suite. Verification is in-game: `/reload`, the
 
 ## Layout and load order
 
-[KarazhanChess.toc](KarazhanChess.toc) loads [embeds.xml](embeds.xml) (libraries) then [modules.xml](modules.xml) (addon code). Order in `modules.xml` matters — files define globals used by later files:
+[KarazhanChess.toc](KarazhanChess.toc) loads [embeds.xml](embeds.xml) (libraries) then [modules.xml](modules.xml) (addon code), in this order:
 
 | File | Role |
 |---|---|
-| `Utils.lua` | Global helpers: `showRealDate`, `isNull`, `dir`, `ternary`, `ord`, `removeFromTableByIndex` |
+| `Init.lua` | Creates the `KC` AceAddon object on the namespace. Must load first |
+| `Utils.lua` | Helpers: `ns.showRealDate`, `isNull`, `dir`, `ternary`, `ord`, `removeFromTableByIndex` |
 | `FrameUtils.lua` | Frame pool, `CreateIcon`, board labels, keep-on-screen |
 | `Icons.lua` | Texture paths and theme lists (`Icons.Board.Themes`, `Icons.Piece.Themes`) |
-| `Piece.lua` | `Piece` class: frame, texture, move/animate, selection highlight |
 | `Square.lua` | `Square` class: board square frame plus legal-move / legal-capture markers |
-| `Game.lua` | `Game` class: piece list, new game / clear board (with StaticPopup confirms), selection, capture |
-| `Main.lua` | `KC` AceAddon object, constants, `OnInitialize`/`OnEnable`, minimap broker, slash commands |
-| `Frame.lua` | Builds the main window and the 8×8 `KC.board` |
+| `Piece.lua` | `Piece` class: movement rules, castling, frame, move/animate, selection highlight |
+| `Game.lua` | `Game` class: piece list, new game / clear board (with StaticPopup confirms), selection, moves, capture |
+| `Main.lua` | Constants, `OnInitialize`/`OnEnable`, minimap broker, Settings integration, slash commands |
+| `Frame.lua` | Builds the main window and the 8×8 `KC.board`; window position and opacity |
 | `Options.lua` | AceConfig options table, defaults, getters/setters |
 
-`Options.lua` and `Frame.lua` define methods on `KC`, so they must load after `Main.lua`; `Options.lua` reads `Icons.*.Themes` at load time.
+### Namespace — no globals
+
+All addon code shares the private namespace table WoW passes to each file (`local _, ns = ...`). `KC` and every class/helper are fields on `ns`, never globals. Each file:
+
+1. starts (after the header) with `local _, ns = ...`, `local KC = ns.KC`, and locals for what it uses from earlier files (`local FrameUtils, Icons = ns.FrameUtils, ns.Icons`);
+2. declares its class as `local X = {}` followed by `ns.X = X`.
+
+Because imports are captured at load time, **a file can only import from files above it in `modules.xml`**. Square loads before Piece for this reason. Inside functions, `ns.X` can be used for anything regardless of order.
+
+The only intended globals are `KarazhanChessDB` (saved variables), the main frame name `"Karazhan Chess"` (needed for `UISpecialFrames`), `SLASH_*`/`SlashCmdList` entries, and `StaticPopupDialogs` keys (prefixed `KARAZHANCHESS_`). The AceAddon object is reachable for debugging via `LibStub("AceAddon-3.0"):GetAddon("KarazhanChess")`.
 
 ## Key concepts
 
@@ -44,9 +54,10 @@ There is no Lua toolchain or test suite. Verification is in-game: `/reload`, the
 ## Conventions
 
 - Lua 5.1 (WoW). Tabs in most files, 4 spaces in some — match the file being edited.
-- Classes use `X = {}; X.__index = X; function X:new() ... setmetatable ... end`.
-- File header block on every source file (name, author, one-line purpose).
-- Prefer `local` variables. The existing code leaks several accidental globals — don't add more, and fix them when touching that code.
+- Classes use `local X = {}; ns.X = X; X.__index = X; function X:new() ... setmetatable ... end`.
+- File header block on every source file (name, author, one-line purpose), followed by the namespace imports.
+- Every variable is `local` unless it belongs on `ns`, `KC`, or an object. Never assign a bare name.
+- Move markers (`legalMove`/`legalCapture`) have mouse disabled so clicks fall through to the square; pieces sit above them and handle their own clicks.
 
 ## Libraries
 

@@ -70,6 +70,10 @@ KC.boardWidth = KC.boardSectionSize * KC.boardDim
 KC.boardHeight = KC.boardWidth
 KC.frameMargin = (KC.fixedWidth - KC.boardWidth) / 2
 
+-- Resize grip limits, as a scale of the fixed size above
+KC.minWindowScale = 0.6
+KC.maxWindowScale = 2.0
+
 -- Init Function
 function KC:OnInitialize()
 	-- Open the databace and register options

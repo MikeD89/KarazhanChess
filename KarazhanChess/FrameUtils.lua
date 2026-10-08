@@ -35,27 +35,6 @@ function FrameUtils:returnFrameToPool(frame)
     tinsert(FrameUtils.framePool, frame)
 end
 
--- Function used to keep a frame from leaving the screen
-function FrameUtils:KeepFrameInBounds(frame, bounds)
-	local xOffset = frame:GetRight() - GetScreenWidth()
-	local yOffset = frame:GetTop() - GetScreenHeight()
-
-	if bounds:GetRight() > GetScreenWidth() then
-		xOffset = xOffset + (GetScreenWidth() - bounds:GetRight())
-	elseif bounds:GetLeft() < 0 then
-		xOffset = xOffset + (0 - bounds:GetLeft())
-	end
-
-	if bounds:GetTop() > GetScreenHeight() then
-		yOffset = yOffset + (GetScreenHeight() - bounds:GetTop())
-	elseif bounds:GetBottom() < 0 then
-		yOffset = yOffset + (0 - bounds:GetBottom())
-	end
-
-	frame:ClearAllPoints()
-	frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", xOffset, yOffset)
-end
-
 -- Function used to create an icon
 function FrameUtils:CreateIcon(w, h, textureName, layer)
 	-- create this as a frame

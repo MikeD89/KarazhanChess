@@ -48,7 +48,7 @@ end
 
 Icons.Piece = {}
 Icons.Piece.Folder = dir("Textures\\Piece\\")
-Icons.Piece.Themes = { "Default", "Tournament", "Merida", "Chessnut", "Fantasy", "Celtic", "Spatial", "RhosGFX", "Papercut" }
+Icons.Piece.Themes = { "Default", "Merida", "Chessnut", "Fantasy", "Celtic", "Spatial", "RhosGFX", "Papercut" }
 Icons.Piece.ThemeValues = themeValues(Icons.Piece.Themes)
 Icons.Piece.LegacyThemes = { "Default", "Tournament" }
 

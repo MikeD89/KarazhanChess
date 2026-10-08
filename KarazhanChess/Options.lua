@@ -31,7 +31,7 @@ KC.options = {
 		},
 		lichessText = {
 			type = "description",
-			name = "|cFF9CD6DE" .. "Themes and puzzles by lichess.org",
+			name = "|cFF9CD6DE" .. "Themes and puzzles from lichess.org",
 			fontSize = "small",
 			order = 2,
 		},
@@ -47,6 +47,13 @@ KC.options = {
             desc = "Resets all Options to the Defaults",
 			order = 5,
 			func = "resetProfile"
+		},
+		resetSizeButton = {
+			type = "execute",
+            name = "Reset Size",
+            desc = "Resets the chess window to its default size",
+			order = 6,
+			func = "resetWindowSize"
 		},
         generalHeader = {
 			type = "header",
@@ -76,6 +83,18 @@ KC.options = {
 			order = 23,
 			get = "getBoardLabelsVisible",
 			set = "setBoardLabelsVisible",
+		},
+		windowSizeSlider = {
+			type = "range",
+            name = "Window Size",
+            desc = "Size of the chess window. You can also drag the grip in its bottom-right corner.",
+			order = 25,
+			min = KC.minWindowScale,
+			max = KC.maxWindowScale,
+			step = 0.05,
+			isPercent = true,
+			get = "getWindowSize",
+			set = "setWindowSize",
 		},
 		windowOpacitySlider = {
 			type = "range",
@@ -133,6 +152,7 @@ KC.optionDefaults = {
 		fadeoutWindow = false,
 		boardLabels = true,
 		windowOpacity = 0.75,
+		windowScale = 1.0,
 		boardTheme = "Default",
 		pieceTheme = "Default",
 	},
@@ -155,6 +175,16 @@ function KC:resetProfile(info)
 	KC:RestoreWindowPosition()
 	KC:updateBoardTheme()
 	KC:updatePieceTheme()
+end
+
+
+----------------
+-- Reset Size --
+----------------
+function KC:resetWindowSize(info)
+	-- Scale back to the default, keeping the window's top-left corner where it is
+	self:setWindowSize(info, KC.optionDefaults.global.windowScale)
+	KC.ACR:NotifyChange(KC.name)
 end
 
 
@@ -216,6 +246,18 @@ end
 
 function KC:updateBoardLabelsVisible()
 	self:applyBoardLabelVisibility();
+end
+
+
+-- Window Size
+
+function KC:setWindowSize(info, value)
+	KC:SetWindowScale(value)
+	KC:SaveWindowPosition()
+end
+
+function KC:getWindowSize(info)
+	return self.db.global.windowScale;
 end
 
 

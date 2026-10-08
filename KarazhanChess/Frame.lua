@@ -96,8 +96,7 @@ function KC:createChessFrame(frame)
 	-- Make it move the window
 	title:SetScript("OnMouseDown", function() frame:StartMoving()  end) 
 	title:SetScript("OnMouseUp", function()
-	  frame:StopMovingOrSizing()
-	  FrameUtils:KeepFrameInBounds(frame, titleText)
+	  frame:StopMovingOrSizing() -- SetClampedToScreen keeps it on screen
 	  KC:SaveWindowPosition()
 	end)
 
@@ -138,6 +137,9 @@ function KC:createChessFrame(frame)
 		KC:OpenConfig()
 	end)
 
+	-- Resize grip in the bottom-right corner
+	KC:createResizeGrip(frame)
+
 	-- Add the board
 	KC:createChessBoard(frame)
 
@@ -156,15 +158,82 @@ function KC:SaveWindowPosition()
 	KC.db.global.windowPosition = { point = point, relativePoint = relativePoint, x = x, y = y }
 end
 
--- Puts the window at its saved position, or the centre of the screen if there isn't one
+-- Puts the window at its saved size and position, or the centre of the screen if there isn't one.
+-- The scale is applied first, as anchor offsets are measured in the window's own scale.
 function KC:RestoreWindowPosition()
 	local pos = KC.db.global.windowPosition
+	KC.frame:SetScale(KC.db.global.windowScale)
 	KC.frame:ClearAllPoints()
 	if pos and pos.point then
 		KC.frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
 	else
 		KC.frame:SetPoint("CENTER", UIParent, "CENTER")
 	end
+end
+
+-- Adds a grip to the bottom-right corner that resizes the window by scaling it.
+-- Everything in the window is laid out at a fixed size, so scaling keeps it all in proportion.
+function KC:createResizeGrip(frame)
+	local grip = CreateFrame("BUTTON", nil, frame)
+	grip:SetSize(16, 16)
+	grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -4, 4)
+	grip:SetFrameLevel(frame:GetFrameLevel() + 10)
+	grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+	grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+	grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+
+	grip:SetScript("OnMouseDown", function(g)
+		-- Measure from where the top-left corner is when the drag starts
+		local left, top = KC:GetWindowTopLeft()
+		local parentScale = UIParent:GetEffectiveScale()
+
+		g:SetScript("OnUpdate", function()
+			local cursorX, cursorY = GetCursorPosition()
+			local scaleX = (cursorX - left) / (KC.fixedWidth * parentScale)
+			local scaleY = (top - cursorY) / (KC.fixedHeight * parentScale)
+			KC:SetWindowScale((scaleX + scaleY) / 2, left, top)
+		end)
+	end)
+
+	grip:SetScript("OnMouseUp", function(g)
+		g:SetScript("OnUpdate", nil)
+		KC:SaveWindowPosition()
+
+		-- Update the size slider if the options panel is open
+		KC.ACR:NotifyChange(KC.name)
+	end)
+end
+
+-- The window's top-left corner in screen pixels, or nil if it hasn't been laid out yet
+function KC:GetWindowTopLeft()
+	local left, top = KC.frame:GetLeft(), KC.frame:GetTop()
+	if not left or not top then
+		return nil
+	end
+	local effective = KC.frame:GetEffectiveScale()
+	return left * effective, top * effective
+end
+
+-- Scales the window (clamped to the allowed range) and saves the scale. The top-left
+-- corner stays at (left, top) in screen pixels, defaulting to where it is now.
+-- The caller is responsible for saving the new position with SaveWindowPosition.
+function KC:SetWindowScale(scale, left, top)
+	if not left then
+		left, top = KC:GetWindowTopLeft()
+	end
+	scale = math.max(KC.minWindowScale, math.min(KC.maxWindowScale, scale))
+
+	KC.frame:SetScale(scale)
+	KC.db.global.windowScale = scale
+
+	-- Without a known position (never laid out) just keep the current anchor
+	if not left then
+		return
+	end
+
+	local effective = KC.frame:GetEffectiveScale()
+	KC.frame:ClearAllPoints()
+	KC.frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left / effective, top / effective)
 end
 
 -- Add the visual and logical board into the frame

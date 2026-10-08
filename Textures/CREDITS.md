@@ -2,7 +2,7 @@
 
 ## Piece sets
 
-These piece sets come from the [Lichess](https://github.com/lichess-org/lila) project (`public/piece/<set>`). They were rendered from the original SVGs to 64×64 BLP textures for this addon. The original SVGs are kept unmodified in `TextureSource/Lichess/<set>/`, and each set remains under its own licence below.
+These piece sets come from the [Lichess](https://github.com/lichess-org/lila) project (`public/piece/<set>`). They were rendered from the original SVGs to 128×128 DXT5-compressed BLP textures for this addon. The original SVGs are kept unmodified in `TextureSource/Lichess/<set>/`, and each set remains under its own licence below.
 
 | Theme | Lichess set | Author | Licence |
 |---|---|---|---|
@@ -15,14 +15,14 @@ These piece sets come from the [Lichess](https://github.com/lichess-org/lila) pr
 | RhosGFX | `rhosgfx` | [RhosGFX](https://rhosgfx.itch.io/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | Papercut | `papercut` | [Nikolay Anzarov](https://nikoichu.itch.io/) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 
-Changes made: rasterised to 64×64 pixels and converted to the BLP format. No artwork was altered.
+Changes made: rasterised to 128×128 pixels and converted to the BLP format (DXT5). No artwork was altered.
 
 ## Board themes
 
-Horde and Alliance were made for this addon (flat faction-coloured squares).
+Default, Horde and Alliance were made for this addon (flat-coloured squares).
 
-Brown, Blue, Green, Purple and Khaki are flat two-colour boards whose colours match the Lichess boards of the same names (Khaki is Lichess's `ic` board). Only the colour values were reused.
+Brown, Blue, Green, Purple and Khaki are flat two-colour boards whose colours match Lichess boards (Khaki is Lichess's `ic`; the others share their names). Only the colour values were reused.
 
 ## Other textures
 
-The Tournament piece set, the Default board, and the minimap, legal-move and legal-capture icons predate this file.
+The minimap, legal-move and legal-capture icons predate this file.

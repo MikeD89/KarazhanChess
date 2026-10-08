@@ -50,6 +50,7 @@ The only intended globals are `KarazhanChessDB` (saved variables), the main fram
 - `Piece.SunfishLookup` hints at a planned port of the Sunfish engine; nothing is implemented.
 - Settings live in `KC.db.global` (AceDB, saved variable `KarazhanChessDB`). Each option has `get*`/`set*`/`update*` methods in `Options.lua`.
 - Frames come from `FrameUtils` pool (`getFrameFromPool` / `returnFrameToPool`), parented to `KC.boardFrame`.
+- Resizing scales the window (`SetScale`, saved as `windowScale`, limits `KC.minWindowScale`/`maxWindowScale`) via the grip from `KC:createResizeGrip`; the layout itself is fixed-size (`KC.fixedWidth`/`fixedHeight`). Anchor offsets are in the window's own scale, so `RestoreWindowPosition` applies the scale before the saved position.
 - `KC.boardFrame` holds everything on the board (squares, markers, pieces, labels) and ignores the window's alpha: WoW applies alpha per texture, so translucent pieces would show the square through them. Window Opacity only affects `KC.frame` (background, border, text, buttons); the mouse-away fade is applied to both. Piece frame levels are relative to it via `Piece:GetBaseLevel()`.
 
 ## Conventions

@@ -137,6 +137,7 @@ function KC:resetProfile(info)
 	KC:updateWindowFadeout()
 	KC:updateBoardLabelsVisible()
 	KC:updateWindowOpacity()
+	KC:RestoreWindowPosition()
 	KC:updateBoardTheme()
 	KC:updatePieceTheme()
 end

@@ -25,10 +25,10 @@ function KC:createChessFrame(frame)
 	frame:SetMovable(true)
 	frame:SetFrameStrata("HIGH")
 	
-	-- Set the default position and fixed size
+	-- Set the fixed size and restore the saved position (or centre it)
 	frame:SetSize(KC.fixedWidth, KC.fixedHeight)
-	frame:ClearAllPoints()
-	frame:SetPoint("CENTER", UIParent, "CENTER")
+	frame:SetClampedToScreen(true)
+	KC:RestoreWindowPosition()
 	
 	-- Hide it by default
 	frame:Hide()
@@ -83,6 +83,7 @@ function KC:createChessFrame(frame)
 	title:SetScript("OnMouseUp", function()
 	  frame:StopMovingOrSizing()
 	  FrameUtils:KeepFrameInBounds(frame, titleText)
+	  KC:SaveWindowPosition()
 	end)
 
 	-- Close Button
@@ -132,6 +133,23 @@ function KC:createChessFrame(frame)
 	KC.statusText:SetText("Victory, or Death!")
 	KC.statusText:SetPoint("CENTER", frame, "CENTER", 0, 20)	
 	KC.statusText:Hide()
+end
+
+-- Stores the window's anchor so it reopens in the same place next session
+function KC:SaveWindowPosition()
+	local point, _, relativePoint, x, y = KC.frame:GetPoint(1)
+	KC.db.global.windowPosition = { point = point, relativePoint = relativePoint, x = x, y = y }
+end
+
+-- Puts the window at its saved position, or the centre of the screen if there isn't one
+function KC:RestoreWindowPosition()
+	local pos = KC.db.global.windowPosition
+	KC.frame:ClearAllPoints()
+	if pos and pos.point then
+		KC.frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+	else
+		KC.frame:SetPoint("CENTER", UIParent, "CENTER")
+	end
 end
 
 -- Add the visual and logical board into the frame

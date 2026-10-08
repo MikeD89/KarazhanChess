@@ -80,6 +80,7 @@ function KC:OnInitialize()
 	-- Create the frame. We do this early so the position is loaded
 	KC.frame = CreateFrame("FRAME", KC.name, UIParent, "BackdropTemplate")
 	KC.frame:SetMovable(true)
+	KC.frame:SetDontSavePosition(true) -- We save the position ourselves in the DB
 	KC.frame:Hide()
 
 	-- Create the game

@@ -1,7 +1,7 @@
 ## Interface: 16001, 120100, 120105
 
 ## Title: |cff69ccf0Karazhan Chess|r Puzzles
-## Notes: 250,000 Lichess puzzles for Karazhan Chess. Loaded only when you open puzzles.
+## Notes: 500,000 Lichess puzzles for Karazhan Chess. Loaded only when you open puzzles.
 ## Author: MeloN <Convicted>
 ## Version: @project-version@
 ## Dependencies: KarazhanChess

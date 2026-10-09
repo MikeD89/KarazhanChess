@@ -1,7 +1,7 @@
 // Karazhan Chess - builds the KarazhanChess_Puzzles data addon from the Lichess
 // puzzle database (https://database.lichess.org/#puzzles, CC0).
 //
-//   node puzzles/build.js <lichess_db_puzzle.csv.zst> [--per-tier 50000] [--seed 20261008] [--threads N] [--out dir]
+//   node puzzles/build.js <lichess_db_puzzle.csv.zst> [--per-tier N] [--seed 20261008] [--threads N] [--out dir]
 //
 // --out writes somewhere other than KarazhanChess_Puzzles/ (for trial runs).
 //
@@ -10,8 +10,8 @@
 //    wherever its rating now puts it, so the set only ever grows and saved
 //    progress (keyed by puzzle ID) stays valid. Shipped puzzles that Lichess has
 //    since removed are dropped.
-// 3. Tops each tier up to --per-tier with new puzzles, spread evenly across
-//    50-point rating buckets, chosen with a seeded shuffle (repeatable).
+// 3. Tops each tier up to its TIER_SIZES target (or --per-tier for all) with new
+//    puzzles, spread evenly across 50-point rating buckets, chosen with a seeded shuffle (repeatable).
 // 4. Encodes each puzzle (format in KarazhanChess/PuzzleCodec.lua) and checks it
 //    with the addon's own Lua (Tools/puzzles/validate.lua under fengari, on
 //    --threads worker threads, default one per core less one): it must decode
@@ -19,7 +19,7 @@
 //    selection doesn't depend on the thread count.
 // 5. Writes one Lua file per tier plus Themes.lua into KarazhanChess_Puzzles/.
 //
-// To grow the database later, raise --per-tier (or loosen a tier's filters) and
+// To grow the database later, raise TIER_SIZES (or loosen a tier's filters) and
 // run again: existing puzzles stay, new ones are added.
 const fs = require("fs");
 const path = require("path");
@@ -39,6 +39,16 @@ const FILTERS = {
   CuttingEdge: { pop: 90, plays: 300, rd: 90 },
 };
 
+// Puzzles per tier: a rough bell curve with most puzzles in the middle tiers.
+// Cutting Edge is capped by its candidates (about 56k pass its filters).
+const TIER_SIZES = {
+  RaidFinder: 80000,
+  Normal: 120000,
+  Heroic: 130000,
+  Mythic: 120000,
+  CuttingEdge: 50000,
+};
+
 const BUCKET = 50;        // rating bucket width for even sampling
 const CHUNK_SIZE = 500;   // records per Lua string
 
@@ -49,7 +59,7 @@ const option = (name, fallback) => {
   const i = argv.indexOf("--" + name);
   return i >= 0 ? Number(argv[i + 1]) : fallback;
 };
-const PER_TIER = option("per-tier", 50000);
+const PER_TIER = option("per-tier", null); // overrides TIER_SIZES when given
 const SEED = option("seed", 20261008);
 const THREADS = option("threads", Math.max(1, os.availableParallelism() - 1));
 const outIndex = argv.indexOf("--out");
@@ -236,7 +246,7 @@ async function main() {
 
   // Choose new puzzles first, so the theme list covers everything that ships
   const chosen = TIERS.map((tier, t) => {
-    const need = Math.max(0, PER_TIER - kept[t].length);
+    const need = Math.max(0, (PER_TIER ?? TIER_SIZES[tier.key]) - kept[t].length);
     const buckets = [...candidates[t].keys()].sort((a, b) => a - b).map(b => shuffle(candidates[t].get(b)));
     const available = buckets.reduce((n, b) => n + b.length, 0);
     if (available < need) console.warn(`WARNING: ${tier.name} has only ${available} candidates for ${need} places`);
@@ -333,7 +343,7 @@ async function main() {
     writeTier(tier, out.map(r => r.record));
     size += fs.statSync(path.join(OUT_DIR, tier.key + ".lua")).size;
     const ratings = out.map(r => r.rating);
-    console.log(`${tier.name.padEnd(12)} ${String(out.length).padStart(6)} puzzles (${kept[t].length} kept, ${added} new), ratings ${Math.min(...ratings)}-${Math.max(...ratings)}, ${((Date.now() - started) / 1000).toFixed(0)}s`);
+    console.log(`${tier.name.padEnd(12)} ${String(out.length).padStart(6)} puzzles (${kept[t].length} kept, ${added} new), ratings ${ratings.reduce((m, r) => Math.min(m, r))}-${ratings.reduce((m, r) => Math.max(m, r))}, ${((Date.now() - started) / 1000).toFixed(0)}s`);
   }
   await pool.close();
 

@@ -23,7 +23,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | OFF-1 | `node lua.js tests/perft.lua quick` | Every line `ok`, then `all passed` (a few seconds) |
 | OFF-2 | `node lua.js tests/perft.lua` | Also start position depth 4 = 197281 and Kiwipete depth 3 = 97862 (about 40 s) |
 | OFF-3 | `node lua.js tests/syntax.lua ../KarazhanChess/*.lua` | `N/N files compile` |
-| OFF-4 | `node lua.js tests/puzzles.lua 25` | Six files load, five tiers of 50000, `all passed` (about 2 minutes) |
+| OFF-4 | `node lua.js tests/puzzles.lua 25` | Six files load, tiers of 80000 / 120000 / 130000 / 120000 / 50000, `all passed` (about 2 minutes) |
 
 ## Rules engine
 

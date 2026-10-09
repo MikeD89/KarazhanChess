@@ -40,7 +40,15 @@ local VALUE = {}
 for i = 1, #ALPHABET do
     VALUE[byte(ALPHABET, i)] = i - 1
 end
-local POW = { [0] = 1, 2, 4, 8, 16, 32 }
+local POW = { [0] = 1, 2, 4, 8, 16, 32, 64 }
+local POPCOUNT = {} -- set bits in a 6-bit value
+for v = 0, 63 do
+    local n, x = 0, v
+    while x > 0 do
+        n, x = n + x % 2, floor(x / 2)
+    end
+    POPCOUNT[v] = n
+end
 
 local PIECES = "PNBRQKpnbrqk"
 local PROMOTIONS = "qrbn"
@@ -61,6 +69,51 @@ local function bitReader(text, start)
         end
         return value
     end
+end
+
+-- n bits at bit offset bit (from 0) of the stream starting at character start,
+-- taking whole characters at a time
+local function readAt(text, start, bit, n)
+    local value = 0
+    while n > 0 do
+        local used = bit % 6
+        local take = math.min(6 - used, n)
+        local digit = VALUE[byte(text, start + floor(bit / 6)) or 65] or 0
+        value = value * POW[take] + floor(digit / POW[6 - used - take]) % POW[take]
+        n, bit = n - take, bit + take
+    end
+    return value
+end
+
+-- Fast path for filtering: calls fn(code) for each theme code (from 0) in a
+-- record, skipping over the position and moves without decoding them. Stops
+-- and returns true as soon as fn returns true.
+function Codec.AnyThemeCode(record, fn)
+    local start = Codec.IdLength + 1
+    local bit = 17                                  -- rating, turn, castling
+    bit = bit + 1 + readAt(record, start, bit, 1) * 3 -- en passant
+
+    local pieces = 0
+    for i = 0, 9 do
+        pieces = pieces + POPCOUNT[readAt(record, start, bit + i * 6, 6)]
+    end
+    pieces = pieces + POPCOUNT[readAt(record, start, bit + 60, 4)]
+    bit = bit + 64 + pieces * 4
+
+    local moves = readAt(record, start, bit, 6)
+    bit = bit + 6
+    for _ = 1, moves do
+        bit = bit + 13 + readAt(record, start, bit + 12, 1) * 2
+    end
+
+    local themes = readAt(record, start, bit, 4)
+    bit = bit + 4
+    for i = 0, themes - 1 do
+        if fn(readAt(record, start, bit + i * 7, 7)) then
+            return true
+        end
+    end
+    return false
 end
 
 -- Decodes one record. themeNames is the data addon's theme list.
@@ -132,6 +185,27 @@ function Codec.GetRecord(tier, index)
     end
     local stop = find(chunk, Codec.Separator, start, true)
     return sub(chunk, start, (stop or 0) - 1)
+end
+
+-- Iterates a tier's records in order: for index, record in Codec.Records(tier).
+-- Much faster than GetRecord in a loop, which searches its chunk from the start.
+function Codec.Records(tier)
+    local chunkIndex, index, nextRecord = 0, 0, nil
+    return function()
+        while true do
+            local record = nextRecord and nextRecord()
+            if record then
+                index = index + 1
+                return index, record
+            end
+            chunkIndex = chunkIndex + 1
+            local chunk = tier.chunks[chunkIndex]
+            if not chunk then
+                return nil
+            end
+            nextRecord = string.gmatch(chunk, "[^" .. Codec.Separator .. "]+")
+        end
+    end
 end
 
 -- The record with this puzzle ID in a registered tier, or nil

@@ -89,7 +89,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 
 | ID | Setup | Do | Expected |
 |---|---|---|---|
-| F-1 | New Game | Click the round-arrows button (top left) | Black at the bottom; tooltip "Flip board" on hover |
+| F-1 | New Game | `/kc flip` (the round-arrows flip button, top left, is hidden for now) | Black at the bottom; no flip button shows |
 | F-2 | Flipped | Look at the labels | Left edge reads 8 at the bottom up to 1 at the top; bottom edge reads h to a, left to right |
 | F-3 | Make a move, give check, then flip | | Pieces, last-move tint and check glow stay on their squares |
 | F-4 | Flipped, a piece selected | | Move dots and capture corners are on the right squares; clicking and dragging both work |
@@ -126,7 +126,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | H-10 | In a puzzle, after the opponent's move, press < | Shows the position before it; pieces can't be picked up until > returns to the latest position |
 | H-11 | In a puzzle, press < while the opponent is about to reply | The reply still plays, from the latest position |
 | H-12 | Make a wrong puzzle move and press < before it is taken back | The wrong move disappears from the history; the latest position is shown |
-| H-13 | Finish a puzzle, step back and play a different move | Allowed (exploring); it replaces the later moves |
+| H-13 | Finish a puzzle, step back and forward, and try to move a piece | < and > step through the puzzle; no piece can be picked up at any point |
 
 ### UCI command
 
@@ -159,26 +159,32 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 | PZ-12 | On your turn, try to pick up an opponent piece | It doesn't select |
 | PZ-13 | Play the right move in a multi-move puzzle | "Best move!" / "Keep going...", then the opponent replies |
 | PZ-14 | Play a wrong move | "That's not the move!" in red; the move is taken back after half a second (including a castling rook or a promoted pawn); the rating drops (the footer shows a red change); you can keep trying |
-| PZ-15 | Solve a puzzle without mistakes | "Success!" in green; the detail line shows the puzzle ID, its rating and themes; the rating rises (green change); Solved +1 |
+| PZ-15 | Solve a puzzle without mistakes | "Success!" in green; the detail line shows "New Rating" rising (green change); the grey line shows the difficulty and Solved +1 (no puzzle ID, puzzle rating or puzzle types) |
 | PZ-16 | Solve after a mistake | "Puzzle complete"; no further rating change |
 | PZ-17 | A "Mate in 1" puzzle: mate with a different move from the solution, if there is one | Counts as solved |
 | PZ-18 | Press Solution mid-puzzle | The remaining moves play out, then "Puzzle complete"; counts as failed if it was the first attempt; Solution is greyed out afterwards |
 | PZ-19 | Press Solution straight after a wrong move | The wrong move is taken back first, then the solution plays correctly |
 | PZ-20 | Press Next Puzzle mid-animation | The new puzzle starts cleanly; nothing from the old one plays on top |
-| PZ-21 | After a puzzle ends, move pieces | Either side can move freely (exploring), with no feedback |
+| PZ-21 | After a puzzle ends (solved or Solution), try to move pieces of both colours | Nothing can be picked up until Next Puzzle; any selection clears when it ends |
 | PZ-22 | Promotion during a puzzle | The picker appears; the chosen piece is part of the move that is checked |
+| PZ-23 | Info button, mid-puzzle and after finishing | Tooltip with the puzzle ID, rating, difficulty, number of moves, result (Solved or Failed), readable themes ("Mate in 2", "Discovered attack"); greyed out until the puzzle is over |
 
 ### Rating, tiers and progress
 
 | ID | Do | Expected |
 |---|---|---|
-| PZ-30 | Tier button | Menu of Raid Finder, Normal, Heroic, Mythic and Cutting Edge with rating ranges; the current one is checked; choosing one starts a puzzle from it and the button shows its name |
-| PZ-31 | Several puzzles per tier | Puzzle ratings (shown after each) are inside the tier's range |
+| PZ-30 | Tier button | Menu of Raid Finder, Normal, Heroic, Mythic and Cutting Edge with rating ranges; the current one is checked; choosing one starts a puzzle from it; the button always reads "Difficulty" and the grey info line shows the chosen tier |
+| PZ-31 | Several puzzles per tier | Puzzle ratings (in the Info tooltip) are inside the tier's range |
 | PZ-32 | Leave mid-puzzle (Play tab or `/reload`), come back | The same unfinished puzzle starts again |
-| PZ-33 | Note a solved puzzle's ID; keep playing | It doesn't come up again |
+| PZ-33 | Note a solved puzzle's ID (Info button); keep playing | It doesn't come up again |
 | PZ-34 | `/kco`, Puzzles section | Lichess credit; rating / solved / failed match the footer |
 | PZ-35 | Reset Puzzle Progress (confirm) | Rating 1500, counts 0 |
-| PZ-36 | Reset Options | Options reset; puzzle rating and counts are kept |
+| PZ-36 | Reset Options | Options reset, including puzzle types (all ticked again); puzzle rating and counts are kept |
+| PZ-37 | `/reload`, `/kco`, Puzzle Types (button in the Puzzles section, or the entry under Karazhan Chess) | Groups Tactics (10 boxes), Mates (4), Endgames (5) and Other (1), all ticked by default |
+| PZ-38 | Untick All, tick Bishop endgames, press Next Puzzle a few times in a couple of tiers | Every puzzle is a bishop endgame (kings, bishops, pawns), found without a pause |
+| PZ-39 | Untick All, press Next Puzzle; then Tick All and Next Puzzle | "No puzzles" / "No <tier> puzzles match the puzzle types you ticked.", straight away; after Tick All a puzzle starts |
+| PZ-40 | Untick a few types, `/reload`, open Puzzle Types | The same types are still unticked |
+| PZ-41 | Untick All, tick Mate in 1 and Mate in 2; solve or show a few puzzles | Each ends in checkmate within one or two of your moves |
 
 ## Window and options
 

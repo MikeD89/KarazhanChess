@@ -1,7 +1,8 @@
 -- Karazhan Chess - checks the generated puzzle data addon: loads its files the way
 -- WoW would (through a stub LibStub), then for every tier checks the count,
 -- unique IDs, record lookup by index and by ID, and that every record decodes
--- to a position where the whole solution is legal.
+-- to a position where the whole solution is legal, and that Codec.Records and
+-- Codec.AnyThemeCode agree with GetRecord and Decode.
 -- Run: node lua.js tests/puzzles.lua [sample]   (sample: check every Nth record, default 1)
 local step = tonumber(arg[1]) or 1
 
@@ -39,6 +40,12 @@ for _, key in ipairs({ "RaidFinder", "Normal", "Heroic", "Mythic", "CuttingEdge"
     for _, chunk in ipairs(tier.chunks) do
         for _ in chunk:gmatch("%S+") do records = records + 1 end
     end
+    local iterated = 0
+    for index, record in Codec.Records(tier) do
+        iterated = iterated + 1
+        if index % step == 1 % step and Codec.GetRecord(tier, index) ~= record then fail(key .. " Records index " .. index) end
+    end
+    if iterated ~= tier.count then fail(key .. " Records gave " .. iterated) end
     if records ~= tier.count then fail(key .. " count " .. tier.count .. " but " .. records .. " records") end
 
     local start, checked = os.clock(), 0
@@ -50,6 +57,9 @@ for _, key in ipairs({ "RaidFinder", "Normal", "Heroic", "Mythic", "CuttingEdge"
         if Codec.FindRecord(tier, id) ~= record then fail("FindRecord " .. id) end
 
         local puzzle = Codec.Decode(record, themes)
+        local codes = {}
+        Codec.AnyThemeCode(record, function(code) codes[#codes + 1] = themes[code + 1] end)
+        if table.concat(codes, ",") ~= table.concat(puzzle.themes, ",") then fail(id .. " AnyThemeCode differs from Decode") end
         local pos = Rules.Copy(puzzle.position)
         for n, uci in ipairs(puzzle.moves) do
             local move = Rules.FindMove(pos, uci)

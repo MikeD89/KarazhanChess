@@ -115,6 +115,7 @@ function KC:createChessFrame(frame)
 		GameTooltip:Show()
 	end)
 	flipButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	flipButton:Hide() -- Hidden for now; delete this line to bring it back
 
 	-- Button consts
 	local buttonWidth = 70
@@ -126,6 +127,8 @@ function KC:createChessFrame(frame)
 		button:SetSize(width or buttonWidth, buttonHeight)
 		button:SetText(text)
 		button:SetNormalFontObject("GameFontNormalSmall")
+		button:SetHighlightFontObject("GameFontHighlightSmall")
+		button:SetDisabledFontObject("GameFontDisableSmall")
 		button:SetScript("OnClick", onClick)
 		return button
 	end
@@ -149,11 +152,17 @@ function KC:createChessFrame(frame)
 	KC.solutionButton = createButton("Solution", nil, function() ns.Puzzles:ShowSolution() end)
 	KC.solutionButton:SetPoint("RIGHT", nextButton, "LEFT", -buttonMargin, 0)
 
-	-- Tier selector: shows the chosen tier and opens a menu of them
-	KC.tierButton = createButton("", buttonWidth + 10, function(button) KC:OpenTierMenu(button) end)
+	-- Difficulty: opens a menu of the tiers (the chosen one is in the info bar)
+	KC.tierButton = createButton("Difficulty", buttonWidth + 10, function(button) KC:OpenTierMenu(button) end)
 	KC.tierButton:SetPoint("RIGHT", KC.solutionButton, "LEFT", -buttonMargin, 0)
 
-	KC.puzzleButtons = { nextButton, KC.solutionButton, KC.tierButton }
+	-- Info: the puzzle's details in a tooltip, on hover or click, once it is over
+	KC.infoButton = createButton("Info", 50, function(button) KC:ShowPuzzleInfo(button) end)
+	KC.infoButton:SetPoint("RIGHT", KC.tierButton, "LEFT", -buttonMargin, 0)
+	KC.infoButton:SetScript("OnEnter", function(button) KC:ShowPuzzleInfo(button) end)
+	KC.infoButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+	KC.puzzleButtons = { nextButton, KC.solutionButton, KC.tierButton, KC.infoButton }
 
 	-- Move history buttons (both modes), bottom left: back one move / forward one move
 	local function createHistoryButton(text, tooltip, delta)
@@ -285,14 +294,35 @@ function KC:UpdateHistoryButtons()
 	KC.nextMoveButton:SetEnabled(game.historyIndex < #game.history)
 end
 
--- Tier name on the tier button; Solution only while a puzzle is unsolved
+-- Solution only while a puzzle is unsolved, Info only once it is over
 function KC:UpdatePuzzleButtons()
 	if not KC.tierButton then
 		return
 	end
 	local Puzzles = ns.Puzzles
-	KC.tierButton:SetText(Puzzles:GetTier().name)
 	KC.solutionButton:SetEnabled(Puzzles.active and Puzzles.puzzle ~= nil and not Puzzles.done)
+	KC.infoButton:SetEnabled(Puzzles.puzzle ~= nil and Puzzles.done)
+end
+
+-- Tooltip with the current puzzle's ID, rating, themes etc.
+function KC:ShowPuzzleInfo(owner)
+	local info = ns.Puzzles:GetInfo()
+	if not info then
+		return
+	end
+	GameTooltip:SetOwner(owner, "ANCHOR_TOP")
+	GameTooltip:SetText("Puzzle Info")
+	local label = NORMAL_FONT_COLOR
+	for _, line in ipairs(info) do
+		if (line[1] == "Themes") then
+			-- Can be long: its own wrapped line under the label
+			GameTooltip:AddLine(line[1], label.r, label.g, label.b)
+			GameTooltip:AddLine(line[2], 1, 1, 1, true)
+		else
+			GameTooltip:AddDoubleLine(line[1], tostring(line[2]), label.r, label.g, label.b, 1, 1, 1)
+		end
+	end
+	GameTooltip:Show()
 end
 
 -- The tier menu: one entry per tier with its rating range

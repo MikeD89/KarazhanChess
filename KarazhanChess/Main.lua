@@ -66,7 +66,7 @@ KC.frame = nil
 KC.game = nil
 KC.boardFlipped = false -- Black at the bottom (KC:SetBoardFlipped)
 KC.fixedWidth = 450
-KC.fixedHeight = 570 -- Board plus the info bar under it
+KC.fixedHeight = 555 -- Board plus the info bar under it
 KC.boardAlpha = 0.8
 KC.boardDim = 8 
 KC.boardSectionSize = floor(KC.fixedWidth / (KC.boardDim + 0.75))
@@ -87,6 +87,8 @@ function KC:OnInitialize()
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.name, KC.options);
 	self.KCOptions, self.KCOptionsID = KC.ACD:AddToBlizOptions(KC.name, KC.name);
+	LibStub("AceConfig-3.0"):RegisterOptionsTable(KC.puzzleTypesAppName, KC.puzzleTypeOptions);
+	self.KCPuzzleTypes, self.KCPuzzleTypesID = KC.ACD:AddToBlizOptions(KC.puzzleTypesAppName, "Puzzle Types", KC.name);
 
 	-- Setup Brokers
 	KC:createBroker()
@@ -254,6 +256,10 @@ SlashCmdList['CHESSCMD'] = function(msg)
     elseif (command == "puzzle" or command == "puzzles" or command == "play") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         KC:SetMode((command == "play") and "play" or "puzzle")
+    elseif (command == "flip") then
+        -- The flip button is hidden for now
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        KC:FlipBoard()
     elseif (command == "move") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         if not KC.game:ExecuteMove(string.lower(rest)) then

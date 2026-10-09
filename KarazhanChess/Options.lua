@@ -146,17 +146,18 @@ KC.options = {
 			name = "Puzzles",
 			order = 60,
 		},
-		puzzleCredits = {
-			type = "description",
-			name = "Puzzles come from the Lichess puzzle database (database.lichess.org), released into the public domain under CC0. Thank you to Lichess and its players.\n",
-			fontSize = "medium",
-			order = 61,
-		},
 		puzzleProgress = {
 			type = "description",
 			name = function() return KC:getPuzzleProgressText() end,
 			fontSize = "medium",
 			order = 62,
+		},
+		puzzleTypesButton = {
+			type = "execute",
+			name = "Puzzle Types",
+			desc = "Choose which kinds of puzzle you get",
+			order = 62.5,
+			func = function() Settings.OpenToCategory(KC.KCPuzzleTypesID) end,
 		},
 		resetPuzzlesButton = {
 			type = "execute",
@@ -176,6 +177,56 @@ KC.options = {
 };
 
 
+-- Puzzle Types: its own page under Karazhan Chess, with a tick box per type
+-- (Puzzles.TypeGroups), in one inline group per group of types
+KC.puzzleTypesAppName = KC.name.." Puzzle Types"
+KC.puzzleTypeOptions = {
+	name = "",
+	type = "group",
+	args = {
+		intro = {
+			type = "description",
+			name = "Tick the kinds of puzzle you want. A puzzle is offered if any of its types is ticked; Other puzzles are those with none of these types. The current puzzle isn't affected.\n",
+			fontSize = "medium",
+			order = 1,
+		},
+		allOn = {
+			type = "execute",
+			name = "Tick All",
+			order = 2,
+			func = function() ns.Puzzles:SetAllTypesEnabled(true) end,
+		},
+		allOff = {
+			type = "execute",
+			name = "Untick All",
+			order = 3,
+			func = function() ns.Puzzles:SetAllTypesEnabled(false) end,
+		},
+	},
+}
+
+for i, group in ipairs(ns.Puzzles.TypeGroups) do
+	local args = {}
+	for j, puzzleType in ipairs(group.types) do
+		args[puzzleType.key] = {
+			type = "toggle",
+			name = puzzleType.name,
+			order = j,
+			width = 1.2,
+			get = function() return ns.Puzzles:IsTypeEnabled(puzzleType.key) end,
+			set = function(info, value) ns.Puzzles:SetTypeEnabled(puzzleType.key, value) end,
+		}
+	end
+	KC.puzzleTypeOptions.args[group.key] = {
+		type = "group",
+		inline = true,
+		name = group.name,
+		order = 10 + i,
+		args = args,
+	}
+end
+
+
 ---------------------
 -- Default Options --
 ---------------------
@@ -189,6 +240,7 @@ KC.optionDefaults = {
 		windowScale = 1.0,
 		boardTheme = "Default",
 		pieceTheme = "Default",
+		puzzleTypesOff = {}, -- puzzle types unticked: { [type key] = true } (Puzzles.TypeGroups)
 		puzzles = {
 			rating = 1500,
 			tier = "Normal",

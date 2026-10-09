@@ -91,20 +91,172 @@ local function countKeys(t)
     return n
 end
 
--- Theme names for display: "mateIn2" -> "Mate in 2", "backRankMate" -> "Back rank mate"
-local ThemeLabels = {
-    superGM = "Super GM",
-    attackingF2F7 = "Attacking f2/f7",
-    xRayAttack = "X-ray attack",
-    mateIn1 = "Mate in 1", mateIn2 = "Mate in 2", mateIn3 = "Mate in 3",
-    mateIn4 = "Mate in 4", mateIn5 = "Mate in 5",
+-- Puzzle types for the Puzzle Types options: each groups one or more Lichess
+-- themes. A puzzle is offered if any of its types is ticked. Broad themes that
+-- nearly every puzzle has (phase, goal, length, origin) aren't types, so a puzzle
+-- with none of the themes below belongs to "other".
+Puzzles.TypeGroups = {
+    { key = "tactics", name = "Tactics", types = {
+        { key = "forks", name = "Forks", themes = { "fork" } },
+        { key = "pins", name = "Pins and skewers", themes = { "pin", "skewer", "xRayAttack", "collinearMove" } },
+        { key = "discovered", name = "Discovered attacks", themes = { "discoveredAttack", "discoveredCheck", "doubleCheck" } },
+        { key = "sacrifices", name = "Sacrifices", themes = { "sacrifice" } },
+        { key = "decoys", name = "Deflection and decoys", themes = { "attraction", "deflection", "capturingDefender", "interference", "clearance" } },
+        { key = "hanging", name = "Hanging and trapped pieces", themes = { "hangingPiece", "trappedPiece" } },
+        { key = "kingAttack", name = "King attacks", themes = { "kingsideAttack", "queensideAttack", "exposedKing", "attackingF2F7" } },
+        { key = "quiet", name = "Quiet and defensive moves", themes = { "quietMove", "defensiveMove", "zugzwang", "intermezzo" } },
+        { key = "pawns", name = "Advanced pawns", themes = { "advancedPawn" } },
+        { key = "special", name = "Promotion, castling, en passant", themes = { "promotion", "underPromotion", "castling", "enPassant" } },
+    } },
+    { key = "mates", name = "Mates", types = {
+        { key = "mate1", name = "Mate in 1", themes = { "mateIn1" } },
+        { key = "mate2", name = "Mate in 2", themes = { "mateIn2" } },
+        { key = "mate3", name = "Mate in 3 or more", themes = { "mateIn3", "mateIn4", "mateIn5" } },
+        { key = "matePatterns", name = "Named mating patterns", themes = { "anastasiaMate", "arabianMate",
+            "backRankMate", "balestraMate", "blindSwineMate", "bodenMate", "cornerMate", "doubleBishopMate",
+            "dovetailMate", "epauletteMate", "hookMate", "killBoxMate", "morphysMate", "operaMate",
+            "pillsburysMate", "smotheredMate", "swallowstailMate", "triangleMate", "vukovicMate" } },
+    } },
+    { key = "endgames", name = "Endgames", types = {
+        { key = "pawnEndgame", name = "Pawn endgames", themes = { "pawnEndgame" } },
+        { key = "knightEndgame", name = "Knight endgames", themes = { "knightEndgame" } },
+        { key = "bishopEndgame", name = "Bishop endgames", themes = { "bishopEndgame" } },
+        { key = "rookEndgame", name = "Rook endgames", themes = { "rookEndgame" } },
+        { key = "queenEndgame", name = "Queen endgames", themes = { "queenEndgame", "queenRookEndgame" } },
+    } },
+    { key = "other", name = "Other", types = {
+        { key = "other", name = "Other puzzles", themes = {} },
+    } },
 }
-function Puzzles:ThemeLabel(name)
-    if ThemeLabels[name] then
-        return ThemeLabels[name]
+
+-- Theme name -> type key
+local TypeOfTheme = {}
+for _, group in ipairs(Puzzles.TypeGroups) do
+    for _, puzzleType in ipairs(group.types) do
+        for _, theme in ipairs(puzzleType.themes) do
+            TypeOfTheme[theme] = puzzleType.key
+        end
     end
-    local words = name:gsub("(%u)", " %1"):gsub("(%d+)", " %1"):lower()
-    return (words:gsub("^%l", string.upper))
+end
+
+-- Types the player unticked: KC.db.global.puzzleTypesOff = { [type key] = true }
+function Puzzles:IsTypeEnabled(key)
+    return not KC.db.global.puzzleTypesOff[key]
+end
+
+function Puzzles:SetTypeEnabled(key, enabled)
+    KC.db.global.puzzleTypesOff[key] = (not enabled) or nil
+    self.allowedCache = nil
+end
+
+function Puzzles:AnyTypeEnabled()
+    for _, group in ipairs(Puzzles.TypeGroups) do
+        for _, puzzleType in ipairs(group.types) do
+            if self:IsTypeEnabled(puzzleType.key) then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function Puzzles:SetAllTypesEnabled(enabled)
+    local off = KC.db.global.puzzleTypesOff
+    wipe(off)
+    if not enabled then
+        for _, group in ipairs(Puzzles.TypeGroups) do
+            for _, puzzleType in ipairs(group.types) do
+                off[puzzleType.key] = true
+            end
+        end
+    end
+    self.allowedCache = nil
+end
+
+-- Whether a puzzle may be offered: it has a ticked type, or has no type at all
+-- and "other" is ticked. eachType(visit) calls visit(type key) for each of the
+-- puzzle's types, stopping and returning true as soon as visit does.
+local function typesAllowed(off, eachType)
+    local any = false
+    local allowed = eachType(function(key)
+        any = true
+        return not off[key]
+    end)
+    return allowed or (not any and not off.other)
+end
+
+-- Whether a decoded puzzle may be offered
+function Puzzles:IsAllowed(puzzle)
+    local off = KC.db.global.puzzleTypesOff
+    if next(off) == nil then
+        return true
+    end
+    return typesAllowed(off, function(visit)
+        for _, theme in ipairs(puzzle.themes) do
+            local key = TypeOfTheme[theme]
+            if key and visit(key) then
+                return true
+            end
+        end
+        return false
+    end)
+end
+
+-- The filter cache for the current types: { off, allows = fn(record), tiers = {} },
+-- or nil when nothing is unticked. Rebuilt when the types change (off is compared
+-- as well, as Reset Options replaces the table).
+function Puzzles:GetFilter()
+    local off = KC.db.global.puzzleTypesOff
+    if next(off) == nil then
+        return nil
+    end
+    local cache = self.allowedCache
+    if not (cache and cache.off == off) then
+        -- Theme code (from 0) -> type key, for checking records without decoding them
+        local typeOfCode = {}
+        for i, name in ipairs(self.themeNames) do
+            typeOfCode[i - 1] = TypeOfTheme[name]
+        end
+        local function allows(record)
+            return typesAllowed(off, function(visit)
+                return Codec.AnyThemeCode(record, function(code)
+                    local key = typeOfCode[code]
+                    return key and visit(key)
+                end)
+            end)
+        end
+        cache = { off = off, allows = allows, tiers = {} }
+        self.allowedCache = cache
+    end
+    return cache
+end
+
+-- Whether a record may be offered, without decoding it
+function Puzzles:IsRecordAllowed(record)
+    local filter = self:GetFilter()
+    return not filter or filter.allows(record)
+end
+
+-- The indexes of a tier's allowed records, as { list = { index, ... },
+-- set = { [index] = true } }, or nil when nothing is unticked. Scans the whole
+-- tier (a noticeable pause), so it is only built when random picks can't find an
+-- allowed puzzle, and kept until the types change.
+function Puzzles:GetAllowed(key)
+    local filter = self:GetFilter()
+    if not filter then
+        return nil
+    end
+    if not filter.tiers[key] then
+        local allowed = { list = {}, set = {} }
+        for index, record in Codec.Records(self.data[key]) do
+            if filter.allows(record) then
+                allowed.list[#allowed.list + 1] = index
+                allowed.set[index] = true
+            end
+        end
+        filter.tiers[key] = allowed
+    end
+    return filter.tiers[key]
 end
 
 -- Entering and leaving puzzle mode -------------------------------------------
@@ -133,7 +285,7 @@ function Puzzles:Enter()
 
     local current = self:GetProgress().current
     local puzzle = current and self:FindPuzzle(current)
-    if puzzle and not self:IsAttempted(puzzle.id) then
+    if puzzle and not self:IsAttempted(puzzle.id) and self:IsAllowed(puzzle) then
         self:Start(puzzle)
     else
         self:Next()
@@ -182,8 +334,9 @@ function Puzzles:FindPuzzle(id)
     end
 end
 
--- A random puzzle from the chosen tier that hasn't been attempted, or any one if
--- every puzzle in the tier has been
+-- A random unattempted puzzle from the chosen tier allowed by the ticked types,
+-- or any allowed one if every allowed puzzle has been attempted. Returns
+-- nil if the tier is missing or none of its puzzles is allowed.
 function Puzzles:PickPuzzle()
     local tier = self.data[self:GetTier().key]
     if not tier then
@@ -191,8 +344,37 @@ function Puzzles:PickPuzzle()
     end
 
     local current = self.puzzle and self.puzzle.id
+    local key = self:GetTier().key
+    local filter = self:GetFilter()
+    if (filter and not self:AnyTypeEnabled()) then
+        return nil -- everything unticked: no need to scan
+    end
+
+    -- With types unticked, try random records first, checking their types
+    -- cheaply; usually enough unless the types rule out nearly everything
+    if (filter and not filter.tiers[key]) then
+        for _ = 1, 1000 do
+            local record = Codec.GetRecord(tier, math.random(tier.count))
+            local id = Codec.GetId(record)
+            if id ~= current and not self:IsAttempted(id) and self:IsRecordAllowed(record) then
+                return Codec.Decode(record, self.themeNames)
+            end
+        end
+    end
+
+    -- Pick from the allowed records only (all of them when no type is unticked)
+    local allowed = self:GetAllowed(key)
+    local count = allowed and #allowed.list or tier.count
+    if (count == 0) then
+        return nil
+    end
+    local function randomRecord()
+        local k = math.random(count)
+        return Codec.GetRecord(tier, allowed and allowed.list[k] or k)
+    end
+
     for _ = 1, 200 do
-        local record = Codec.GetRecord(tier, math.random(tier.count))
+        local record = randomRecord()
         local id = Codec.GetId(record)
         if id ~= current and not self:IsAttempted(id) then
             return Codec.Decode(record, self.themeNames)
@@ -200,15 +382,14 @@ function Puzzles:PickPuzzle()
     end
 
     -- Random picks keep landing on attempted puzzles, so look through them all
-    for i = 1, tier.count do
-        local record = Codec.GetRecord(tier, i)
-        if not self:IsAttempted(Codec.GetId(record)) then
+    for index, record in Codec.Records(tier) do
+        if (not allowed or allowed.set[index]) and not self:IsAttempted(Codec.GetId(record)) then
             return Codec.Decode(record, self.themeNames)
         end
     end
 
     self.tierFinished = true
-    return Codec.Decode(Codec.GetRecord(tier, math.random(tier.count)), self.themeNames)
+    return Codec.Decode(randomRecord(), self.themeNames)
 end
 
 function Puzzles:Next()
@@ -216,6 +397,9 @@ function Puzzles:Next()
     local puzzle = self:PickPuzzle()
     if puzzle then
         self:Start(puzzle)
+    elseif self.data[self:GetTier().key] then
+        KC:SetStatus("No puzzles", ns.Colours.Bad, "No "..self:GetTier().name.." puzzles match the puzzle types you ticked.",
+            "Choose your puzzle types in the options (/kco, Puzzle Types).")
     else
         KC:SetStatus("No puzzles", ns.Colours.Bad, "The "..self:GetTier().name.." tier has no puzzles.")
     end
@@ -372,10 +556,9 @@ function Puzzles:Finish(solved)
     end
     self.feedback = solved and "solved" or "complete"
 
-    -- Free to move pieces around afterwards, as on Lichess, including from an
-    -- earlier position in the history
-    KC.game.allowedColour = nil
-    KC.game.lockHistory = false
+    -- No more moves once it's over; < and > still step through the moves to review them
+    KC.game.allowedColour = false
+    KC.game:DeselectPiece()
     self:ShowStatus()
     KC:UpdatePuzzleButtons()
 end
@@ -407,34 +590,81 @@ local function sideName(colour)
     return (colour == "w") and "White" or "Black"
 end
 
+-- The player's rating, with the change from this puzzle once it is over
 function Puzzles:GetRatingLine()
+    local rating = self:GetProgress().rating
+    if not self.ratingChange then
+        return "Rating: "..rating
+    end
+    local colour = (self.ratingChange >= 0) and "|cff40d040+" or "|cffe04040"
+    return "New Rating: "..rating.." ("..colour..self.ratingChange.."|r)"
+end
+
+-- Difficulty, the player's rating until the puzzle is over (then it has its
+-- own line), and the player's counts
+function Puzzles:GetStatsLine()
     local progress = self:GetProgress()
-    local line = self:GetTier().name.." · Puzzle rating "..progress.rating
-    if self.ratingChange then
-        local colour = (self.ratingChange >= 0) and "|cff40d040+" or "|cffe04040"
-        line = line.." ("..colour..self.ratingChange.."|r)"
+    local tierName = self:GetTier().name
+    local line = self.tierFinished and ("Every "..tierName.." puzzle tried!") or tierName
+    if not self.done then
+        line = line.." · Rating "..progress.rating
     end
     return line.." · Solved "..countKeys(progress.solved).." · Failed "..countKeys(progress.failed)
 end
 
+-- Lichess theme names that don't read well split at the capitals
+local ThemeNames = {
+    attackingF2F7 = "Attacking f2/f7",
+    xRayAttack = "X-ray attack",
+    underPromotion = "Underpromotion",
+    superGM = "Super GM",
+    masterVsMaster = "Master vs master",
+}
+
+-- "mateIn2" -> "Mate in 2"
+local function themeName(theme)
+    if ThemeNames[theme] then
+        return ThemeNames[theme]
+    end
+    local words = theme:gsub("(%u)", " %1"):gsub("(%d+)", " %1"):lower()
+    return (words:gsub("^%l", string.upper))
+end
+
+-- Lines for the Info button tooltip (enabled once a puzzle is over): { label, value }
+-- pairs, nil without a puzzle
+function Puzzles:GetInfo()
+    local puzzle = self.puzzle
+    if not puzzle then
+        return nil
+    end
+    local progress = self:GetProgress()
+    local themes = {}
+    for _, theme in ipairs(puzzle.themes) do
+        table.insert(themes, themeName(theme))
+    end
+    local result = "Not tried"
+    if progress.solved[puzzle.id] then
+        result = "Solved"
+    elseif progress.failed[puzzle.id] then
+        result = "Failed"
+    end
+    return {
+        { "Puzzle", puzzle.id },
+        { "Rating", puzzle.rating },
+        { "Difficulty", self:GetTier().name },
+        { "Moves", math.floor(#puzzle.moves / 2) },
+        { "Result", result },
+        { "Themes", (#themes > 0) and table.concat(themes, ", ") or "None" },
+    }
+end
+
 function Puzzles:ShowStatus()
     local C = ns.Colours
-    local puzzle = self.puzzle
-    local footer = self:GetRatingLine()
+    local footer = self:GetStatsLine()
     local feedback = self.feedback
 
     if self.done then
-        local themes = {}
-        for i, name in ipairs(puzzle.themes) do
-            themes[i] = self:ThemeLabel(name)
-        end
-        local detail = "Puzzle "..puzzle.id.." · Rated "..puzzle.rating
-        if #themes > 0 then
-            detail = detail.." · "..table.concat(themes, ", ")
-        end
-        if self.tierFinished then
-            detail = "You have tried every puzzle in this tier! · "..detail
-        end
+        local detail = self:GetRatingLine()
         if (feedback == "solved" and not self.mistake) then
             KC:SetStatus("Success!", C.Good, detail, footer)
         else

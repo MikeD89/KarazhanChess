@@ -11,7 +11,8 @@ local function fail(test, message)
     print((test.id or "?") .. ": " .. message)
 end
 
-local loadFields = { fen = true, newGame = true, clear = true, moves = true, flipped = true, mode = true }
+local loadFields = { fen = true, newGame = true, clear = true, moves = true, flipped = true, mode = true, computer = true }
+local levels = { RaidFinder = true, Normal = true, Heroic = true, Mythic = true, CuttingEdge = true }
 local seen = {}
 for _, test in ipairs(Tests) do
     if type(test.id) ~= "string" then fail(test, "missing id") end
@@ -28,6 +29,13 @@ for _, test in ipairs(Tests) do
             if not loadFields[key] then fail(test, "unknown load field " .. key) end
         end
         if load.mode and load.mode ~= "play" and load.mode ~= "puzzle" then fail(test, "bad mode " .. tostring(load.mode)) end
+        if load.computer then
+            if not levels[load.computer.level] then fail(test, "bad computer level " .. tostring(load.computer.level)) end
+            local colour = load.computer.colour
+            if colour ~= nil and colour ~= "w" and colour ~= "b" then fail(test, "bad computer colour " .. tostring(colour)) end
+            if not (load.fen or load.newGame) then fail(test, "computer needs fen or newGame") end
+            if load.moves or load.flipped or load.clear then fail(test, "computer can't be combined with moves, flipped or clear") end
+        end
 
         local pos, err
         if load.fen then

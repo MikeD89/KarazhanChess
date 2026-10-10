@@ -65,6 +65,9 @@ local function describeLoad(load)
 	elseif load.clear then
 		parts[#parts + 1] = "empty board"
 	end
+	if load.computer then
+		parts[#parts + 1] = "against the "..load.computer.level.." computer, you play "..((load.computer.colour == "b") and "black" or "white")
+	end
 	if load.flipped then
 		parts[#parts + 1] = "board flipped"
 	end
@@ -101,7 +104,15 @@ function TestPanel:Load(test)
 	if setsBoard then
 		StaticPopup_Hide(game.NewGameConfirmDiag)
 		StaticPopup_Hide(game.ClearBoardConfirmDiag)
-		if load.fen then
+		ns.Computer:Stop()
+		if load.computer then
+			-- Sets the board up (FEN or start position) and turns it to the player
+			local ok, err = ns.Computer:Start(load.computer.level, load.computer.colour or "w", load.fen)
+			if not ok then
+				KC:Print(test.id..": invalid FEN: "..tostring(err))
+			end
+			return
+		elseif load.fen then
 			local turn, err = game:LoadFEN(load.fen)
 			if not turn then
 				KC:Print(test.id..": invalid FEN: "..err)

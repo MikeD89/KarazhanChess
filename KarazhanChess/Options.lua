@@ -37,7 +37,7 @@ KC.options = {
 		},
 		mainText = {
 			type = "description",
-			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kc puzzle - Puzzles\n/kco - Options Panel",
+			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kc computer - New game against the computer\n/kc puzzle - Puzzles\n/kco - Options Panel",
 			fontSize = "medium",
 			order = 4,
 		},
@@ -168,6 +168,29 @@ KC.options = {
 			order = 63,
 			func = function() ns.Puzzles:ResetProgress() end,
 		},
+		computerHeader = {
+			type = "header",
+			name = "Computer",
+			order = 50,
+		},
+		computerRecord = {
+			type = "description",
+			name = function() return KC:getComputerRecordText() end,
+			fontSize = "medium",
+			order = 51,
+		},
+		resetComputerButton = {
+			type = "execute",
+			name = "Reset Computer Record",
+			desc = "Forgets your wins, losses and draws against the computer.",
+			confirm = true,
+			confirmText = "Forget your wins, losses and draws against the computer?",
+			order = 52,
+			func = function()
+				KC.db.global.computer.record = {}
+				ns.Computer:ShowStatus()
+			end,
+		},
 		hiddenHeader = {
 			type = "header",
 			hidden = true,
@@ -241,6 +264,11 @@ KC.optionDefaults = {
 		boardTheme = "Default",
 		pieceTheme = "Default",
 		puzzleTypesOff = {}, -- puzzle types unticked: { [type key] = true } (Puzzles.TypeGroups)
+		computer = {
+			level = "Normal", -- last difficulty played (Computer.Levels)
+			colour = "random", -- "w", "b" or "random"
+			record = {},      -- [level key] = { won, lost, drawn }
+		},
 		puzzles = {
 			rating = 1500,
 			tier = "Normal",
@@ -255,10 +283,13 @@ KC.optionDefaults = {
 -- Reset Options --
 -------------------
 function KC:resetProfile(info)
-	-- Puzzle progress isn't an option, so it survives (it has its own reset)
+	-- Puzzle progress and the record against the computer aren't options, so they
+	-- survive (they have their own resets)
 	local puzzles = self.db.global.puzzles
+	local record = self.db.global.computer.record
 	self.db:ResetDB(KC.profileName)
 	self.db.global.puzzles = puzzles
+	self.db.global.computer.record = record
 
 	-- ResetDB replaces db.global, so point the minimap icon at the new settings table
 	KC.ICON:Refresh(KC.name, KC.db.global.minimapIcon)
@@ -381,6 +412,24 @@ function KC:getPuzzleProgressText()
 	for _ in pairs(progress.solved) do solved = solved + 1 end
 	for _ in pairs(progress.failed) do failed = failed + 1 end
 	return "Puzzle rating: |cffffffff"..progress.rating.."|r   Solved: |cffffffff"..solved.."|r   Failed: |cffffffff"..failed.."|r\n"
+end
+
+
+-- Computer Record
+
+function KC:getComputerRecordText()
+	local lines = {}
+	for _, level in ipairs(ns.Computer.Levels) do
+		local record = self.db.global.computer.record[level.key]
+		if record then
+			lines[#lines + 1] = level.name..": |cffffffff"..record.won.."|r won, |cffffffff"..record.lost
+				.."|r lost, |cffffffff"..record.drawn.."|r drawn"
+		end
+	end
+	if (#lines == 0) then
+		return "No games against the computer yet. Start one with New Game.\n"
+	end
+	return table.concat(lines, "\n").."\n"
 end
 
 

@@ -24,6 +24,9 @@ end
 --              moves = { uci }   then play these moves, animated one after another
 --              flipped = true    black at the bottom (board setups are unflipped otherwise)
 --              mode = "puzzle"   switch to puzzles ("play" switches back)
+--              computer = { level = "Heroic", colour = "w" }
+--                                start a game against the computer from the fen (or
+--                                newGame) position, the player as colour (default w)
 --   steps    what to do, in order (empty = loading is the whole test)
 --   check    what should happen
 --
@@ -263,6 +266,72 @@ add("Board: UCI command", {
 		check = "Prints \"Invalid FEN: malformed FEN\"." },
 })
 
+-- Computer opponent -----------------------------------------------------------
+-- Results count towards the level's record (/kco, Computer); Reset Computer
+-- Record clears it afterwards.
+
+local COMPUTER_MATES = "1r4k1/8/8/8/8/8/5PPP/6K1 b - - 0 1"
+
+add("Computer: starting a game", {
+	{ id = "AI-1", name = "New Game menu", load = { mode = "play" },
+		steps = { "Click New Game.", "Click Black under Play as." },
+		check = "A menu: Two players; Raid Finder, Normal, Heroic, Mythic and Cutting Edge, each with a grey description; Play as White / Black / Random with the current choice ticked. Clicking Black ticks it and the menu stays open." },
+	{ id = "AI-2", name = "Starting as white", load = { newGame = true, moves = { "e2e4" } },
+		steps = { "New Game, Play as White, then Normal; confirm the popup." },
+		check = "The start position, white at the bottom; info bar \"Your move\" / \"You play White against the Normal computer\"; grey line \"Normal · Won 0 · Lost 0 · Drawn 0\" (or your record)." },
+	{ id = "AI-3", name = "Turns", load = { newGame = true, computer = { level = "Normal", colour = "w" } },
+		steps = { "Try to pick up a black piece.", "Play e4, and while \"Thinking...\" shows, try to pick up a piece.", "Wait for the reply." },
+		check = "Black pieces never select; after your move \"Thinking...\" and nothing can be picked up; the reply animates after about half a second, then \"Your move\" again." },
+	{ id = "AI-4", name = "Playing black", load = { newGame = true, computer = { level = "Heroic", colour = "b" } },
+		steps = { "Watch, then reply." },
+		check = "Black at the bottom; the computer (white) opens with a move after \"Thinking...\"; then you can move black pieces only." },
+	{ id = "AI-5", name = "Random colour", load = { mode = "play" },
+		steps = { "New Game, Play as Random, then Raid Finder. Repeat a few times." },
+		check = "Sometimes white, sometimes black; the board always has your colour at the bottom." },
+	{ id = "AI-6", name = "Slash command",
+		steps = { "/kc computer mythic b", "/kc computer" },
+		check = "First a Mythic game as black (no confirm popup); then a game at the last level and colour chosen. /kc fen afterwards ends the computer game (free play, no turns)." },
+	{ id = "AI-7", name = "Back to two players", load = { newGame = true, computer = { level = "Normal", colour = "w" } },
+		steps = { "Play a move, then New Game, Two players (confirm).", "Load again; Clear Board (confirm)." },
+		check = "Either colour can move again with no turns; the info bar clears; the computer never moves." },
+})
+
+add("Computer: playing", {
+	{ id = "AI-10", name = "The computer mates", load = { fen = COMPUTER_MATES, computer = { level = "Normal", colour = "w" } },
+		steps = { "Watch." },
+		check = "Black plays Rb1 mate; \"Defeat\" / \"Checkmate. Black wins.\"; Lost +1; no piece can be picked up afterwards; < > still step through." },
+	{ id = "AI-11", name = "Mating the computer", load = { fen = "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1", computer = { level = "Normal", colour = "w" } },
+		steps = { "Play Ra8 mate." },
+		check = "\"Victory!\" in green / \"Checkmate. White wins.\"; Won +1." },
+	{ id = "AI-12", name = "Draw: not enough material", load = { fen = "4k3/8/8/8/8/8/3n4/4K3 w - - 0 1", computer = { level = "Normal", colour = "w" } },
+		steps = { "Take the knight with the king." },
+		check = "\"Draw\" / \"Neither side can checkmate\"; Drawn +1." },
+	{ id = "AI-13", name = "Draw: fifty-move rule", load = { fen = "4k3/8/8/8/8/8/R7/4K3 w - - 99 60", computer = { level = "Normal", colour = "w" } },
+		steps = { "Play a quiet rook move (not a capture or pawn move)." },
+		check = "\"Draw\" / \"Fifty moves without a capture or pawn move\"." },
+	{ id = "AI-14", name = "Promotion against the computer", load = { fen = "8/1P6/8/8/8/k7/8/4K3 w - - 0 1", computer = { level = "Normal", colour = "w" } },
+		steps = { "Move b7-b8, then click the dimmed board to cancel.", "Promote again, to a knight." },
+		check = "Cancelling takes the pawn back and the computer doesn't move; after choosing, the knight appears and the computer replies." },
+	{ id = "AI-15", name = "Takeback with <", load = { newGame = true, computer = { level = "Normal", colour = "w" } },
+		steps = { "Play three moves (wait for each reply).", "Press < once and try to move.", "Press < again and play a different move." },
+		check = "One step back (the computer's turn) nothing can be picked up; two steps back your move replaces the later ones (> greys out) and the computer replies to it." },
+	{ id = "AI-16", name = "History while thinking", load = { newGame = true, computer = { level = "CuttingEdge", colour = "w" } },
+		steps = { "Play a move, then press < while it thinks." },
+		check = "The reply still comes, played from the latest position." },
+	{ id = "AI-17", name = "Puzzles pause the game", load = { newGame = true, computer = { level = "CuttingEdge", colour = "w" } },
+		steps = { "Play a move, and while \"Thinking...\" click the Puzzles tab; play a puzzle move.", "Click the Play tab." },
+		check = "No computer move appears in the puzzle; back in Play the game and its history are as you left them, and the computer thinks again and replies." },
+	{ id = "AI-18", name = "Smooth while thinking", load = { newGame = true, computer = { level = "CuttingEdge", colour = "w" } },
+		steps = { "Play a few moves, moving the camera and the window while it thinks." },
+		check = "No freezes; Cutting Edge takes up to about 5 seconds a move; the fade and drag still work." },
+	{ id = "AI-19", name = "Difficulty spread",
+		steps = { "Play a few games at Raid Finder and at Mythic (/kc computer raidfinder, /kc computer mythic)." },
+		check = "Raid Finder hangs pieces and misses simple tactics; Mythic punishes hanging pieces and rarely blunders." },
+	{ id = "AI-20", name = "Record in the options",
+		steps = { "/kco, Computer section.", "Reset Options.", "Reset Computer Record, confirm." },
+		check = "Shows won / lost / drawn per level played; Reset Options keeps it (and the level and colour reset to Normal / Random); Reset Computer Record clears it." },
+})
+
 -- Puzzles --------------------------------------------------------------------
 -- Puzzle progress is saved: note your rating first, and use Reset Puzzle Progress
 -- in /kco afterwards for a clean start.
@@ -279,7 +348,7 @@ add("Puzzles: loading and modes", {
 		check = "Stays on Play; info bar: \"Puzzles unavailable\" and how to enable them." },
 	{ id = "PZ-4", name = "Free play is kept", load = { newGame = true, moves = { "e2e4", "e7e5", "g1f3" }, flipped = true },
 		steps = { "Click the Puzzles tab, then the Play tab." },
-		check = "The free-play position and the flipped orientation come back." },
+		check = "The free-play position, its move history (< steps back through e4 e5 Nf3) and the flipped orientation come back." },
 	{ id = "PZ-5", name = "Slash commands for modes",
 		steps = { "Close the window.", "/kc puzzle", "Close the window.", "/kc play" },
 		check = "Same as clicking the tabs, opening the window each time." },

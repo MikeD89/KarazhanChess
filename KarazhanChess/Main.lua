@@ -240,6 +240,8 @@ end
 --   /kc fen <FEN>   set the board up from a FEN string
 --   /kc move <uci>  play a move in UCI notation, e.g. e2e4 or e7e8q
 --   /kc puzzle      switch to puzzles (/kc play switches back)
+--   /kc computer [level] [w|b|random]  new game against the computer (level is
+--                   a key from Computer.Levels, e.g. heroic or cuttingedge)
 --   /kc tests       toggle the test panel (dev builds only)
 SlashCmdList['CHESSCMD'] = function(msg)
     local command, rest = strtrim(msg or ""):match("^(%S*)%s*(.-)$")
@@ -249,6 +251,7 @@ SlashCmdList['CHESSCMD'] = function(msg)
         ns.TestPanel:Toggle()
     elseif (command == "fen") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
+        ns.Computer:Stop()
         local turn, err = KC.game:LoadFEN(rest)
         if not turn then
             KC:Print("Invalid FEN: "..err)
@@ -256,6 +259,21 @@ SlashCmdList['CHESSCMD'] = function(msg)
     elseif (command == "puzzle" or command == "puzzles" or command == "play") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         KC:SetMode((command == "play") and "play" or "puzzle")
+    elseif (command == "computer") then
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        local Computer = ns.Computer
+        local levelName, colour = rest:lower():match("^(%S*)%s*(%S*)")
+        local level = Computer:GetLevel()
+        for _, l in ipairs(Computer.Levels) do
+            if (l.key:lower() == levelName) then
+                level = l
+            end
+        end
+        if (colour ~= "w" and colour ~= "b" and colour ~= "random") then
+            colour = Computer:GetSettings().colour
+        end
+        KC:SetMode("play")
+        Computer:Start(level.key, colour)
     elseif (command == "flip") then
         -- The flip button is hidden for now
         if not KC.frame:IsShown() then KC:ShowWindow() end

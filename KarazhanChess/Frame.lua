@@ -134,7 +134,8 @@ function KC:createChessFrame(frame)
 	end
 
 	-- Play mode buttons, right to left
-	local newGameButton = createButton("New Game", nil, function() KC.game:StartNewGameWithConfirm() end)
+	-- New Game opens a menu: two players, or the computer at a difficulty
+	local newGameButton = createButton("New Game", nil, function(button) KC:OpenNewGameMenu(button) end)
 	newGameButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17)
 
 	local clearBoardButton = createButton("Clear Board", nil, function() KC.game:ClearBoardWithConfirm() end)
@@ -352,6 +353,43 @@ function KC:OpenTierMenu(owner)
 		end
 	end
 	KC:UpdatePuzzleButtons()
+end
+
+-- The New Game menu: a two player game, or one against the computer at each
+-- difficulty, and which colour to play against it
+function KC:OpenNewGameMenu(owner)
+	local Computer = ns.Computer
+	local game = KC.game
+	if not (MenuUtil and MenuUtil.CreateContextMenu) then
+		game:StartNewGameWithConfirm()
+		return
+	end
+
+	local settings = Computer:GetSettings()
+	MenuUtil.CreateContextMenu(owner, function(_, root)
+		root:CreateTitle("New game")
+		root:CreateButton("Two players", function() game:StartNewGameWithConfirm() end)
+
+		root:CreateDivider()
+		root:CreateTitle("Against the computer")
+		for _, level in ipairs(Computer.Levels) do
+			root:CreateButton(level.name.." |cff9d9d9d("..level.desc..")|r", function()
+				settings.level = level.key
+				game:StartNewGameWithConfirm(function() Computer:Start(level.key, settings.colour) end)
+			end)
+		end
+
+		root:CreateDivider()
+		root:CreateTitle("Play as")
+		for _, choice in ipairs({ { "w", "White" }, { "b", "Black" }, { "random", "Random" } }) do
+			root:CreateRadio(choice[2],
+				function() return settings.colour == choice[1] end,
+				function()
+					settings.colour = choice[1]
+					return MenuResponse and MenuResponse.Refresh -- keep the menu open
+				end)
+		end
+	end)
 end
 
 -- Stores the window's anchor so it reopens in the same place next session

@@ -11,8 +11,9 @@ Most in-game tests start from a FEN, so they don't depend on playing moves by ha
 3. Testing commands:
    - `/kc fen <FEN>` sets the board up from a FEN.
    - `/kc move <uci>` plays a move, for example `e2e4`, `e1g1` (castling) or `e7e8q` (promotion).
+   - `/kc computer [level] [w|b|random]` starts a game against the computer (levels: `raidfinder`, `normal`, `heroic`, `mythic`, `cuttingedge`).
 
-There are no turns in free play yet, so either colour can move at any time.
+There are no turns in free play (two players), so either colour can move at any time. Games against the computer have turns.
 
 ## Offline (no game needed)
 
@@ -24,6 +25,9 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | OFF-2 | `node lua.js tests/perft.lua` | Also start position depth 4 = 197281 and Kiwipete depth 3 = 97862 (about 40 s) |
 | OFF-3 | `node lua.js tests/syntax.lua ../KarazhanChess/*.lua` | `N/N files compile` |
 | OFF-4 | `node lua.js tests/puzzles.lua 25` | Six files load, tiers of 80000 / 120000 / 130000 / 120000 / 50000, `all passed` (about 2 minutes) |
+| OFF-5 | `node lua.js tests/engine.lua quick` | Engine perft counts, best moves, mate / stalemate, repetition, noise, coroutine checks all `ok`, then `all passed` (a few seconds) |
+| OFF-6 | `node lua.js tests/engine.lua` | Also deeper perft (up to 674624 for position 3) and the depth 3-5 benchmark (about 1 minute) |
+| OFF-7 | `node lua.js tests/selfplay.lua RaidFinder Normal 6` | Every game ends (no "illegal move" error); the stronger level (second) scores clearly more. Also try `Normal Heroic 4` and `Heroic Mythic 2` (slow: several minutes a game) |
 
 ## Rules engine
 
@@ -136,6 +140,38 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | U-2 | `/kc move e2e5` | "Not a legal move here: e2e5" |
 | U-3 | `/kc fen not a fen` | "Invalid FEN: malformed FEN" |
 
+## Computer opponent
+
+Results count towards the level's record (`/kco`, Computer section); **Reset Computer Record** clears it afterwards.
+
+### Starting a game
+
+| ID | Setup | Do | Expected |
+|---|---|---|---|
+| AI-1 | Play tab | Click New Game, then Black under Play as | Menu: Two players; Raid Finder, Normal, Heroic, Mythic, Cutting Edge with grey descriptions; Play as White / Black / Random with the current one ticked. Clicking Black ticks it and the menu stays open |
+| AI-2 | New Game, play e4 | New Game, Play as White, Normal; confirm | Start position, white at the bottom; "Your move" / "You play White against the Normal computer"; grey line "Normal · Won 0 · Lost 0 · Drawn 0" (or your record) |
+| AI-3 | `/kc computer normal w` | Try a black piece; play e4 and try to pick up a piece while "Thinking..."; wait | Black never selects; nothing can be picked up while thinking; the reply animates after about half a second, then "Your move" |
+| AI-4 | `/kc computer heroic b` | Watch, then reply | Black at the bottom; the computer opens as white; then only black pieces move |
+| AI-5 | Play tab | New Game, Play as Random, Raid Finder; repeat a few times | Sometimes white, sometimes black; your colour always at the bottom |
+| AI-6 | — | `/kc computer mythic b`, then `/kc computer`, then `/kc fen 4k3/8/8/8/8/8/8/4K3 w - - 0 1` | A Mythic game as black (no confirm popup); then a game at the last level and colour chosen; the FEN ends the computer game (no turns) |
+| AI-7 | `/kc computer normal w` | Play a move, New Game, Two players (confirm); repeat with Clear Board | Either colour moves again with no turns; the info bar clears; the computer never moves |
+
+### Playing
+
+| ID | Setup | Do | Expected |
+|---|---|---|---|
+| AI-10 | Test panel (FEN `1r4k1/8/8/8/8/8/5PPP/6K1 b - - 0 1`, Normal, you white) | Watch | Black plays Rb1 mate; "Defeat" / "Checkmate. Black wins."; Lost +1; no piece can be picked up; < > still step through |
+| AI-11 | Test panel (FEN `6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1`, Normal, you white) | Play Ra8 mate | "Victory!" in green / "Checkmate. White wins."; Won +1 |
+| AI-12 | Test panel (FEN `4k3/8/8/8/8/8/3n4/4K3 w - - 0 1`) | Take the knight with the king | "Draw" / "Neither side can checkmate"; Drawn +1 |
+| AI-13 | Test panel (FEN `4k3/8/8/8/8/8/R7/4K3 w - - 99 60`) | A quiet rook move | "Draw" / "Fifty moves without a capture or pawn move" |
+| AI-14 | Test panel (FEN `8/1P6/8/8/8/k7/8/4K3 w - - 0 1`) | b7-b8, cancel on the dimmed board; promote again to a knight | Cancelling takes the pawn back and the computer doesn't move; after choosing, the knight appears and the computer replies |
+| AI-15 | `/kc computer normal w` | Play three moves; press < once and try to move; press < again and play a different move | One step back (computer's turn) nothing can be picked up; two steps back your move replaces the later ones and the computer replies |
+| AI-16 | `/kc computer cuttingedge w` | Play a move, press < while it thinks | The reply still comes, played from the latest position |
+| AI-17 | `/kc computer cuttingedge w` | Play a move; while "Thinking..." click Puzzles and play a puzzle move; click Play | No computer move appears in the puzzle; back in Play the game and its history are as left, and the computer thinks again and replies |
+| AI-18 | `/kc computer cuttingedge w` | Play a few moves, moving the camera and window while it thinks | No freezes; up to about 5 seconds a move; fade and drag still work |
+| AI-19 | — | A few games at Raid Finder and at Mythic | Raid Finder hangs pieces and misses simple tactics; Mythic punishes hanging pieces and rarely blunders |
+| AI-20 | — | `/kco` Computer section; Reset Options; Reset Computer Record | Won / lost / drawn per level played; Reset Options keeps it; Reset Computer Record clears it |
+
 ## Puzzles
 
 Puzzle progress is saved, so note your rating before testing and use **Reset Puzzle Progress** in `/kco` afterwards if you want a clean start. `/kc puzzle` opens puzzles directly.
@@ -147,7 +183,7 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 | PZ-1 | `/reload`, `/kc` | Two tabs below the window, Play selected; the info bar under the board is empty; the window is taller than before |
 | PZ-2 | Click the Puzzles tab | The data loads (a short pause the first time only); a puzzle starts; the bottom buttons become tier / Solution / Next Puzzle |
 | PZ-3 | Disable "Karazhan Chess Puzzles" in the AddOns list, `/reload`, click Puzzles | Stays on Play; info bar: "Puzzles unavailable" and how to enable them |
-| PZ-4 | Set up a position in Play (a few moves, board flipped), go to Puzzles, then back to Play | The free-play position and orientation come back |
+| PZ-4 | Set up a position in Play (a few moves, board flipped), go to Puzzles, then back to Play | The free-play position, its move history and the orientation come back |
 | PZ-5 | `/kc puzzle` then `/kc play` | Same as clicking the tabs, opening the window if needed |
 
 ### Solving

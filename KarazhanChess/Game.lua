@@ -36,6 +36,9 @@ function Game:new()
     -- false = nobody (e.g. while a puzzle plays the opponent's reply)
     self.allowedColour = nil
 
+    -- Only the side to move in the position shown may move (games against the computer)
+    self.enforceTurns = false
+
     -- Called as onPlayerMove(move, uci, undo) once a player's move is complete
     -- (after the promotion choice). uci includes the chosen promotion piece.
     self.onPlayerMove = nil
@@ -66,7 +69,12 @@ function Game:CreateStaticModals()
         button1 = OKAY,
         button2 = CANCEL,
         OnAccept = function()
-            self:StartNewGame()
+            local start = self.pendingNewGame or function() self:StartNewGame() end
+            self.pendingNewGame = nil
+            start()
+        end,
+        OnCancel = function()
+            self.pendingNewGame = nil
         end,
         timeout = 0,
         whileDead = true,
@@ -80,6 +88,7 @@ function Game:CreateStaticModals()
         button1 = OKAY,
         button2 = CANCEL,
         OnAccept = function()
+            ns.Computer:Stop()
             self:ClearBoard()
             self:ResetHistory("w")
         end,
@@ -121,14 +130,20 @@ function Game:RemovePiece(piece)
     removeFromTableByIndex(self.pieces, piece.id)
 end
 
--- Starting a new game with a confirmation dialog
-function Game:StartNewGameWithConfirm() 
+-- Starting a new game, after a confirmation if there are pieces on the board.
+-- start does the setting up (default: a two player game from the start position).
+function Game:StartNewGameWithConfirm(start)
+    start = start or function()
+        ns.Computer:Stop()
+        self:StartNewGame()
+    end
     if(table.getn(self.pieces) ~= 0) then
         -- If there is a game started, get confirmation
+        self.pendingNewGame = start
         StaticPopup_Show(Game.NewGameConfirmDiag)
     else
-        self:StartNewGame()
-    end    
+        start()
+    end
 end
 
 -- Force starting a new game
@@ -207,10 +222,17 @@ function Game:CanMove(piece)
     if (self.lockHistory and not self:IsAtLatest()) then
         return false
     end
+    local colour = piece.isWhite and "w" or "b"
+    if self.enforceTurns then
+        local entry = self.history[self.historyIndex]
+        if (entry and entry.pos.turn ~= colour) then
+            return false
+        end
+    end
     if (self.allowedColour == nil) then
         return true
     end
-    return self.allowedColour == (piece.isWhite and "w" or "b")
+    return self.allowedColour == colour
 end
 
 -- Select a piece
@@ -423,7 +445,7 @@ function Game:LoadPosition(pos, keepHistory)
 
     self.epSquare = pos.ep
     if not keepHistory then
-        self:ResetHistory(pos.turn)
+        self:ResetHistory(pos.turn, pos.halfmove, pos.fullmove)
     end
     self:UpdateCheckState(pos.turn)
     return pos.turn
@@ -431,9 +453,12 @@ end
 
 -- Move history ---------------------------------------------------------------
 
--- Starts the history at the current board, with turn the side to move
-function Game:ResetHistory(turn)
-    self.history = { { pos = self:GetPosition(turn) } }
+-- Starts the history at the current board, with turn the side to move (and the
+-- move counters, if they aren't 0 and 1)
+function Game:ResetHistory(turn, halfmove, fullmove)
+    local pos = self:GetPosition(turn)
+    pos.halfmove, pos.fullmove = halfmove or 0, fullmove or 1
+    self.history = { { pos = pos } }
     self.historyIndex = 1
     KC:UpdateHistoryButtons()
 end
@@ -443,14 +468,22 @@ function Game:IsAtLatest()
 end
 
 -- Adds the position after move. A move made while an earlier position is shown
--- replaces everything after it.
+-- replaces everything after it. The move counters carry on from the position
+-- before (the fifty-move rule counts halfmove).
 function Game:RecordMove(move, uci)
     for i = #self.history, self.historyIndex + 1, -1 do
         self.history[i] = nil
     end
     local mover = Rules.Colour[move.piece]
+    local pos = self:GetPosition(mover == "w" and "b" or "w")
+    local before = self.history[self.historyIndex] and self.history[self.historyIndex].pos
+    if before then
+        local reset = (Rules.Type[move.piece] == "p" or move.captured ~= nil)
+        pos.halfmove = reset and 0 or (before.halfmove or 0) + 1
+        pos.fullmove = (before.fullmove or 1) + ((mover == "b") and 1 or 0)
+    end
     table.insert(self.history, {
-        pos = self:GetPosition(mover == "w" and "b" or "w"),
+        pos = pos,
         from = move.from,
         to = move.to,
         uci = uci,

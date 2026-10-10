@@ -261,8 +261,9 @@ end
 
 -- Entering and leaving puzzle mode -------------------------------------------
 
--- Switches the board to puzzles: keeps the free-play position to restore later,
--- then resumes the unfinished puzzle or starts a new one
+-- Switches the board to puzzles: keeps the Play game (its whole history, and a
+-- game against the computer is paused) to restore later, then resumes the
+-- unfinished puzzle or starts a new one
 function Puzzles:Enter()
     if self.active then
         return
@@ -275,8 +276,9 @@ function Puzzles:Enter()
     end
 
     local game = KC.game
+    ns.Computer:Suspend()
     self.active = true
-    self.savedFEN = (#game.pieces > 0) and Rules.ToFEN(game:GetPosition("w")) or nil
+    self.savedHistory, self.savedIndex = game.history, game.historyIndex
     self.savedFlip = KC.boardFlipped
 
     game.announceResults = false
@@ -307,14 +309,17 @@ function Puzzles:Leave()
     game.announceResults = true
     game.lockHistory = false
 
-    if self.savedFEN then
-        game:LoadFEN(self.savedFEN)
+    if (self.savedHistory and #self.savedHistory > 0) then
+        game.history = self.savedHistory
+        game:ShowHistory(self.savedIndex)
     else
         game:ClearBoard()
         game:ResetHistory("w")
     end
+    self.savedHistory = nil
     KC:SetBoardFlipped(self.savedFlip or false)
     KC:UpdatePuzzleButtons()
+    ns.Computer:Resume()
 end
 
 -- Choosing puzzles -----------------------------------------------------------

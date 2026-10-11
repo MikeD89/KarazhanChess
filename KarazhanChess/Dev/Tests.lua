@@ -511,6 +511,26 @@ add("Puzzles: rating, tiers and progress", {
 		check = "The same types are still unticked." },
 })
 
+-- Sounds ---------------------------------------------------------------------
+
+add("Sounds", {
+	{ id = "S-1", name = "Move, capture and check sounds", load = { fen = "4k3/8/8/3p4/4P3/8/8/R3K3 w Q - 0 1" },
+		steps = { "Castle queenside (e1 to c1).", "Undo with <, then take on d5 with the e4 pawn.", "< again, then play a1-a8." },
+		check = "Castling plays the move sound, exd5 the capture sound, Ra8+ the check sound (Sound Effects on, Move Sounds not Off)." },
+	{ id = "S-2", name = "Promotion sound", load = { fen = "4k3/1P6/8/8/8/8/8/4K3 w - - 0 1" },
+		steps = { "Move b7 to b8 and pick a queen.", "Undo with <, move b7-b8 again and cancel the picker." },
+		check = "The sound plays when the piece is picked (the check sound for the queen, which gives check), not when cancelled." },
+	{ id = "S-3", name = "Computer and replayed moves", load = { newGame = true, computer = { level = "RaidFinder", colour = "w" } },
+		steps = { "Play a few moves.", "Step back with <, then forward with >.", "Make a move and close the window (Escape) while the computer thinks." },
+		check = "The computer's replies and replayed moves (>) make sounds, stepping back doesn't; nothing plays while the window is closed." },
+	{ id = "S-4", name = "Sound themes", load = { newGame = true },
+		steps = { "/kco: pick each Move Sounds theme, then Off.", "Make a move." },
+		check = "Each choice plays its move sound as a preview; with Off, moves are silent." },
+	{ id = "S-5", name = "Victory, defeat and draw", load = { fen = "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1", computer = { level = "RaidFinder", colour = "w" } },
+		steps = { "Mate with Ra8.", "Lose a game (resign against a friend, or get mated by the computer).", "Draw a game (stalemate, repetition, or an agreed draw with a friend)." },
+		check = "Mating plays the victory sound after the check sound; losing plays defeat; a draw (stalemate, repetition, agreed) plays draw. Each plays once, not again on /reload." },
+})
+
 -- Window and options ---------------------------------------------------------
 
 add("Window and options", {
@@ -529,6 +549,12 @@ add("Window and options", {
 	{ id = "W-5", name = "Themes", load = { newGame = true, flipped = true },
 		steps = { "/kco: change the board and piece themes." },
 		check = "Squares and pieces update immediately, including while flipped." },
+	{ id = "W-7", name = "Karazhan model pieces", load = { newGame = true },
+		steps = { "/kco: choose the Karazhan piece theme.", "Drag a piece, move one with a click, flip the board (/kc flip).", "Untick Animated Pieces, then tick it again.", "Switch back to Default." },
+		check = "Pieces are the Karazhan chess models (Alliance white, Horde black), each filling its square and facing the viewer, pawns smallest; they follow drags and animations and stay clickable; Animated Pieces is only available for Karazhan and stops / restarts the idle animation; Default brings the flat pieces back with no models left behind." },
+	{ id = "W-8", name = "Karazhan models in other places", load = { fen = "8/4P3/8/8/8/8/8/K6k w - - 0 1" },
+		steps = { "With the Karazhan theme, push e7-e8.", "Clear the board, start a new game, take a few pieces.", "Turn on Fade Out Window and move the mouse away." },
+		check = "The promotion picker shows the models; no stray models remain on empty squares after captures, Clear Board or New Game; the models fade with the board." },
 	{ id = "W-6", name = "Close on Escape", load = { newGame = true },
 		steps = { "Press Escape." },
 		check = "The window closes." },

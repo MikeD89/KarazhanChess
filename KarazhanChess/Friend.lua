@@ -974,6 +974,7 @@ function Friend:Finish(result)
         else
             record.lost = record.lost + 1
         end
+        ns.Sounds:PlayResult(result.winner, game.colour)
     end
     self:Update()
     if not self:IsShown() then

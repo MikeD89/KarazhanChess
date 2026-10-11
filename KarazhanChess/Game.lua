@@ -7,7 +7,7 @@
 
 local _, ns = ...
 local KC = ns.KC
-local FrameUtils, Rules, Piece = ns.FrameUtils, ns.Rules, ns.Piece
+local FrameUtils, Rules, Piece, Sounds = ns.FrameUtils, ns.Rules, ns.Piece, ns.Sounds
 local removeFromTableByIndex = ns.removeFromTableByIndex
 
 local Game = {}
@@ -305,7 +305,8 @@ function Game:HandleBoardSquareClicked(square, animated)
             function(name)
                 piece:PromoteTo(name)
                 undo.promoted = true
-                self:UpdateCheckState(opponent)
+                local _, inCheck = self:UpdateCheckState(opponent)
+                Sounds:PlayMove(move, inCheck)
                 self:NotifyPlayerMove(move, uci..name, undo)
             end,
             function()
@@ -313,7 +314,8 @@ function Game:HandleBoardSquareClicked(square, animated)
                 self:UpdateCheckState(opponent)
             end)
     else
-        self:UpdateCheckState(opponent)
+        local _, inCheck = self:UpdateCheckState(opponent)
+        Sounds:PlayMove(move, inCheck)
         self:NotifyPlayerMove(move, uci, undo)
     end
 
@@ -402,7 +404,8 @@ function Game:ExecuteMove(uci)
         piece:PromoteTo(string.lower(found.promotion))
         undo.promoted = true
     end
-    self:UpdateCheckState(piece.isWhite and "b" or "w")
+    local _, inCheck = self:UpdateCheckState(piece.isWhite and "b" or "w")
+    Sounds:PlayMove(found, inCheck)
     if not self.replaying then
         self:RecordMove(found, uci)
     end

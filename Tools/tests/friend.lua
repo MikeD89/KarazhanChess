@@ -90,7 +90,7 @@ local function newClient(name, realm, version)
         queue[#queue + 1] = { prefix = prefix, text = text, to = target:find("-", 1, true) and target or (target .. "-" .. realm), name = name, realm = realm }
     end
 
-    local ns = { KC = KC, Rules = Rules, Colours = { Good = {}, Bad = {}, Neutral = {}, Normal = {} } }
+    local ns = { KC = KC, Rules = Rules, Sounds = { PlayResult = function() end }, Colours = { Good = {}, Bad = {}, Neutral = {}, Normal = {} } }
     local function loadAddonFile(file)
         local path = ADDON_ROOT .. "/KarazhanChess/" .. file
         return assert(load(readfile(path), "@" .. path, "t", env))("KarazhanChess", ns)

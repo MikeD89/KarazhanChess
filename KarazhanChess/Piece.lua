@@ -53,8 +53,9 @@ function Piece:new(name, isWhite)
     self.hasMoved = false
 
     -- Pieces have to exist inside a frame
-    self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, self.icon, "OVERLAY")
+    self.frame = FrameUtils:CreateIcon(KC.boardSectionSize, KC.boardSectionSize, nil, "OVERLAY")
     self.frame:SetFrameLevel(Piece:GetBaseLevel())
+    Icons.Piece:ApplyArt(self.frame, self.frame.texture, self.key)
 
     -- Handle click 
     self.frame:SetScript("OnMouseDown", function(_, button) self:HandleMouseDown(button) end)
@@ -85,7 +86,7 @@ end
 -- Interface
 function Piece:UpdateTexture(position) 
     self.icon = Icons.Piece:GetPieceIcon(self.key)
-	self.frame.texture:SetTexture(self.icon)
+	Icons.Piece:ApplyArt(self.frame, self.frame.texture, self.key)
 end
 
 -- Moves

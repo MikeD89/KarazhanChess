@@ -359,6 +359,7 @@ function Computer:Finish()
         else
             record.lost = record.lost + 1
         end
+        ns.Sounds:PlayResult(result.winner, self.playerColour)
     end
     self:ShowStatus()
 end

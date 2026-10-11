@@ -11,6 +11,7 @@
     <Script file="KarazhanChess/PuzzleCodec.lua"/>
     <Script file="KarazhanChess/FrameUtils.lua"/>
     <Script file="KarazhanChess/Icons.lua"/>
+    <Script file="KarazhanChess/Sounds.lua"/>
     <Script file="KarazhanChess/Square.lua"/>
     <Script file="KarazhanChess/Piece.lua"/>
     <Script file="KarazhanChess/Game.lua"/>

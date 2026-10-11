@@ -7,7 +7,7 @@
 
 local _, ns = ...
 local KC = ns.KC
-local Icons = ns.Icons
+local Icons, Sounds = ns.Icons, ns.Sounds
 
 -------------
 -- Options --
@@ -140,6 +140,26 @@ KC.options = {
 			style = "dropdown",
 			get = "getPieceTheme",
 			set = "setPieceTheme",
+		},
+		pieceAnimationToggle = {
+			type = "toggle",
+            name = "Animated Pieces",
+            desc = "Pieces drawn as models (the Karazhan theme) play their idle animation. Untick to keep them still.",
+			order = 42.5,
+			disabled = function() return not Icons.Piece:IsModelTheme() end,
+			get = "getPieceAnimation",
+			set = "setPieceAnimation",
+		},
+		soundTheme = {
+			type = "select",
+            name = "Move Sounds",
+            desc = "Sounds for moves, captures, checks and the end of a game. They play on the Sound Effects channel.",
+			order = 43,
+			values = Sounds.ThemeValues,
+			sorting = Sounds.Themes,
+			style = "dropdown",
+			get = "getSoundTheme",
+			set = "setSoundTheme",
 		},
 		puzzleHeader = {
 			type = "header",
@@ -286,6 +306,8 @@ KC.optionDefaults = {
 		windowScale = 1.0,
 		boardTheme = "Default",
 		pieceTheme = "Default",
+		pieceAnimation = true,
+		soundTheme = Sounds.Default,
 		puzzleTypesOff = {}, -- puzzle types unticked: { [type key] = true } (Puzzles.TypeGroups)
 		computer = {
 			level = "Normal", -- last difficulty played (Computer.Levels)
@@ -504,6 +526,9 @@ end
 function KC:migrateThemeSettings()
 	self.db.global.boardTheme = migrateTheme(self.db.global.boardTheme, Icons.Board)
 	self.db.global.pieceTheme = migrateTheme(self.db.global.pieceTheme, Icons.Piece)
+	if Sounds.ThemeValues[self.db.global.soundTheme] == nil then
+		self.db.global.soundTheme = Sounds.Default
+	end
 end
 
 
@@ -538,4 +563,26 @@ function KC:updatePieceTheme()
 	self:applyPieceTextures();
 end
 
+-- Piece Animation
 
+function KC:setPieceAnimation(info, value)
+	self.db.global.pieceAnimation = value;
+	KC:updatePieceTheme()
+end
+
+function KC:getPieceAnimation(info)
+	return self.db.global.pieceAnimation;
+end
+
+
+-- Sound Theme
+
+function KC:setSoundTheme(info, value)
+	self.db.global.soundTheme = value;
+	-- Let the player hear what they picked
+	Sounds:Play("Move")
+end
+
+function KC:getSoundTheme(info)
+	return self.db.global.soundTheme;
+end

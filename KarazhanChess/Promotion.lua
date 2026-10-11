@@ -82,7 +82,7 @@ function KC:ShowPromotionPicker(pawn, square, onChosen, onCancelled)
 
 		option:ClearAllPoints()
 		option:SetPoint("CENTER", KC.board[square.colIndex][row].frame, "CENTER")
-		option.icon:SetTexture(Icons.Piece:GetPieceIcon(pawn.prefix..name))
+		Icons.Piece:ApplyArt(option, option.icon, pawn.prefix..name)
 		option:SetScript("OnClick", function()
 			KC:HidePromotionPicker()
 			onChosen(name)

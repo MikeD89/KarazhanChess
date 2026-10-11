@@ -259,6 +259,16 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 | PZ-40 | Untick a few types, `/reload`, open Puzzle Types | The same types are still unticked |
 | PZ-41 | Untick All, tick Mate in 1 and Mate in 2; solve or show a few puzzles | Each ends in checkmate within one or two of your moves |
 
+## Sounds
+
+| ID | Do | Expected |
+|---|---|---|
+| S-1 | `4k3/8/8/3p4/4P3/8/8/R3K3 w Q - 0 1`: castle O-O-O; `<`, exd5; `<`, Ra8+ | Move sound, capture sound, check sound |
+| S-2 | `4k3/1P6/8/8/8/8/8/4K3 w - - 0 1`: b8=Q; `<`, b8 and cancel | Sound (check) when the piece is picked, none when cancelled |
+| S-3 | Raid Finder game: play, `<` then `>`, close the window while it thinks | Computer replies and `>` replays make sounds, `<` doesn't; silent while closed |
+| S-4 | `/kco`: each Move Sounds theme, then Off; make a move | Each choice previews its move sound; Off is silent |
+| S-5 | Computer game from `6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1`: Ra8#; then lose / draw a game (computer or friend) | Victory after the mate, Defeat on a loss, Draw on a draw; once each, not again after `/reload` |
+
 ## Window and options
 
 | ID | Do | Expected |
@@ -268,4 +278,6 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 | W-3 | Change Window Opacity | Window background fades, pieces and squares don't |
 | W-4 | Fade-out on, move the mouse away | Whole window fades; returns on hover |
 | W-5 | Change board and piece themes | Squares and pieces update immediately, including while flipped |
+| W-7 | Karazhan piece theme: drag, click-move, flip, untick and tick Animated Pieces, back to Default | Karazhan chess models (Alliance white, Horde black) fill their squares facing the viewer, pawns smallest; drags and animations work and they stay clickable; Animated Pieces only for Karazhan, stops / restarts the idle animation; Default brings flat pieces back with no models left |
+| W-8 | Karazhan: promote (`8/4P3/8/8/8/8/8/K6k w - - 0 1`, e7-e8), captures, Clear Board, New Game, Fade Out Window | Picker shows models; no stray models on empty squares; models fade with the board |
 | W-6 | Escape with Close on Escape on | Window closes |

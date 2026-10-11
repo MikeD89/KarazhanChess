@@ -16,15 +16,20 @@ local Sounds = {}
 ns.Sounds = Sounds
 Sounds.Folder = dir("Sounds\\")
 Sounds.Off = "Off"
-Sounds.Themes = { "Sfx", "Piano", "Nes", "Futuristic", Sounds.Off }
+Sounds.Themes = { "Standard", "Sfx", "Piano", "Nes", "Futuristic", Sounds.Off }
 Sounds.ThemeValues = {
+    Standard = "Standard",
     Sfx = "SFX",
     Piano = "Piano",
     Nes = "NES",
     Futuristic = "Futuristic",
     Off = "Off",
 }
-Sounds.Default = "Sfx"
+Sounds.Default = "Standard"
+-- Themes without a Check sound: a check plays the Capture or Move sound instead
+Sounds.NoCheck = {
+    Standard = true, -- Lichess's standard Check is silence
+}
 
 -- Plays one of the theme's sounds (see above) on the sound effects channel, so
 -- it follows the game's effects volume. Silent while the window is closed (the
@@ -40,7 +45,7 @@ end
 -- The sound for a rules engine move just played: Check if it gave check,
 -- Capture if it took a piece, otherwise Move (castling and promotions included)
 function Sounds:PlayMove(move, givesCheck)
-    if givesCheck then
+    if (givesCheck and not Sounds.NoCheck[KC:getSoundTheme()]) then
         self:Play("Check")
     elseif move.captured then
         self:Play("Capture")

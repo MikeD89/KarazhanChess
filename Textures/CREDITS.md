@@ -31,7 +31,7 @@ The legal-move dot and legal-capture corners were generated for this addon to ma
 
 ## Sounds
 
-The move sounds in `Sounds/<theme>/` (Move, Capture, Check, Victory, Defeat and Draw) come unmodified from the [Lichess](https://github.com/lichess-org/lila) project (`public/sound/<set>`), by Enigmahack, under the [AGPLv3+](https://www.gnu.org/licenses/agpl-3.0.txt) as listed in Lichess's `COPYING.md`. Lichess's default "standard" set is not freely licensed and is not used.
+The move sounds in `Sounds/<theme>/` (Move, Capture, Check, Victory, Defeat and Draw) come unmodified from the [Lichess](https://github.com/lichess-org/lila) project (`public/sound/<set>`), by Enigmahack, under the [AGPLv3+](https://www.gnu.org/licenses/agpl-3.0.txt) as listed in Lichess's `COPYING.md`. The exception is the Standard theme (`Sounds/Standard`): Lichess's default "standard" set (`public/sound/standard`; Move, Capture, and GenericNotify as Victory / Defeat / Draw, fetched by `Tools/sounds/standard.js`). Lichess lists it as non-free in `COPYING.md`; permission to redistribute it has been requested from Lichess and is pending. Remove it if permission is refused.
 
 | Theme | Lichess set |
 |---|---|

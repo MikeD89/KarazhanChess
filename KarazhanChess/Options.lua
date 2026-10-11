@@ -141,15 +141,6 @@ KC.options = {
 			get = "getPieceTheme",
 			set = "setPieceTheme",
 		},
-		pieceAnimationToggle = {
-			type = "toggle",
-            name = "Animated Pieces",
-            desc = "Pieces drawn as models (the Karazhan theme) play their idle animation. Untick to keep them still.",
-			order = 42.5,
-			disabled = function() return not Icons.Piece:IsModelTheme() end,
-			get = "getPieceAnimation",
-			set = "setPieceAnimation",
-		},
 		soundTheme = {
 			type = "select",
             name = "Move Sounds",
@@ -306,7 +297,6 @@ KC.optionDefaults = {
 		windowScale = 1.0,
 		boardTheme = "Default",
 		pieceTheme = "Default",
-		pieceAnimation = true,
 		soundTheme = Sounds.Default,
 		puzzleTypesOff = {}, -- puzzle types unticked: { [type key] = true } (Puzzles.TypeGroups)
 		computer = {
@@ -560,18 +550,8 @@ function KC:getPieceTheme(info)
 end
 
 function KC:updatePieceTheme()
+	Icons.Piece:PreloadModels()
 	self:applyPieceTextures();
-end
-
--- Piece Animation
-
-function KC:setPieceAnimation(info, value)
-	self.db.global.pieceAnimation = value;
-	KC:updatePieceTheme()
-end
-
-function KC:getPieceAnimation(info)
-	return self.db.global.pieceAnimation;
 end
 
 

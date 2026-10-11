@@ -273,6 +273,14 @@ function Game:DeselectPiece()
     self.selectedPiece = nil
 end
 
+-- A click on a square (pieces handle their own clicks, so it's empty): moves
+-- the selected piece there if that's legal, otherwise deselects it
+function Game:HandleSquareClick(square)
+    if not self:HandleBoardSquareClicked(square) then
+        self:DeselectPiece()
+    end
+end
+
 -- Board selection
 -- Moves the selected piece to square if that's a legal move. Returns whether it moved.
 -- animated is false when the piece was dropped there by dragging (it's already in place).

@@ -111,7 +111,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | I-1 | Click a piece, then a highlighted square | Piece slides there; last-move tint on both squares |
 | I-2 | Drag a piece onto a highlighted square | Drops there; dropping anywhere else snaps it back |
 | I-3 | Hover a legal destination with a piece selected (or while dragging) | The square tints and its dot/corners hide |
-| I-4 | Click a selected piece again | Deselects |
+| I-4 | Click a selected piece again; click a piece then an empty square it can't move to | Deselects both times |
 | I-5 | Select a piece, then click an enemy piece it can capture | Captures |
 | I-6 | Close the window mid-drag and reopen | Piece is back on its square |
 | I-7 | Clear Board / New Game with a board in play | Confirmation; check glow, last move and picker are cleared |
@@ -173,6 +173,7 @@ Results count towards the level's record (`/kco`, Computer section); **Reset Com
 | AI-18 | `/kc computer cuttingedge w` | Play a few moves, moving the camera and window while it thinks | No freezes; up to about 5 seconds a move; fade and drag still work |
 | AI-19 | — | A few games at Raid Finder and at Mythic | Raid Finder hangs pieces and misses simple tactics; Mythic punishes hanging pieces and rarely blunders |
 | AI-20 | — | `/kco` Computer section; Reset Options; Reset Computer Record | Won / lost / drawn per level played; Reset Options keeps it; Reset Computer Record clears it |
+| AI-21 | `/kc computer normal b` | Play a few moves, press < once, `/reload`, `/kc`; then play a move and `/reload` while it thinks | The same game comes back each time: black at the bottom, the position you were viewing, the full history; on the computer's turn it replies. A finished game comes back finished without counting twice; free play and a cleared board come back too. With fresh saved variables the first login starts Heroic as White |
 
 ## Play vs Friend
 
@@ -278,6 +279,6 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 | W-3 | Change Window Opacity | Window background fades, pieces and squares don't |
 | W-4 | Fade-out on, move the mouse away | Whole window fades; returns on hover |
 | W-5 | Change board and piece themes | Squares and pieces update immediately, including while flipped |
-| W-7 | Karazhan piece theme: drag, click-move, flip, untick and tick Animated Pieces, back to Default | Karazhan chess models (Alliance white, Horde black) fill their squares facing the viewer, pawns smallest; drags and animations work and they stay clickable; Animated Pieces only for Karazhan, stops / restarts the idle animation; Default brings flat pieces back with no models left |
+| W-7 | Karazhan piece theme: drag, click-move, flip, back to Default | Karazhan chess models (Alliance white, Horde black) fill their squares facing the viewer, pawns smallest; they play their idle animation, drags and move animations work and they stay clickable; Default brings flat pieces back with no models left |
 | W-8 | Karazhan: promote (`8/4P3/8/8/8/8/8/K6k w - - 0 1`, e7-e8), captures, Clear Board, New Game, Fade Out Window | Picker shows models; no stray models on empty squares; models fade with the board |
 | W-6 | Escape with Close on Escape on | Window closes |

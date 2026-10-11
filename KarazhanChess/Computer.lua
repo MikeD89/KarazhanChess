@@ -364,6 +364,81 @@ function Computer:Finish()
     self:ShowStatus()
 end
 
+-- Saving across reloads -----------------------------------------------------------
+
+-- The Play board is saved at logout (which /reload also fires) and put back at
+-- login: KC.db.global.board = { entries = { { fen, from, to, uci } }, index,
+-- flipped, computer = { level, colour, result } or nil }. Entries are saved as
+-- FENs rather than moves, as free play has no turns to replay them by.
+Computer.StartLevel = "Heroic"  -- the first game ever, with the player as White
+
+-- The Play board's history, index and orientation (puzzles and Play vs Friend
+-- keep it aside while their tab is open)
+local function playBoard()
+    for _, mode in ipairs({ ns.Puzzles, ns.Friend }) do
+        if (mode and mode.active and mode.savedHistory) then
+            return mode.savedHistory, mode.savedIndex, mode.savedFlip
+        end
+    end
+    local game = KC.game
+    return game.history, game.historyIndex, KC.boardFlipped
+end
+
+function Computer:SaveState()
+    local history, index, flipped = playBoard()
+    if not (history and #history > 0) then
+        KC.db.global.board = nil
+        return
+    end
+    local entries = {}
+    for i, entry in ipairs(history) do
+        entries[i] = { fen = Rules.ToFEN(entry.pos), from = entry.from, to = entry.to, uci = entry.uci }
+    end
+    local state = { entries = entries, index = index, flipped = flipped and true or nil }
+    if self.active then
+        state.computer = { level = self.level.key, colour = self.playerColour, result = self.result }
+    end
+    KC.db.global.board = state
+end
+
+-- Puts the saved Play board back, or starts the first game ever. Returns true
+-- if there was something to restore.
+function Computer:RestoreState()
+    local state = KC.db.global.board
+    local history = {}
+    for i, entry in ipairs(state and state.entries or {}) do
+        local pos = Rules.FromFEN(entry.fen)
+        if not pos then
+            break
+        end
+        history[i] = { pos = pos, from = entry.from, to = entry.to, uci = entry.uci }
+    end
+    if (#history == 0) then
+        if not state then
+            self:Start(Computer.StartLevel, "w")
+        end
+        return false
+    end
+
+    local game = KC.game
+    game.history = history
+    game:ShowHistory(math.max(1, math.min(state.index or #history, #history)))
+    KC:SetBoardFlipped(state.flipped == true)
+
+    local saved = state.computer
+    if saved then
+        Engine.Clear()
+        self.active = true
+        self.suspended = false
+        self.level = self:GetLevel(saved.level)
+        self.playerColour = saved.colour
+        self.result = saved.result -- (marked recorded, so it doesn't count twice)
+        self:Attach()
+        self:Continue()
+    end
+    return true
+end
+
 -- Info bar --------------------------------------------------------------------
 
 local function sideName(colour)

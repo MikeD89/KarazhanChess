@@ -199,8 +199,8 @@ add("Board: input and indicators", {
 		steps = { "Select a piece and hover a legal destination.", "Do the same while dragging." },
 		check = "The square tints and its dot / corners hide." },
 	{ id = "I-4", name = "Deselect", load = { newGame = true },
-		steps = { "Click a piece, then click it again." },
-		check = "It deselects." },
+		steps = { "Click a piece, then click it again.", "Click a piece, then click an empty square it can't move to." },
+		check = "It deselects both times (dots and selected tint gone)." },
 	{ id = "I-5", name = "Capture by clicking the enemy piece", load = { fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1" },
 		steps = { "Select the e4 pawn, then click the d5 pawn." },
 		check = "It captures." },
@@ -330,6 +330,9 @@ add("Computer: playing", {
 	{ id = "AI-20", name = "Record in the options",
 		steps = { "/kco, Computer section.", "Reset Options.", "Reset Computer Record, confirm." },
 		check = "Shows won / lost / drawn per level played; Reset Options keeps it (and the level and colour reset to Normal / Random); Reset Computer Record clears it." },
+	{ id = "AI-21", name = "Game survives /reload", load = { newGame = true, computer = { level = "Normal", colour = "b" } },
+		steps = { "Play a few moves; press < once.", "/reload, then /kc.", "Play a move while the computer thinks, then /reload again." },
+		check = "After each reload the same Normal game is back, black at the bottom, at the position you were viewing, with the full history; if it was the computer's turn it thinks and replies. A finished game comes back finished without counting twice. Free play (Two players) and a cleared board come back too." },
 })
 
 -- Play vs Friend -------------------------------------------------------------
@@ -550,8 +553,8 @@ add("Window and options", {
 		steps = { "/kco: change the board and piece themes." },
 		check = "Squares and pieces update immediately, including while flipped." },
 	{ id = "W-7", name = "Karazhan model pieces", load = { newGame = true },
-		steps = { "/kco: choose the Karazhan piece theme.", "Drag a piece, move one with a click, flip the board (/kc flip).", "Untick Animated Pieces, then tick it again.", "Switch back to Default." },
-		check = "Pieces are the Karazhan chess models (Alliance white, Horde black), each filling its square and facing the viewer, pawns smallest; they follow drags and animations and stay clickable; Animated Pieces is only available for Karazhan and stops / restarts the idle animation; Default brings the flat pieces back with no models left behind." },
+		steps = { "/kco: choose the Karazhan piece theme.", "Drag a piece, move one with a click, flip the board (/kc flip).", "Switch back to Default." },
+		check = "Pieces are the Karazhan chess models (Alliance white, Horde black), each filling its square and facing the viewer, pawns smallest; they play their idle animation, follow drags and move animations and stay clickable; Default brings the flat pieces back with no models left behind." },
 	{ id = "W-8", name = "Karazhan models in other places", load = { fen = "8/4P3/8/8/8/8/8/K6k w - - 0 1" },
 		steps = { "With the Karazhan theme, push e7-e8.", "Clear the board, start a new game, take a few pieces.", "Turn on Fade Out Window and move the mouse away." },
 		check = "The promotion picker shows the models; no stray models remain on empty squares after captures, Clear Board or New Game; the models fade with the board." },

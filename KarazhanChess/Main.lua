@@ -131,8 +131,11 @@ end
 
 -- Enable Function
 function KC:OnEnable()
+	Icons.Piece:PreloadModels() -- Model piece themes: load them before the window opens
 	KC:createChessFrame(KC.frame);
 	ns.Friend:Init()
+	ns.Computer:RestoreState()
+	self:RegisterEvent("PLAYER_LOGOUT", function() ns.Computer:SaveState() end)
 	KC:Print(KC.formattedName.." Loaded!")
 	KC.loaded = true
 end

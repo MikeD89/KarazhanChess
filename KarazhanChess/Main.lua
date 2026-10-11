@@ -132,6 +132,7 @@ end
 -- Enable Function
 function KC:OnEnable()
 	KC:createChessFrame(KC.frame);
+	ns.Friend:Init()
 	KC:Print(KC.formattedName.." Loaded!")
 	KC.loaded = true
 end
@@ -242,6 +243,8 @@ end
 --   /kc puzzle      switch to puzzles (/kc play switches back)
 --   /kc computer [level] [w|b|random]  new game against the computer (level is
 --                   a key from Computer.Levels, e.g. heroic or cuttingedge)
+--   /kc friend [name]  switch to Play vs Friend, inviting name (First Last on
+--                   WoW Forever, Name or Name-Realm elsewhere)
 --   /kc tests       toggle the test panel (dev builds only)
 SlashCmdList['CHESSCMD'] = function(msg)
     local command, rest = strtrim(msg or ""):match("^(%S*)%s*(.-)$")
@@ -251,6 +254,7 @@ SlashCmdList['CHESSCMD'] = function(msg)
         ns.TestPanel:Toggle()
     elseif (command == "fen") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
+        KC:SetMode("play")
         ns.Computer:Stop()
         local turn, err = KC.game:LoadFEN(rest)
         if not turn then
@@ -259,6 +263,12 @@ SlashCmdList['CHESSCMD'] = function(msg)
     elseif (command == "puzzle" or command == "puzzles" or command == "play") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         KC:SetMode((command == "play") and "play" or "puzzle")
+    elseif (command == "friend") then
+        if not KC.frame:IsShown() then KC:ShowWindow() end
+        KC:SetMode("friend")
+        if (rest ~= "") then
+            ns.Friend:Invite(rest)
+        end
     elseif (command == "computer") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
         local Computer = ns.Computer
@@ -280,7 +290,9 @@ SlashCmdList['CHESSCMD'] = function(msg)
         KC:FlipBoard()
     elseif (command == "move") then
         if not KC.frame:IsShown() then KC:ShowWindow() end
-        if not KC.game:ExecuteMove(string.lower(rest)) then
+        if (KC.mode == "friend") then
+            KC:Print("Make your moves against a friend on the board.")
+        elseif not KC.game:ExecuteMove(string.lower(rest)) then
             KC:Print("Not a legal move here: "..rest)
         end
     else

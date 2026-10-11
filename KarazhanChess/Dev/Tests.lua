@@ -23,7 +23,7 @@ end
 --              clear = true      empty board (switches to Play)
 --              moves = { uci }   then play these moves, animated one after another
 --              flipped = true    black at the bottom (board setups are unflipped otherwise)
---              mode = "puzzle"   switch to puzzles ("play" switches back)
+--              mode = "puzzle"   switch to puzzles ("friend" to Play vs Friend, "play" back)
 --              computer = { level = "Heroic", colour = "w" }
 --                                start a game against the computer from the fen (or
 --                                newGame) position, the player as colour (default w)
@@ -319,7 +319,7 @@ add("Computer: playing", {
 		steps = { "Play a move, then press < while it thinks." },
 		check = "The reply still comes, played from the latest position." },
 	{ id = "AI-17", name = "Puzzles pause the game", load = { newGame = true, computer = { level = "CuttingEdge", colour = "w" } },
-		steps = { "Play a move, and while \"Thinking...\" click the Puzzles tab; play a puzzle move.", "Click the Play tab." },
+		steps = { "Play a move, and while \"Thinking...\" click the Puzzles tab; play a puzzle move.", "Click the Play vs AI tab." },
 		check = "No computer move appears in the puzzle; back in Play the game and its history are as you left them, and the computer thinks again and replies." },
 	{ id = "AI-18", name = "Smooth while thinking", load = { newGame = true, computer = { level = "CuttingEdge", colour = "w" } },
 		steps = { "Play a few moves, moving the camera and the window while it thinks." },
@@ -332,6 +332,79 @@ add("Computer: playing", {
 		check = "Shows won / lost / drawn per level played; Reset Options keeps it (and the level and colour reset to Normal / Random); Reset Computer Record clears it." },
 })
 
+-- Play vs Friend -------------------------------------------------------------
+-- Needs a second client (a friend, or a second account) with Karazhan Chess.
+-- Results count towards the record against that player (/kco, Friends).
+
+add("Friend: inviting", {
+	{ id = "FR-1", name = "Tabs", load = { mode = "friend" },
+		steps = { "Look below the window.", "Click Play vs Friend." },
+		check = "Three tabs: Play vs AI, Play vs Friend, Puzzles. Play vs Friend shows the start position (nothing moves), \"Play vs Friend\" in the info bar, and Offer Draw / Resign (greyed) / Invite." },
+	{ id = "FR-2", name = "Invite menu", load = { mode = "friend" },
+		steps = { "Click Invite." },
+		check = "A menu: Rematch <name> (after a first game); Friends online (character and Battle.net friends in this WoW version, or None); Enter a name...; Play as White / Black / Random, the menu staying open on a choice." },
+	{ id = "FR-3", name = "No addon", load = { mode = "friend" },
+		steps = { "Invite an online friend without Karazhan Chess (or Enter a name of anyone online without it)." },
+		check = "\"Looking for <name>\" / \"Checking that they have Karazhan Chess...\", then after 5 seconds \"No answer\". No popup on their side." },
+	{ id = "FR-4", name = "Bad names", load = { mode = "friend" },
+		steps = { "Enter a name: your own name; then just a first name (WoW Forever) or \"two words\" (elsewhere)." },
+		check = "\"That's you\"; then \"Not a name\" (on Forever with the hint to enter a first and last name). Nothing is sent." },
+	{ id = "FR-5", name = "Different versions", load = { mode = "friend" },
+		steps = { "With a friend on another Karazhan Chess version, invite them." },
+		check = "\"Different versions\" naming both versions; no game starts. Inviting you from their side prints the same in your chat and declines." },
+	{ id = "FR-6", name = "Invitation and accepting", load = { mode = "friend" },
+		steps = { "Invite your friend (second client), Play as White.", "On their side, accept the popup." },
+		check = "You see \"Invitation sent\" / \"Waiting for <name> to accept...\"; they get a ready-check sound and the popup \"<you> invites you to a game of Karazhan Chess. You would play Black.\". Accepting opens their window on Play vs Friend with black at the bottom; you get \"Your move\", they get \"<you>'s move\"." },
+	{ id = "FR-7", name = "Declining and withdrawing", load = { mode = "friend" },
+		steps = { "Invite, and decline on their side.", "Invite again, then Invite > Withdraw invitation.", "Invite again and let it run for 60 seconds." },
+		check = "\"Declined\"; the withdrawn popup closes on their side (with a chat line); after 60 seconds \"No answer\" and their popup closes." },
+	{ id = "FR-8", name = "Busy", load = { mode = "friend" },
+		steps = { "During a game, have a third player (or the opponent from a new session) invite you." },
+		check = "They get \"Busy\"; you get a chat line that you are still playing. Invite is greyed out during a game." },
+})
+
+add("Friend: playing", {
+	{ id = "FR-10", name = "Turns", load = { mode = "friend" },
+		steps = { "Play e4, try to move again or move their pieces.", "Let them reply." },
+		check = "Only your pieces on your turn; their reply animates on your board within a second or so; the info bar alternates \"Your move\" / \"<name>'s move\"." },
+	{ id = "FR-11", name = "Checkmate", load = { mode = "friend" },
+		steps = { "Play fool's mate: white f3, black e5, white g4, black Qh4." },
+		check = "\"Defeat\" for white and \"Victory!\" for black, \"Checkmate. Black wins.\"; the footer \"vs <name> · Won · Lost · Drawn\" counts it once on each side; no more moves; < > still step through." },
+	{ id = "FR-12", name = "Promotion", load = { mode = "friend" },
+		steps = { "Reach a promotion and pick a knight." },
+		check = "The knight appears on both boards." },
+	{ id = "FR-13", name = "Draw offer", load = { mode = "friend" },
+		steps = { "Offer Draw; decline on their side.", "Offer Draw again; accept." },
+		check = "Their popup \"<you> offers a draw.\"; declining shows \"<name> declined your draw offer.\"; accepting ends it as \"Draw\" / \"Draw agreed.\" on both, Drawn +1. Offer Draw is greyed while an offer is out." },
+	{ id = "FR-14", name = "Resign", load = { mode = "friend" },
+		steps = { "Resign (confirm)." },
+		check = "\"Defeat\" / \"You resigned.\" for you, \"Victory!\" / \"<you> resigned.\" for them; counted once each." },
+	{ id = "FR-15", name = "Away from the tab", load = { mode = "friend" },
+		steps = { "During a game, switch to Play vs AI (or close the window) and let them move." },
+		check = "A chat line \"<name> has moved. Your move!\"; back on Play vs Friend the move is there; the Play vs AI board and any computer game come back as left." },
+	{ id = "FR-16", name = "Reload mid-game", load = { mode = "friend" },
+		steps = { "/reload on one side during a game, then open Play vs Friend.", "Let the other side move while the first is still loading." },
+		check = "The game comes back with the same moves and orientation; a move missed while loading arrives when the tab opens (it syncs)." },
+	{ id = "FR-17", name = "History", load = { mode = "friend" },
+		steps = { "Press < during a game and try to move." },
+		check = "Earlier positions show, but nothing can be moved until > reaches the latest; an incoming move jumps to it." },
+	{ id = "FR-18", name = "Record in the options", load = { mode = "friend" },
+		steps = { "/kco, Friends section.", "Reset Options.", "Reset Friend Record, confirm." },
+		check = "Won / lost / drawn per opponent; Reset Options keeps it and any game in progress; Reset Friend Record clears it." },
+	{ id = "FR-19", name = "Rematch", load = { mode = "friend" },
+		steps = { "After a game, Invite > Rematch <name>." },
+		check = "Invites the last opponent directly (with the addon check)." },
+	{ id = "FR-21", name = "Forever names", load = { mode = "friend" },
+		steps = { "On WoW Forever, Invite > Enter a name..., type the friend's first and last name in lower case." },
+		check = "The popup asks for a first and last name; the invitation reaches them; the info bar and footer show \"First Last\" capitalised; the record in /kco is under that name." },
+	{ id = "FR-22", name = "Right-click invite", load = { mode = "friend" },
+		steps = { "Right-click a player in the world (or their portrait, a name in chat, a friend in the friends list) and pick Invite to Karazhan Chess.", "Right-click an NPC, yourself, and a player of the other faction." },
+		check = "The window opens on Play vs Friend and the invitation starts (\"Looking for <name>\"). No entry for NPCs, yourself or the other faction; greyed out during a game." },
+	{ id = "FR-20", name = "Slash command", load = { mode = "friend" },
+		steps = { "/kc friend <name>" },
+		check = "Opens the window on Play vs Friend and invites <name>. /kc move is refused on this tab." },
+})
+
 -- Puzzles --------------------------------------------------------------------
 -- Puzzle progress is saved: note your rating first, and use Reset Puzzle Progress
 -- in /kco afterwards for a clean start.
@@ -339,7 +412,7 @@ add("Computer: playing", {
 add("Puzzles: loading and modes", {
 	{ id = "PZ-1", name = "Tabs after reload",
 		steps = { "/reload", "/kc" },
-		check = "Two tabs below the window, Play selected; the info bar under the board is empty." },
+		check = "Three tabs below the window, Play vs AI selected; the info bar under the board is empty." },
 	{ id = "PZ-2", name = "Opening puzzles", load = { mode = "play" },
 		steps = { "Click the Puzzles tab." },
 		check = "The data loads (a short pause the first time only); a puzzle starts; the bottom buttons become tier / Solution / Next Puzzle." },
@@ -347,7 +420,7 @@ add("Puzzles: loading and modes", {
 		steps = { "Disable \"Karazhan Chess Puzzles\" in the AddOns list, /reload.", "Click the Puzzles tab.", "Re-enable the data addon afterwards." },
 		check = "Stays on Play; info bar: \"Puzzles unavailable\" and how to enable them." },
 	{ id = "PZ-4", name = "Free play is kept", load = { newGame = true, moves = { "e2e4", "e7e5", "g1f3" }, flipped = true },
-		steps = { "Click the Puzzles tab, then the Play tab." },
+		steps = { "Click the Puzzles tab, then the Play vs AI tab." },
 		check = "The free-play position, its move history (< steps back through e4 e5 Nf3) and the flipped orientation come back." },
 	{ id = "PZ-5", name = "Slash commands for modes",
 		steps = { "Close the window.", "/kc puzzle", "Close the window.", "/kc play" },
@@ -407,7 +480,7 @@ add("Puzzles: rating, tiers and progress", {
 		steps = { "Play (or show the solution of) several puzzles in each tier." },
 		check = "Puzzle ratings (in the Info tooltip) are inside the tier's range." },
 	{ id = "PZ-32", name = "Unfinished puzzle resumes", load = { mode = "puzzle" },
-		steps = { "Note the puzzle, leave mid-puzzle (Play tab or /reload), come back to Puzzles." },
+		steps = { "Note the puzzle, leave mid-puzzle (Play vs AI tab or /reload), come back to Puzzles." },
 		check = "The same unfinished puzzle starts again." },
 	{ id = "PZ-33", name = "Solved puzzles don't repeat", load = { mode = "puzzle" },
 		steps = { "Note a solved puzzle's ID (Info button) and keep playing." },

@@ -76,8 +76,10 @@ local function describeLoad(load)
 	end
 	if (load.mode == "puzzle") then
 		parts[#parts + 1] = "switches to Puzzles"
+	elseif (load.mode == "friend") then
+		parts[#parts + 1] = "switches to Play vs Friend"
 	elseif (load.mode == "play") then
-		parts[#parts + 1] = "switches to Play"
+		parts[#parts + 1] = "switches to Play vs AI"
 	end
 	return "Load: "..table.concat(parts, ", ")
 end
@@ -97,8 +99,8 @@ function TestPanel:Load(test)
 	local setsBoard = load.fen or load.newGame or load.clear
 	if (setsBoard or load.mode == "play") then
 		KC:SetMode("play")
-	elseif (load.mode == "puzzle") then
-		KC:SetMode("puzzle")
+	elseif (load.mode == "puzzle" or load.mode == "friend") then
+		KC:SetMode(load.mode)
 	end
 
 	if setsBoard then

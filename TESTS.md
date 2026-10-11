@@ -12,6 +12,7 @@ Most in-game tests start from a FEN, so they don't depend on playing moves by ha
    - `/kc fen <FEN>` sets the board up from a FEN.
    - `/kc move <uci>` plays a move, for example `e2e4`, `e1g1` (castling) or `e7e8q` (promotion).
    - `/kc computer [level] [w|b|random]` starts a game against the computer (levels: `raidfinder`, `normal`, `heroic`, `mythic`, `cuttingedge`).
+   - `/kc friend [name]` opens Play vs Friend and invites `name` (`First Last` on WoW Forever; elsewhere `Name`, or `Name-Realm` on another realm).
 
 There are no turns in free play (two players), so either colour can move at any time. Games against the computer have turns.
 
@@ -28,6 +29,7 @@ Run these in `Tools/` (`npm install` once). Run them after any change to `Rules.
 | OFF-5 | `node lua.js tests/engine.lua quick` | Engine perft counts, best moves, mate / stalemate, repetition, noise, coroutine checks all `ok`, then `all passed` (a few seconds) |
 | OFF-6 | `node lua.js tests/engine.lua` | Also deeper perft (up to 674624 for position 3) and the depth 3-5 benchmark (about 1 minute) |
 | OFF-7 | `node lua.js tests/selfplay.lua RaidFinder Normal 6` | Every game ends (no "illegal move" error); the stronger level (second) scores clearly more. Also try `Normal Heroic 4` and `Heroic Mythic 2` (slow: several minutes a game) |
+| OFF-8 | `node lua.js tests/friend.lua` | Simulated clients invite, play, draw, resign and catch up after lost messages: `76/76 checks passed`, including WoW Forever "First Last" names and names from right-click menus |
 
 ## Rules engine
 
@@ -148,11 +150,11 @@ Results count towards the level's record (`/kco`, Computer section); **Reset Com
 
 | ID | Setup | Do | Expected |
 |---|---|---|---|
-| AI-1 | Play tab | Click New Game, then Black under Play as | Menu: Two players; Raid Finder, Normal, Heroic, Mythic, Cutting Edge with grey descriptions; Play as White / Black / Random with the current one ticked. Clicking Black ticks it and the menu stays open |
+| AI-1 | Play vs AI tab | Click New Game, then Black under Play as | Menu: Two players; Raid Finder, Normal, Heroic, Mythic, Cutting Edge with grey descriptions; Play as White / Black / Random with the current one ticked. Clicking Black ticks it and the menu stays open |
 | AI-2 | New Game, play e4 | New Game, Play as White, Normal; confirm | Start position, white at the bottom; "Your move" / "You play White against the Normal computer"; grey line "Normal · Won 0 · Lost 0 · Drawn 0" (or your record) |
 | AI-3 | `/kc computer normal w` | Try a black piece; play e4 and try to pick up a piece while "Thinking..."; wait | Black never selects; nothing can be picked up while thinking; the reply animates after about half a second, then "Your move" |
 | AI-4 | `/kc computer heroic b` | Watch, then reply | Black at the bottom; the computer opens as white; then only black pieces move |
-| AI-5 | Play tab | New Game, Play as Random, Raid Finder; repeat a few times | Sometimes white, sometimes black; your colour always at the bottom |
+| AI-5 | Play vs AI tab | New Game, Play as Random, Raid Finder; repeat a few times | Sometimes white, sometimes black; your colour always at the bottom |
 | AI-6 | — | `/kc computer mythic b`, then `/kc computer`, then `/kc fen 4k3/8/8/8/8/8/8/4K3 w - - 0 1` | A Mythic game as black (no confirm popup); then a game at the last level and colour chosen; the FEN ends the computer game (no turns) |
 | AI-7 | `/kc computer normal w` | Play a move, New Game, Two players (confirm); repeat with Clear Board | Either colour moves again with no turns; the info bar clears; the computer never moves |
 
@@ -172,6 +174,41 @@ Results count towards the level's record (`/kco`, Computer section); **Reset Com
 | AI-19 | — | A few games at Raid Finder and at Mythic | Raid Finder hangs pieces and misses simple tactics; Mythic punishes hanging pieces and rarely blunders |
 | AI-20 | — | `/kco` Computer section; Reset Options; Reset Computer Record | Won / lost / drawn per level played; Reset Options keeps it; Reset Computer Record clears it |
 
+## Play vs Friend
+
+Needs a second client (a friend, or a second account) with Karazhan Chess. Results count towards the record against that player (`/kco`, Friends section). `/kc friend [name]` opens the tab (and invites `name`). Offline, `node lua.js tests/friend.lua` plays the protocol between simulated clients.
+
+### Inviting
+
+| ID | Do | Expected |
+|---|---|---|
+| FR-1 | Look below the window. Click Play vs Friend. | Three tabs: Play vs AI, Play vs Friend, Puzzles. Play vs Friend shows the start position (nothing moves), "Play vs Friend" in the info bar, and Offer Draw / Resign (greyed) / Invite. |
+| FR-2 | Click Invite. | A menu: Rematch <name> (after a first game); Friends online (character and Battle.net friends in this WoW version, or None); Enter a name...; Play as White / Black / Random, the menu staying open on a choice. |
+| FR-3 | Invite an online friend without Karazhan Chess (or Enter a name of anyone online without it). | "Looking for <name>" / "Checking that they have Karazhan Chess...", then after 5 seconds "No answer". No popup on their side. |
+| FR-4 | Enter a name: your own name; then just a first name (WoW Forever) or "two words" (elsewhere). | "That's you"; then "Not a name" (on Forever with the hint to enter a first and last name). Nothing is sent. |
+| FR-5 | With a friend on another Karazhan Chess version, invite them. | "Different versions" naming both versions; no game starts. Inviting you from their side prints the same in your chat and declines. |
+| FR-6 | Invite your friend (second client), Play as White. On their side, accept the popup. | You see "Invitation sent" / "Waiting for <name> to accept..."; they get a ready-check sound and the popup "<you> invites you to a game of Karazhan Chess. You would play Black.". Accepting opens their window on Play vs Friend with black at the bottom; you get "Your move", they get "<you>'s move". |
+| FR-7 | Invite, and decline on their side. Invite again, then Invite > Withdraw invitation. Invite again and let it run for 60 seconds. | "Declined"; the withdrawn popup closes on their side (with a chat line); after 60 seconds "No answer" and their popup closes. |
+| FR-8 | During a game, have a third player (or the opponent from a new session) invite you. | They get "Busy"; you get a chat line that you are still playing. Invite is greyed out during a game. |
+
+### Playing
+
+| ID | Do | Expected |
+|---|---|---|
+| FR-10 | Play e4, try to move again or move their pieces. Let them reply. | Only your pieces on your turn; their reply animates on your board within a second or so; the info bar alternates "Your move" / "<name>'s move". |
+| FR-11 | Play fool's mate: white f3, black e5, white g4, black Qh4. | "Defeat" for white and "Victory!" for black, "Checkmate. Black wins."; the footer "vs <name> · Won · Lost · Drawn" counts it once on each side; no more moves; < > still step through. |
+| FR-12 | Reach a promotion and pick a knight. | The knight appears on both boards. |
+| FR-13 | Offer Draw; decline on their side. Offer Draw again; accept. | Their popup "<you> offers a draw."; declining shows "<name> declined your draw offer."; accepting ends it as "Draw" / "Draw agreed." on both, Drawn +1. Offer Draw is greyed while an offer is out. |
+| FR-14 | Resign (confirm). | "Defeat" / "You resigned." for you, "Victory!" / "<you> resigned." for them; counted once each. |
+| FR-15 | During a game, switch to Play vs AI (or close the window) and let them move. | A chat line "<name> has moved. Your move!"; back on Play vs Friend the move is there; the Play vs AI board and any computer game come back as left. |
+| FR-16 | /reload on one side during a game, then open Play vs Friend. Let the other side move while the first is still loading. | The game comes back with the same moves and orientation; a move missed while loading arrives when the tab opens (it syncs). |
+| FR-17 | Press < during a game and try to move. | Earlier positions show, but nothing can be moved until > reaches the latest; an incoming move jumps to it. |
+| FR-18 | /kco, Friends section. Reset Options. Reset Friend Record, confirm. | Won / lost / drawn per opponent; Reset Options keeps it and any game in progress; Reset Friend Record clears it. |
+| FR-19 | After a game, Invite > Rematch <name>. | Invites the last opponent directly (with the addon check). |
+| FR-21 | On WoW Forever, Invite > Enter a name..., type the friend's first and last name in lower case | The popup asks for a first and last name; the invitation reaches them; "First Last" shows capitalised in the info bar, footer and /kco |
+| FR-22 | Right-click a player in the world (or portrait, chat name, friends list) > Invite to Karazhan Chess; then right-click an NPC, yourself, the other faction | The window opens on Play vs Friend and the invitation starts; no entry for NPCs, yourself or the other faction; greyed out during a game |
+| FR-20 | /kc friend <name> | Opens the window on Play vs Friend and invites <name>. /kc move is refused on this tab. |
+
 ## Puzzles
 
 Puzzle progress is saved, so note your rating before testing and use **Reset Puzzle Progress** in `/kco` afterwards if you want a clean start. `/kc puzzle` opens puzzles directly.
@@ -180,7 +217,7 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 
 | ID | Do | Expected |
 |---|---|---|
-| PZ-1 | `/reload`, `/kc` | Two tabs below the window, Play selected; the info bar under the board is empty; the window is taller than before |
+| PZ-1 | `/reload`, `/kc` | Three tabs below the window, Play vs AI selected; the info bar under the board is empty; the window is taller than before |
 | PZ-2 | Click the Puzzles tab | The data loads (a short pause the first time only); a puzzle starts; the bottom buttons become tier / Solution / Next Puzzle |
 | PZ-3 | Disable "Karazhan Chess Puzzles" in the AddOns list, `/reload`, click Puzzles | Stays on Play; info bar: "Puzzles unavailable" and how to enable them |
 | PZ-4 | Set up a position in Play (a few moves, board flipped), go to Puzzles, then back to Play | The free-play position, its move history and the orientation come back |
@@ -211,7 +248,7 @@ Puzzle progress is saved, so note your rating before testing and use **Reset Puz
 |---|---|---|
 | PZ-30 | Tier button | Menu of Raid Finder, Normal, Heroic, Mythic and Cutting Edge with rating ranges; the current one is checked; choosing one starts a puzzle from it; the button always reads "Difficulty" and the grey info line shows the chosen tier |
 | PZ-31 | Several puzzles per tier | Puzzle ratings (in the Info tooltip) are inside the tier's range |
-| PZ-32 | Leave mid-puzzle (Play tab or `/reload`), come back | The same unfinished puzzle starts again |
+| PZ-32 | Leave mid-puzzle (Play vs AI tab or `/reload`), come back | The same unfinished puzzle starts again |
 | PZ-33 | Note a solved puzzle's ID (Info button); keep playing | It doesn't come up again |
 | PZ-34 | `/kco`, Puzzles section | Lichess credit; rating / solved / failed match the footer |
 | PZ-35 | Reset Puzzle Progress (confirm) | Rating 1500, counts 0 |

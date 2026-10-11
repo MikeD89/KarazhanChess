@@ -305,11 +305,12 @@ local function insufficientMaterial(pos)
     return minors <= 1
 end
 
--- How the game ended at the latest position, or nil if it goes on:
+-- How the game ended at the latest position of history (default: the board's),
+-- or nil if it goes on. Also used for games against a friend:
 -- { kind = "checkmate" | "stalemate" | "repetition" | "fifty" | "material", winner = colour or nil }
-function Computer:GetResult()
-    local game = KC.game
-    local pos = latest()
+function Computer:GetResult(history)
+    history = history or KC.game.history
+    local pos = history[#history].pos
     local status = Rules.GetStatus(Rules.Copy(pos))
     if (status == "checkmate") then
         return { kind = "checkmate", winner = otherColour(pos.turn) }
@@ -322,7 +323,7 @@ function Computer:GetResult()
     end
 
     local key, count = repetitionKey(pos), 0
-    for _, entry in ipairs(game.history) do
+    for _, entry in ipairs(history) do
         if (repetitionKey(entry.pos) == key) then
             count = count + 1
         end
@@ -338,6 +339,7 @@ local DrawReasons = {
     fifty = "Fifty moves without a capture or pawn move",
     material = "Neither side can checkmate",
 }
+Computer.DrawReasons = DrawReasons
 
 -- The game is over: no more moves (< > still step through it), and the result
 -- counts once towards the level's record

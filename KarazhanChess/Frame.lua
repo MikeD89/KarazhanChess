@@ -165,6 +165,19 @@ function KC:createChessFrame(frame)
 
 	KC.puzzleButtons = { nextButton, KC.solutionButton, KC.tierButton, KC.infoButton }
 
+	-- Play vs Friend buttons: Invite opens a menu of online friends (or a name
+	-- to type), and offers a rematch
+	KC.inviteButton = createButton("Invite", nil, function(button) KC:OpenInviteMenu(button) end)
+	KC.inviteButton:SetPoint("BOTTOMRIGHT", -KC.frameMargin, 17)
+
+	KC.resignButton = createButton("Resign", nil, function() ns.Friend:ResignWithConfirm() end)
+	KC.resignButton:SetPoint("RIGHT", KC.inviteButton, "LEFT", -buttonMargin, 0)
+
+	KC.drawButton = createButton("Offer Draw", buttonWidth + 10, function() ns.Friend:OfferDraw() end)
+	KC.drawButton:SetPoint("RIGHT", KC.resignButton, "LEFT", -buttonMargin, 0)
+
+	KC.friendButtons = { KC.inviteButton, KC.resignButton, KC.drawButton }
+
 	-- Move history buttons (both modes), bottom left: back one move / forward one move
 	local function createHistoryButton(text, tooltip, delta)
 		local button = createButton(text, 30, function() KC.game:StepHistory(delta) end)
@@ -184,8 +197,11 @@ function KC:createChessFrame(frame)
 	for _, button in ipairs(KC.puzzleButtons) do
 		button:Hide()
 	end
+	for _, button in ipairs(KC.friendButtons) do
+		button:Hide()
+	end
 
-	-- Mode tabs (Play / Puzzles), hanging below the window like Blizzard's panel tabs
+	-- Mode tabs (Play vs AI / Play vs Friend / Puzzles), hanging below the window like Blizzard's panel tabs
 	KC:createModeTabs(frame)
 
 	-- Resize grip in the bottom-right corner
@@ -234,14 +250,20 @@ function KC:SetStatus(status, colour, detail, footer)
 end
 
 -- Modes
--- Two tabs below the window switch between free play and puzzles
+-- Tabs below the window switch between free play (and games against the
+-- computer), games against a friend and puzzles
+KC.Modes = {
+	{ key = "play", name = "Play vs AI" },
+	{ key = "friend", name = "Play vs Friend" },
+	{ key = "puzzle", name = "Puzzles" },
+}
+
 function KC:createModeTabs(frame)
 	KC.modeTabs = {}
-	local names = { "Play", "Puzzles" }
-	for i, name in ipairs(names) do
+	for i, mode in ipairs(KC.Modes) do
 		local tab = CreateFrame("BUTTON", nil, frame, "PanelTabButtonTemplate")
 		tab:SetID(i)
-		tab:SetText(name)
+		tab:SetText(mode.name)
 		PanelTemplates_TabResize(tab, 0)
 		if (i == 1) then
 			tab:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 12, 7)
@@ -250,7 +272,7 @@ function KC:createModeTabs(frame)
 		end
 		tab:SetScript("OnClick", function()
 			PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
-			KC:SetMode((i == 1) and "play" or "puzzle")
+			KC:SetMode(mode.key)
 		end)
 		KC.modeTabs[i] = tab
 	end
@@ -260,29 +282,104 @@ function KC:createModeTabs(frame)
 	KC.mode = "play"
 end
 
--- Switches between "play" (free play) and "puzzle"
+-- Switches between "play" (free play and the computer), "friend" and "puzzle"
 function KC:SetMode(mode)
 	if (mode == KC.mode) then
 		return
 	end
 
-	if (mode == "puzzle") then
-		if not ns.Puzzles:Enter() then
-			return -- The info bar says why
-		end
-	else
+	-- Back to the Play board first: the other modes keep it aside and restore it
+	if (KC.mode == "puzzle") then
 		ns.Puzzles:Leave()
+	elseif (KC.mode == "friend") then
+		ns.Friend:Leave()
+	end
+	KC.mode = "play"
+
+	if (mode == "puzzle" and not ns.Puzzles:Enter()) then
+		mode = "play" -- The info bar says why
+	elseif (mode == "friend") then
+		ns.Friend:Enter()
 	end
 
 	KC.mode = mode
-	PanelTemplates_SetTab(KC.frame, (mode == "play") and 1 or 2)
+	for i, info in ipairs(KC.Modes) do
+		if (info.key == mode) then
+			PanelTemplates_SetTab(KC.frame, i)
+		end
+	end
 	for _, button in ipairs(KC.playButtons) do
 		button:SetShown(mode == "play")
+	end
+	for _, button in ipairs(KC.friendButtons) do
+		button:SetShown(mode == "friend")
 	end
 	for _, button in ipairs(KC.puzzleButtons) do
 		button:SetShown(mode == "puzzle")
 	end
 	KC:UpdatePuzzleButtons()
+	KC:UpdateFriendButtons()
+end
+
+-- Invite only between games; Offer Draw and Resign during one
+function KC:UpdateFriendButtons()
+	if not KC.inviteButton then
+		return
+	end
+	local Friend = ns.Friend
+	local playing = Friend:InProgress()
+	KC.inviteButton:SetEnabled(not playing)
+	KC.drawButton:SetEnabled(playing and not Friend.drawOffered)
+	KC.resignButton:SetEnabled(playing)
+end
+
+-- The Invite menu: a rematch, online friends, a name to type, and the colour
+-- to play. While an invitation is out it offers to withdraw it instead.
+function KC:OpenInviteMenu(owner)
+	local Friend = ns.Friend
+	if not (MenuUtil and MenuUtil.CreateContextMenu) then
+		if (Friend.checking or Friend.pending) then
+			Friend:CancelInvite()
+		else
+			StaticPopup_Show(Friend.NameDiag)
+		end
+		return
+	end
+
+	local settings = Friend:GetSettings()
+	MenuUtil.CreateContextMenu(owner, function(_, root)
+		if (Friend.checking or Friend.pending) then
+			root:CreateTitle("Invitation sent")
+			root:CreateButton("Withdraw invitation", function() Friend:CancelInvite() end)
+			return
+		end
+
+		if settings.last then
+			root:CreateButton("Rematch "..Friend.Display(settings.last), function() Friend:Invite(settings.last) end)
+			root:CreateDivider()
+		end
+		root:CreateTitle("Friends online")
+		local friends = Friend:GetOnlineFriends()
+		for _, friend in ipairs(friends) do
+			root:CreateButton(friend.label, function() Friend:Invite(friend.name) end)
+		end
+		if (#friends == 0) then
+			root:CreateTitle("|cff9d9d9dNone|r")
+		end
+		root:CreateDivider()
+		root:CreateButton("Enter a name...", function() StaticPopup_Show(Friend.NameDiag) end)
+
+		root:CreateDivider()
+		root:CreateTitle("Play as")
+		for _, choice in ipairs({ { "w", "White" }, { "b", "Black" }, { "random", "Random" } }) do
+			root:CreateRadio(choice[2],
+				function() return settings.colour == choice[1] end,
+				function()
+					settings.colour = choice[1]
+					return MenuResponse and MenuResponse.Refresh -- keep the menu open
+				end)
+		end
+	end)
 end
 
 -- < and > are enabled when there is an earlier / later position to show

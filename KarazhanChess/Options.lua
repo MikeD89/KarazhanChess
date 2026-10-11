@@ -37,7 +37,7 @@ KC.options = {
 		},
 		mainText = {
 			type = "description",
-			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kc computer - New game against the computer\n/kc puzzle - Puzzles\n/kco - Options Panel",
+			name = "|cFFFFFF00" .. "\n/kc -  Play Chess\n/kc computer - New game against the computer\n/kc friend [name] - Play against a friend\n/kc puzzle - Puzzles\n/kco - Options Panel",
 			fontSize = "medium",
 			order = 4,
 		},
@@ -191,6 +191,29 @@ KC.options = {
 				ns.Computer:ShowStatus()
 			end,
 		},
+		friendHeader = {
+			type = "header",
+			name = "Friends",
+			order = 55,
+		},
+		friendRecord = {
+			type = "description",
+			name = function() return KC:getFriendRecordText() end,
+			fontSize = "medium",
+			order = 56,
+		},
+		resetFriendButton = {
+			type = "execute",
+			name = "Reset Friend Record",
+			desc = "Forgets your wins, losses and draws against friends.",
+			confirm = true,
+			confirmText = "Forget your wins, losses and draws against friends?",
+			order = 57,
+			func = function()
+				KC.db.global.friend.record = {}
+				ns.Friend:Update()
+			end,
+		},
 		hiddenHeader = {
 			type = "header",
 			hidden = true,
@@ -269,6 +292,12 @@ KC.optionDefaults = {
 			colour = "random", -- "w", "b" or "random"
 			record = {},      -- [level key] = { won, lost, drawn }
 		},
+		friend = {
+			colour = "random", -- "w", "b" or "random", for invitations we send
+			record = {},      -- [lower case name] = { name, won, lost, drawn } (names: Friend.FullName)
+			last = nil,       -- name of the last opponent (Rematch)
+			game = nil,       -- the current or last game, see Friend.lua
+		},
 		puzzles = {
 			rating = 1500,
 			tier = "Normal",
@@ -283,13 +312,17 @@ KC.optionDefaults = {
 -- Reset Options --
 -------------------
 function KC:resetProfile(info)
-	-- Puzzle progress and the record against the computer aren't options, so they
-	-- survive (they have their own resets)
+	-- Puzzle progress, the records and a game against a friend aren't options, so
+	-- they survive (the records have their own resets)
 	local puzzles = self.db.global.puzzles
 	local record = self.db.global.computer.record
+	local friend = self.db.global.friend
 	self.db:ResetDB(KC.profileName)
 	self.db.global.puzzles = puzzles
 	self.db.global.computer.record = record
+	self.db.global.friend.record = friend.record
+	self.db.global.friend.last = friend.last
+	self.db.global.friend.game = friend.game
 
 	-- ResetDB replaces db.global, so point the minimap icon at the new settings table
 	KC.ICON:Refresh(KC.name, KC.db.global.minimapIcon)
@@ -428,6 +461,26 @@ function KC:getComputerRecordText()
 	end
 	if (#lines == 0) then
 		return "No games against the computer yet. Start one with New Game.\n"
+	end
+	return table.concat(lines, "\n").."\n"
+end
+
+
+-- Friend Record
+
+function KC:getFriendRecordText()
+	local records = {}
+	for _, record in pairs(self.db.global.friend.record) do
+		records[#records + 1] = record
+	end
+	if (#records == 0) then
+		return "No games against friends yet. Start one from the Play vs Friend tab.\n"
+	end
+	table.sort(records, function(a, b) return a.name:lower() < b.name:lower() end)
+	local lines = {}
+	for _, record in ipairs(records) do
+		lines[#lines + 1] = ns.Friend.Display(record.name)..": |cffffffff"..record.won.."|r won, |cffffffff"
+			..record.lost.."|r lost, |cffffffff"..record.drawn.."|r drawn"
 	end
 	return table.concat(lines, "\n").."\n"
 end

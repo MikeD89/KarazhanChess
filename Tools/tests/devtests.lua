@@ -28,7 +28,7 @@ for _, test in ipairs(Tests) do
         for key in pairs(load) do
             if not loadFields[key] then fail(test, "unknown load field " .. key) end
         end
-        if load.mode and load.mode ~= "play" and load.mode ~= "puzzle" then fail(test, "bad mode " .. tostring(load.mode)) end
+        if load.mode and load.mode ~= "play" and load.mode ~= "puzzle" and load.mode ~= "friend" then fail(test, "bad mode " .. tostring(load.mode)) end
         if load.computer then
             if not levels[load.computer.level] then fail(test, "bad computer level " .. tostring(load.computer.level)) end
             local colour = load.computer.colour

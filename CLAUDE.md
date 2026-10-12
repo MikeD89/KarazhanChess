@@ -6,8 +6,8 @@ A World of Warcraft addon: a chess board in a movable window (`/kc`). Work in pr
 
 - **WoW Forever** (interface `16001`) is the primary target. Forever uses the modern Mainline UI API, not the old Classic API.
 - **Retail** (`120100`, `120105`) is also declared in [KarazhanChess.toc](KarazhanChess.toc).
-- The checkout lives in `_classic_beta_\Interface\AddOns\KarazhanChess`. `_retail_\Interface\AddOns\KarazhanChess` is a **directory junction** to it — edits apply to both clients. Never delete through the junction recursively.
-- The puzzle data addon lives in the repo at `KarazhanChess_Puzzles/`. WoW only scans top-level addon folders, so both clients have a junction `Interface\AddOns\KarazhanChess_Puzzles` → `_classic_beta_\Interface\AddOns\KarazhanChess\KarazhanChess_Puzzles` (same caution).
+- The checkout lives at `M:\Stuff\Dev\KarazhanChess`, outside the WoW install (a `.git` inside the game folder makes the Battle.net agent's permission pass fail, and the game keeps asking to update). `_classic_beta_\Interface\AddOns\KarazhanChess` and `_retail_\Interface\AddOns\KarazhanChess` are **directory junctions** to it — edits apply to both clients. Never delete through the junction recursively.
+- The puzzle data addon lives in the repo at `KarazhanChess_Puzzles/`. WoW only scans top-level addon folders, so both clients have a junction `Interface\AddOns\KarazhanChess_Puzzles` → `M:\Stuff\Dev\KarazhanChess\KarazhanChess_Puzzles` (same caution).
 - Use modern APIs only: `Settings.OpenToCategory`, `BackdropTemplate` for any frame that calls `SetBackdrop`, `PlaySound(SOUNDKIT.*)`. No `InterfaceOptions*` functions.
 
 ## Testing
